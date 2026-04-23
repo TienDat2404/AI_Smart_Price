@@ -1,0 +1,9 @@
+# Tránh đồng bộ rác OneDrive
+**/node_modules/
+**/build/
+**/.dart_tool/
+**/bin/
+**/obj/
+**/venv/
+**/__pycache__/
+.packages

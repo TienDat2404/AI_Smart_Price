@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+underthesea
+easyocr
+pandas
+scikit-learn
