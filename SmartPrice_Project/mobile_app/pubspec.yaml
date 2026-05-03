@@ -41,6 +41,18 @@ dependencies:
   # Lưu trữ token và session cục bộ
   shared_preferences: ^2.3.2
 
+  # Biểu đồ (PieChart, LineChart)
+  fl_chart: ^0.70.2
+
+  # Local notifications — cảnh báo chi tiêu
+  flutter_local_notifications: ^18.0.1
+
+  # Camera preview
+  camera: ^0.11.1
+
+  # Chọn ảnh từ thư viện
+  image_picker: ^1.1.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

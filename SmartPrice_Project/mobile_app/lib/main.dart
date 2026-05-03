@@ -1,18 +1,35 @@
 import 'package:flutter/material.dart';
 import 'core/services/auth_service.dart';
+import 'core/services/notification_service.dart';
 import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
+import 'mobile_ui/analytics/analytics_screen.dart';
 import 'mobile_ui/auth/login_screen.dart';
 import 'mobile_ui/dashboard/dashboard_screen.dart';
 
-// ThemeProvider singleton — sống suốt vòng đời app
+// ThemeProvider singleton
 final _themeProvider = ThemeProvider();
+
+// NavigatorKey để điều hướng từ notification tap
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Load theme đã lưu trước khi render frame đầu tiên
   await _themeProvider.init();
+
+  // Khởi tạo NotificationService
+  await NotificationService.instance.init();
+
+  // Khi user nhấn notification → mở AnalyticsScreen
+  NotificationService.instance.onNotificationTap = (payload) {
+    if (payload == 'analytics') {
+      navigatorKey.currentState?.push(
+        MaterialPageRoute(builder: (_) => const AnalyticsScreen()),
+      );
+    }
+  };
+
   runApp(const SmartPriceApp());
 }
 
@@ -30,6 +47,7 @@ class SmartPriceApp extends StatelessWidget {
           child: MaterialApp(
             title: 'SmartPrice AI',
             debugShowCheckedModeBanner: false,
+            navigatorKey: navigatorKey,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: _themeProvider.themeMode,

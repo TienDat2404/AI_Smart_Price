@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/theme/app_colors.dart';
@@ -29,25 +30,17 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  // ── Actions ───────────────────────────────────────────────────────────────
-
   Future<void> _onLogin() async {
-    // 1. Validate form trước
     if (!_formKey.currentState!.validate()) return;
-
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
-
     try {
-      // 2. Gọi API đăng nhập
       final response = await ApiService.instance.login(
         email: _emailCtrl.text,
         password: _passwordCtrl.text,
       );
-
-      // 3. Lưu token và thông tin user vào SharedPreferences
       await Future.wait([
         AuthService.instance.saveToken(response.token),
         AuthService.instance.saveUserInfo(
@@ -57,14 +50,14 @@ class _LoginScreenState extends State<LoginScreen> {
           isAdmin: response.isAdmin,
         ),
       ]);
-
-      // 4. Điều hướng — dùng pushReplacement để không thể back về Login
       if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const DashboardScreen()),
-      );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const DashboardScreen()),
+        );
+      });
     } on ApiException catch (e) {
-      // Xử lý lỗi từ server có HTTP status code
       setState(() {
         _errorMessage = switch (e.statusCode) {
           401 => 'Email hoặc mật khẩu không đúng.',
@@ -76,9 +69,10 @@ class _LoginScreenState extends State<LoginScreen> {
         };
       });
     } catch (e) {
-      // Lỗi mạng, timeout, v.v.
+      // In chi tiết lỗi ra Debug Console của VS Code
+      debugPrint('[Login] Lỗi kết nối: ${e.runtimeType}: $e');
       setState(() {
-        _errorMessage = 'Không thể kết nối. Kiểm tra lại kết nối mạng.';
+        _errorMessage = 'Không thể kết nối. Kiểm tra lại kết nối mạng.\n(${e.runtimeType})';
       });
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -86,18 +80,22 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _goToRegister() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const RegisterScreen()),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const RegisterScreen()),
+      );
+    });
   }
 
   void _goToForgotPassword() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
+      );
+    });
   }
-
-  // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -105,175 +103,151 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: AppColors.background,
       body: MobileLayout.scrollable(
         child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ── Header ──────────────────────────────────────────────
-                const AuthHeader(
-                  title: 'Chào mừng trở lại!',
-                  subtitle: 'Đăng nhập để tiếp tục quản lý tài chính.',
-                ),
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const AuthHeader(
+                title: 'Chào mừng trở lại!',
+                subtitle: 'Đăng nhập để tiếp tục quản lý tài chính.',
+              ),
+              const SizedBox(height: 36),
 
-                const SizedBox(height: 36),
+              // Email
+              CustomTextField(
+                label: 'Email',
+                hint: 'example@email.com',
+                controller: _emailCtrl,
+                keyboardType: TextInputType.emailAddress,
+                prefixIcon: Icons.email_outlined,
+                enabled: !_isLoading,
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return 'Vui lòng nhập email';
+                  if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(v.trim())) {
+                    return 'Email không hợp lệ';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
 
-                // ── Email ────────────────────────────────────────────────
-                CustomTextField(
-                  label: 'Email',
-                  hint: 'example@email.com',
-                  controller: _emailCtrl,
-                  keyboardType: TextInputType.emailAddress,
-                  prefixIcon: Icons.email_outlined,
-                  enabled: !_isLoading,
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) {
-                      return 'Vui lòng nhập email';
-                    }
-                    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
-                    if (!emailRegex.hasMatch(v.trim())) {
-                      return 'Email không hợp lệ';
-                    }
-                    return null;
-                  },
-                ),
+              // Password
+              CustomTextField(
+                label: 'Mật khẩu',
+                hint: '••••••••',
+                controller: _passwordCtrl,
+                isPassword: true,
+                textInputAction: TextInputAction.done,
+                prefixIcon: Icons.lock_outline,
+                enabled: !_isLoading,
+                onSubmitted: (_) => _onLogin(),
+                validator: (v) {
+                  if (v == null || v.isEmpty) return 'Vui lòng nhập mật khẩu';
+                  if (v.length < 6) return 'Mật khẩu tối thiểu 6 ký tự';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 10),
 
-                const SizedBox(height: 16),
-
-                // ── Password ─────────────────────────────────────────────
-                CustomTextField(
-                  label: 'Mật khẩu',
-                  hint: '••••••••',
-                  controller: _passwordCtrl,
-                  isPassword: true,
-                  textInputAction: TextInputAction.done,
-                  prefixIcon: Icons.lock_outline,
-                  enabled: !_isLoading,
-                  onSubmitted: (_) => _onLogin(),
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return 'Vui lòng nhập mật khẩu';
-                    if (v.length < 6) return 'Mật khẩu tối thiểu 6 ký tự';
-                    return null;
-                  },
-                ),
-
-                const SizedBox(height: 10),
-
-                // ── Quên mật khẩu ────────────────────────────────────────
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: _isLoading ? null : _goToForgotPassword,
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    child: const Text(
-                      'Quên mật khẩu?',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
+              // Quên mật khẩu
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: _isLoading ? null : _goToForgotPassword,
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: const Text(
+                    'Quên mật khẩu?',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
+              ),
+              const SizedBox(height: 8),
 
-                const SizedBox(height: 8),
+              // Error
+              if (_errorMessage != null) ...[
+                _ErrorBanner(message: _errorMessage!),
+                const SizedBox(height: 16),
+              ],
+              const SizedBox(height: 8),
 
-                // ── Error message ────────────────────────────────────────
-                if (_errorMessage != null) ...[
-                  _ErrorBanner(message: _errorMessage!),
-                  const SizedBox(height: 16),
+              // Nút đăng nhập
+              AuthButton(
+                label: 'Đăng nhập',
+                onPressed: _isLoading ? null : _onLogin,
+                isLoading: _isLoading,
+                icon: Icons.login_rounded,
+              ),
+              const SizedBox(height: 24),
+
+              const AuthDivider(),
+              const SizedBox(height: 20),
+
+              // Social
+              Row(
+                children: [
+                  Expanded(
+                    child: SocialAuthButton(
+                      label: 'Face ID',
+                      icon: const Icon(
+                        Icons.face_retouching_natural,
+                        color: AppColors.primary,
+                      ),
+                      onPressed: _isLoading ? null : () {},
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: SocialAuthButton(
+                      label: 'Google',
+                      icon: _GoogleIcon(),
+                      onPressed: _isLoading ? null : () {},
+                    ),
+                  ),
                 ],
+              ),
+              const SizedBox(height: 32),
 
-                const SizedBox(height: 8),
-
-                // ── Nút Đăng nhập ────────────────────────────────────────
-                AuthButton(
-                  label: 'Đăng nhập',
-                  onPressed: _isLoading ? null : _onLogin,
-                  isLoading: _isLoading,
-                  icon: Icons.login_rounded,
-                ),
-
-                const SizedBox(height: 24),
-
-                // ── Divider ──────────────────────────────────────────────
-                const AuthDivider(),
-
-                const SizedBox(height: 20),
-
-                // ── Social Auth ──────────────────────────────────────────
-                Row(
+              // Chuyển sang Register
+              Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Expanded(
-                      child: SocialAuthButton(
-                        label: 'Face ID',
-                        icon: const Icon(
-                          Icons.face_retouching_natural,
-                          color: AppColors.primary,
-                        ),
-                        onPressed: _isLoading
-                            ? null
-                            : () {
-                                // TODO: Implement biometric auth
-                              },
+                    const Text(
+                      'Chưa có tài khoản? ',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: SocialAuthButton(
-                        label: 'Google',
-                        icon: _GoogleIcon(),
-                        onPressed: _isLoading
-                            ? null
-                            : () {
-                                // TODO: Implement Google Sign-In
-                              },
+                    GestureDetector(
+                      onTap: _isLoading ? null : () => WidgetsBinding.instance.addPostFrameCallback((_) => _goToRegister()),
+                      child: const Text(
+                        'Đăng ký ngay',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ],
                 ),
-
-                const SizedBox(height: 32),
-
-                // ── Chuyển sang Register ─────────────────────────────────
-                Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'Chưa có tài khoản? ',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: _isLoading ? null : _goToRegister,
-                        child: const Text(
-                          'Đăng ký ngay',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 }
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
 
 class _ErrorBanner extends StatelessWidget {
   final String message;

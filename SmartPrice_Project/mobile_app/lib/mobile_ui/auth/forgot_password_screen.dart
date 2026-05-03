@@ -40,7 +40,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       await Future.delayed(const Duration(seconds: 2));
 
       if (!mounted) return;
-      setState(() => _emailSent = true);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(() => _emailSent = true);
+      });
     } catch (e) {
       setState(() => _errorMessage = 'Không tìm thấy tài khoản với email này.');
     } finally {
@@ -48,7 +51,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     }
   }
 
-  void _goBack() => Navigator.of(context).maybePop();
+  void _goBack() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Navigator.of(context).maybePop();
+    });
+  }
 
   // ── Build ─────────────────────────────────────────────────────────────────
 
@@ -301,9 +309,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         // Gửi lại
         Center(
           child: TextButton(
-            onPressed: () => setState(() {
-              _emailSent = false;
-              _emailCtrl.clear();
+            onPressed: () => WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) setState(() {
+                _emailSent = false;
+                _emailCtrl.clear();
+              });
             }),
             child: const Text(
               'Gửi lại email',

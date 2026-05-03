@@ -103,7 +103,9 @@ class _CustomTextFieldState extends State<CustomTextField> {
                         size: 20,
                         color: AppColors.textSecondary,
                       ),
-                      onPressed: () => setState(() => _obscure = !_obscure),
+                      onPressed: () => WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (mounted) setState(() => _obscure = !_obscure);
+                      }),
                     )
                   : widget.suffixWidget,
               border: OutlineInputBorder(

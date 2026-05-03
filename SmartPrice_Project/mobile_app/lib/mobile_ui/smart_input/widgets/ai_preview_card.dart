@@ -2,15 +2,17 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 
 /// Card hiển thị kết quả AI dự đoán để User xác nhận trước khi lưu.
-/// Xuất hiện phía bên trái trong giao diện chat (bubble AI).
+/// Hỗ trợ hiển thị nhiều card (câu ghép) với label đánh số.
 class AiPreviewCard extends StatelessWidget {
   final String amount;
   final String category;
   final String note;
   final double confidence;
-  final VoidCallback onConfirm;
+  final VoidCallback? onConfirm;   // null nếu không phải card cuối
   final VoidCallback onEdit;
   final VoidCallback onCancel;
+  final String? label;             // "Giao dịch 1", "Giao dịch 2", ...
+  final bool showActions;          // chỉ card cuối mới hiện nút
 
   const AiPreviewCard({
     super.key,
@@ -18,9 +20,11 @@ class AiPreviewCard extends StatelessWidget {
     required this.category,
     required this.note,
     required this.confidence,
-    required this.onConfirm,
+    this.onConfirm,
     required this.onEdit,
     required this.onCancel,
+    this.label,
+    this.showActions = true,
   });
 
   @override
@@ -72,9 +76,9 @@ class AiPreviewCard extends StatelessWidget {
               children: [
                 const Icon(Icons.auto_awesome, size: 16, color: AppColors.neonCyan),
                 const SizedBox(width: 6),
-                const Text(
-                  'SmartPrice AI',
-                  style: TextStyle(
+                Text(
+                  label ?? 'SmartPrice AI',
+                  style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                     color: AppColors.primary,
@@ -149,8 +153,8 @@ class AiPreviewCard extends StatelessWidget {
 
                 const SizedBox(height: 14),
 
-                // ── Nút hành động ─────────────────────────────────────
-                Row(
+                // ── Nút hành động — chỉ hiện ở card cuối ─────────────
+                if (showActions) Row(
                   children: [
                     // Hủy
                     _ActionButton(
@@ -182,14 +186,14 @@ class AiPreviewCard extends StatelessWidget {
                             ),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.check, color: Colors.white, size: 16),
-                              SizedBox(width: 4),
+                              const Icon(Icons.check, color: Colors.white, size: 16),
+                              const SizedBox(width: 4),
                               Text(
-                                'Lưu giao dịch',
-                                style: TextStyle(
+                                'Lưu tất cả',
+                                style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w700,
                                   fontSize: 13,

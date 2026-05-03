@@ -1,0 +1,105 @@
+{
+  "metadata": {
+    "source": "ocr_samples.txt",
+    "total_records": 15,
+    "description": "OCR invoice samples for receipt scanning feature testing"
+  },
+  "data": [
+    {
+      "invoice_id": "INV-100",
+      "store": "Cửa hàng ABC",
+      "total": 194000,
+      "date": "2026-04-11"
+    },
+    {
+      "invoice_id": "INV-101",
+      "store": "Cửa hàng ABC",
+      "total": 161000,
+      "date": "2026-04-11"
+    },
+    {
+      "invoice_id": "INV-102",
+      "store": "Cửa hàng ABC",
+      "total": 86000,
+      "date": "2026-04-11"
+    },
+    {
+      "invoice_id": "INV-103",
+      "store": "Cửa hàng ABC",
+      "total": 110000,
+      "date": "2026-04-11"
+    },
+    {
+      "invoice_id": "INV-104",
+      "store": "Cửa hàng ABC",
+      "total": 157000,
+      "date": "2026-04-11"
+    },
+    {
+      "invoice_id": "INV-105",
+      "store": "Cửa hàng ABC",
+      "total": 166000,
+      "date": "2026-04-11"
+    },
+    {
+      "invoice_id": "INV-106",
+      "store": "Cửa hàng ABC",
+      "total": 71000,
+      "date": "2026-04-11"
+    },
+    {
+      "invoice_id": "INV-107",
+      "store": "Cửa hàng ABC",
+      "total": 161000,
+      "date": "2026-04-11"
+    },
+    {
+      "invoice_id": "INV-108",
+      "store": "Cửa hàng ABC",
+      "total": 200000,
+      "date": "2026-04-11"
+    },
+    {
+      "invoice_id": "INV-109",
+      "store": "Cửa hàng ABC",
+      "total": 169000,
+      "date": "2026-04-11"
+    },
+    {
+      "invoice_id": "INV-110",
+      "store": "Cửa hàng ABC",
+      "total": 105000,
+      "date": "2026-04-11"
+    },
+    {
+      "invoice_id": "INV-111",
+      "store": "Cửa hàng ABC",
+      "total": 85000,
+      "date": "2026-04-11"
+    },
+    {
+      "invoice_id": "INV-112",
+      "store": "Cửa hàng ABC",
+      "total": 73000,
+      "date": "2026-04-11"
+    },
+    {
+      "invoice_id": "INV-113",
+      "store": "Cửa hàng ABC",
+      "total": 135000,
+      "date": "2026-04-11"
+    },
+    {
+      "invoice_id": "INV-114",
+      "store": "Cửa hàng ABC",
+      "total": 164000,
+      "date": "2026-04-11"
+    }
+  ],
+  "summary": {
+    "min_total": 71000,
+    "max_total": 200000,
+    "avg_total": 129133,
+    "total_invoices": 15
+  }
+}

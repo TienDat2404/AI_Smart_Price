@@ -49,14 +49,34 @@ class _TransactionTile extends StatelessWidget {
           child: Icon(_categoryIcon(t.category), color: AppColors.primary, size: 20),
         ),
         title: Text(
-          t.note.isNotEmpty ? t.note : t.category,
+          t.itemName.isNotEmpty ? t.itemName : t.category,
           style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        subtitle: Text(
-          t.category,
-          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+        subtitle: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.neonCyan.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                t.category,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              _formatDate(t.date),
+              style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+            ),
+          ],
         ),
         trailing: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -69,11 +89,6 @@ class _TransactionTile extends StatelessWidget {
                 fontSize: 13,
                 color: t.isExpense ? AppColors.expense : AppColors.income,
               ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              _formatDate(t.date),
-              style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
             ),
           ],
         ),

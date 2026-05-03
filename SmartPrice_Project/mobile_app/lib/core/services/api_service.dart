@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/transaction.dart';
 import '../models/budget.dart';
@@ -31,51 +33,88 @@ class LoginResponse {
   });
 
   factory LoginResponse.fromJson(Map<String, dynamic> json) => LoginResponse(
-        token: json['token'] as String,
-        userId: json['userId'] as String,
-        name: json['name'] as String,
-        email: json['email'] as String,
-        isAdmin: json['isAdmin'] as bool? ?? false,
+        // Backend C# record trả về PascalCase: Token, UserId, Name, Email, IsAdmin
+        token:   (json['Token']   ?? json['token'])   as String,
+        userId:  (json['UserId']  ?? json['userId'])  as String,
+        name:    (json['Name']    ?? json['name'])    as String,
+        email:   (json['Email']   ?? json['email'])   as String,
+        isAdmin: (json['IsAdmin'] ?? json['isAdmin'] ?? false) as bool,
       );
+}
+
+/// Thống kê thu/chi từ GET /api/transactions/stats
+class TransactionStats {
+  final int totalTransactions;
+  final double totalExpense;
+  final double totalIncome;
+  final double balance;
+  final double monthExpense;
+  final double monthIncome;
+  final double monthBalance;
+
+  const TransactionStats({
+    required this.totalTransactions,
+    required this.totalExpense,
+    required this.totalIncome,
+    required this.balance,
+    this.monthExpense = 0,
+    this.monthIncome  = 0,
+    this.monthBalance = 0,
+  });
+
+  factory TransactionStats.fromJson(Map<String, dynamic> json) {
+    double _toDouble(dynamic v) =>
+        v is String ? double.tryParse(v) ?? 0.0 : (v as num? ?? 0).toDouble();
+
+    return TransactionStats(
+      totalTransactions: (json['totalTransactions'] as num? ?? 0).toInt(),
+      totalExpense:  _toDouble(json['totalExpense']),
+      totalIncome:   _toDouble(json['totalIncome']),
+      balance:       _toDouble(json['balance']),
+      monthExpense:  _toDouble(json['monthExpense']),
+      monthIncome:   _toDouble(json['monthIncome']),
+      monthBalance:  _toDouble(json['monthBalance']),
+    );
+  }
 }
 
 /// Service giao tiếp với ASP.NET Core Backend API.
 ///
-/// Cấu hình baseUrl:
-/// - Emulator Android  : http://10.0.2.2:5000/api
-/// - iOS Simulator     : http://localhost:5000/api
-/// - Thiết bị thật     : http://<IP_máy_tính>:5000/api
+/// Cấu hình baseUrl theo môi trường:
+/// - Windows Desktop   : http://127.0.0.1:5261/api  ← 127.0.0.1 ổn định hơn localhost trên Windows
+/// - Android Emulator  : http://10.0.2.2:5261/api   ← 10.0.2.2 = localhost của máy host
+/// - iOS Simulator     : http://127.0.0.1:5261/api
+/// - Thiết bị thật     : http://<IP_LAN_máy_tính>:5261/api
 class ApiService {
-  static const String _baseUrl = 'http://10.0.2.2:5000/api';
+  // ✅ 127.0.0.1 thay vì localhost để tránh DNS resolution issue trên Windows
+  static const String _baseUrl = 'http://127.0.0.1:5261/api';
 
-  // Timeout mặc định cho mọi request
   static const Duration _timeout = Duration(seconds: 15);
 
   ApiService._();
   static final ApiService instance = ApiService._();
 
-  // ── HTTP helpers ──────────────────────────────────────────────────────
+  // ── HTTP helpers ──────────────────────────────────────────────────────────
 
-  /// Header chung — thêm Authorization token khi có.
   Map<String, String> _headers({String? token}) => {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
         if (token != null) 'Authorization': 'Bearer $token',
       };
 
-  /// Parse response và ném [ApiException] nếu status không thành công.
   dynamic _parseResponse(http.Response response) {
     final body = utf8.decode(response.bodyBytes);
+    // Debug log — xóa khi release
+    debugPrint('[API] ${response.request?.method} ${response.request?.url} → ${response.statusCode}');
+    if (body.isNotEmpty) debugPrint('[API] Response body: $body');
+
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return body.isNotEmpty ? jsonDecode(body) : null;
     }
-    // Cố gắng lấy message từ body JSON
     String message = 'Lỗi không xác định';
     try {
       final json = jsonDecode(body) as Map<String, dynamic>;
-      message = json['message'] as String? ??
-          json['title'] as String? ??
-          message;
+      message = json['message'] as String? ?? json['title'] as String? ?? message;
     } catch (_) {
       message = body.isNotEmpty ? body : 'HTTP ${response.statusCode}';
     }
@@ -83,64 +122,78 @@ class ApiService {
   }
 
   Future<dynamic> _get(String path, {Map<String, String>? query}) async {
-    final uri = Uri.parse('$_baseUrl$path')
-        .replace(queryParameters: query);
-    final response = await http.get(uri, headers: _headers()).timeout(_timeout);
-    return _parseResponse(response);
+    final uri = Uri.parse('$_baseUrl$path').replace(queryParameters: query);
+    debugPrint('[API] GET $uri');
+    try {
+      final response = await http.get(uri, headers: _headers()).timeout(_timeout);
+      return _parseResponse(response);
+    } catch (e) {
+      debugPrint('[API] GET ERROR: $e');
+      rethrow;
+    }
   }
 
   Future<dynamic> _post(String path, Map<String, dynamic> body) async {
     final uri = Uri.parse('$_baseUrl$path');
-    final response = await http
-        .post(uri, headers: _headers(), body: jsonEncode(body))
-        .timeout(_timeout);
-    return _parseResponse(response);
+    debugPrint('[API] POST $uri body: ${jsonEncode(body)}');
+    try {
+      final response = await http
+          .post(uri, headers: _headers(), body: jsonEncode(body))
+          .timeout(_timeout);
+      return _parseResponse(response);
+    } catch (e) {
+      debugPrint('[API] POST ERROR: ${e.runtimeType}: $e');
+      rethrow;
+    }
   }
 
   Future<dynamic> _patch(String path, Map<String, dynamic> body) async {
     final uri = Uri.parse('$_baseUrl$path');
-    final response = await http
-        .patch(uri, headers: _headers(), body: jsonEncode(body))
-        .timeout(_timeout);
-    return _parseResponse(response);
+    debugPrint('[API] PATCH $uri');
+    try {
+      final response = await http
+          .patch(uri, headers: _headers(), body: jsonEncode(body))
+          .timeout(_timeout);
+      return _parseResponse(response);
+    } catch (e) {
+      debugPrint('[API] PATCH ERROR: $e');
+      rethrow;
+    }
   }
 
-  // ── Auth ──────────────────────────────────────────────────────────────
+  // ── Auth ──────────────────────────────────────────────────────────────────
 
-  /// POST /api/auth/login
-  ///
-  /// Gửi email + password, nhận JWT token và thông tin user.
-  /// Ném [ApiException] với statusCode 401 nếu sai thông tin.
+  /// POST /api/users/login
   Future<LoginResponse> login({
     required String email,
     required String password,
   }) async {
-    final data = await _post('/auth/login', {
+    final data = await _post('/users/login', {
       'email': email.trim().toLowerCase(),
       'password': password,
     });
     return LoginResponse.fromJson(data as Map<String, dynamic>);
   }
 
-  /// POST /api/auth/register
+  /// POST /api/users/register
   Future<LoginResponse> register({
     required String name,
     required String email,
     required String password,
   }) async {
-    final data = await _post('/auth/register', {
-      'name': name.trim(),
+    final data = await _post('/users/register', {
+      'fullName': name.trim(),   // backend nhận FullName
       'email': email.trim().toLowerCase(),
       'password': password,
     });
-    return LoginResponse.fromJson(data as Map<String, dynamic>);
+    // register trả về UserDto, không phải LoginResponse
+    // → tự động login sau khi đăng ký
+    return await login(email: email, password: password);
   }
 
-  // ── Transactions ──────────────────────────────────────────────────────
+  // ── Transactions ──────────────────────────────────────────────────────────
 
   /// GET /api/transactions?userId={userId}
-  ///
-  /// Trả về danh sách giao dịch của một user.
   Future<List<Transaction>> getTransactions(String userId) async {
     final data = await _get('/transactions', query: {'userId': userId});
     return (data as List)
@@ -148,9 +201,24 @@ class ApiService {
         .toList();
   }
 
+  /// GET /api/transactions/stats?userId={userId}
+  Future<TransactionStats> getTransactionStats(String userId) async {
+    final data = await _get('/transactions/stats', query: {'userId': userId});
+    return TransactionStats.fromJson(data as Map<String, dynamic>);
+  }
+
+  /// GET /api/transactions/recent?userId={userId}&limit={limit}
+  Future<List<Transaction>> getRecentTransactions(String userId, {int limit = 5}) async {
+    final data = await _get('/transactions/recent', query: {
+      'userId': userId,
+      'limit': limit.toString(),
+    });
+    return (data as List)
+        .map((e) => Transaction.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
   /// POST /api/transactions
-  ///
-  /// Lưu một giao dịch mới vào MongoDB.
   Future<Transaction> saveTransaction(Transaction transaction) async {
     final data = await _post('/transactions', transaction.toJson());
     return Transaction.fromJson(data as Map<String, dynamic>);
@@ -162,9 +230,8 @@ class ApiService {
     return Transaction.fromJson(data as Map<String, dynamic>);
   }
 
-  // ── Budgets ───────────────────────────────────────────────────────────
+  // ── Budgets ───────────────────────────────────────────────────────────────
 
-  /// GET /api/budgets?userId={userId}
   Future<List<Budget>> getBudgets(String userId) async {
     final data = await _get('/budgets', query: {'userId': userId});
     return (data as List)
@@ -172,17 +239,13 @@ class ApiService {
         .toList();
   }
 
-  /// POST /api/budgets
   Future<Budget> saveBudget(Budget budget) async {
     final data = await _post('/budgets', budget.toJson());
     return Budget.fromJson(data as Map<String, dynamic>);
   }
 
-  // ── Users (Admin) ─────────────────────────────────────────────────────
+  // ── Users (Admin) ─────────────────────────────────────────────────────────
 
-  /// GET /api/users
-  ///
-  /// Lấy toàn bộ danh sách user — chỉ dành cho Admin.
   Future<List<User>> getAllUsers() async {
     final data = await _get('/users');
     return (data as List)
@@ -190,18 +253,12 @@ class ApiService {
         .toList();
   }
 
-  /// PATCH /api/users/{userId}
-  ///
-  /// Khóa / mở khóa tài khoản user.
   Future<void> setUserActive(String userId, {required bool isActive}) async {
     await _patch('/users/$userId', {'isActive': isActive});
   }
 
-  // ── Admin ─────────────────────────────────────────────────────────────
+  // ── Admin ─────────────────────────────────────────────────────────────────
 
-  /// GET /api/admin/transactions
-  ///
-  /// Lấy toàn bộ giao dịch của mọi user — chỉ dành cho Admin.
   Future<List<Transaction>> getAllTransactions({
     String? userId,
     DateTime? from,
@@ -222,11 +279,98 @@ class ApiService {
         .toList();
   }
 
-  /// GET /api/admin/stats
-  ///
-  /// Thống kê tổng quan cho Admin Overview.
   Future<Map<String, dynamic>> getAdminStats() async {
     final data = await _get('/admin/stats');
     return data as Map<String, dynamic>;
+  }
+
+  // ── Analytics ─────────────────────────────────────────────────────────────
+
+  /// GET /api/analytics/category-summary?userId={userId}
+  Future<Map<String, dynamic>> getCategorySummary(String userId) async {
+    final data = await _get('/analytics/category-summary', query: {'userId': userId});
+    return data as Map<String, dynamic>;
+  }
+
+  /// GET /api/analytics/ai-advice?userId={userId}
+  Future<Map<String, dynamic>> getAiAdvice(String userId) async {
+    final data = await _get('/analytics/ai-advice', query: {'userId': userId});
+    return data as Map<String, dynamic>;
+  }
+
+  // ── Invoice / OCR ─────────────────────────────────────────────────────────
+
+  /// POST /api/invoice/scan
+  ///
+  /// Gửi ảnh hóa đơn dưới dạng multipart/form-data (field: "image").
+  /// Timeout 30s để chờ AI Engine xử lý.
+  ///
+  /// Throws:
+  /// - [ApiException(422)] nếu không nhận diện được hóa đơn
+  /// - [ApiException(4xx/5xx)] cho các lỗi server khác
+  /// - [Exception] nếu mất kết nối / timeout
+  Future<Map<String, dynamic>> scanInvoice(String imagePath) async {
+    final uri = Uri.parse('$_baseUrl/invoice/scan');
+
+    // Timeout dài hơn cho OCR — AI Engine cần thời gian xử lý
+    const ocrTimeout = Duration(seconds: 30);
+
+    final request = http.MultipartRequest('POST', uri)
+      ..headers['Accept'] = 'application/json'
+      ..files.add(await http.MultipartFile.fromPath('image', imagePath));
+
+    // Log URL thực tế để debug 404
+    debugPrint('=== [SCAN] Dang goi API tai: $uri ===');
+    debugPrint('[API] POST multipart $uri');
+    debugPrint('[API] Image: $imagePath');
+
+    try {
+      final streamed = await request.send().timeout(ocrTimeout);
+      final response = await http.Response.fromStream(streamed);
+
+      debugPrint('[API] Invoice scan → ${response.statusCode}');
+      debugPrint('[API] Body: ${response.body}');
+
+      final bodyBytes = response.bodyBytes;
+      final bodyStr   = utf8.decode(bodyBytes);
+
+      // ── 200 OK ────────────────────────────────────────────────────────────
+      if (response.statusCode == 200) {
+        final json = jsonDecode(bodyStr) as Map<String, dynamic>;
+        // Normalize keys — backend trả PascalCase, hỗ trợ cả camelCase
+        return {
+          'storeName':   json['StoreName']   ?? json['storeName']   ?? 'Khong ro',
+          'totalAmount': (json['TotalAmount'] ?? json['totalAmount'] ?? 0).toDouble(),
+          'date':        json['Date']        ?? json['date']        ?? '',
+          'category':    json['Category']    ?? json['category']    ?? 'Khac',
+          'invoiceId':   json['InvoiceId']   ?? json['invoiceId']   ?? '',
+          'confidence':  (json['Confidence'] ?? json['confidence']  ?? 0).toDouble(),
+          'fileName':    json['FileName']    ?? json['fileName']    ?? '',
+        };
+      }
+
+      // ── 422 Unprocessable — không nhận diện được ──────────────────────────
+      if (response.statusCode == 422) {
+        throw const ApiException(422,
+            'Khong the nhan dien hoa don nay, vui long thu lai hoac nhap tay.');
+      }
+
+      // ── Các lỗi khác ──────────────────────────────────────────────────────
+      String msg = 'Loi server (${response.statusCode})';
+      try {
+        final body = jsonDecode(bodyStr) as Map<String, dynamic>;
+        msg = body['message'] as String? ?? body['title'] as String? ?? msg;
+      } catch (_) {}
+      throw ApiException(response.statusCode, msg);
+
+    } on ApiException {
+      rethrow;
+    } on TimeoutException {
+      throw const ApiException(408, 'Qua thoi gian cho. AI Engine co the dang qua tai, vui long thu lai.');
+    } catch (e) {
+      debugPrint('[API] scanInvoice ERROR: ${e.runtimeType}: $e');
+      if (e is ApiException) rethrow;
+      throw Exception('Khong the ket noi den server. Kiem tra lai mang va thu lai.');
+    }
   }
 }

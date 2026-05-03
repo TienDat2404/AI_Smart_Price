@@ -1,0 +1,31 @@
+{
+  "metadata": {
+    "source": "finance_series.txt",
+    "total_records": 15,
+    "period": "2026-01-01 to 2026-01-15",
+    "description": "Daily expense time-series data for trend analysis and chart rendering"
+  },
+  "data": [
+    { "date": "2026-01-01", "amount": 70000 },
+    { "date": "2026-01-02", "amount": 139000 },
+    { "date": "2026-01-03", "amount": 110000 },
+    { "date": "2026-01-04", "amount": 62000 },
+    { "date": "2026-01-05", "amount": 53000 },
+    { "date": "2026-01-06", "amount": 96000 },
+    { "date": "2026-01-07", "amount": 52000 },
+    { "date": "2026-01-08", "amount": 82000 },
+    { "date": "2026-01-09", "amount": 127000 },
+    { "date": "2026-01-10", "amount": 148000 },
+    { "date": "2026-01-11", "amount": 67000 },
+    { "date": "2026-01-12", "amount": 86000 },
+    { "date": "2026-01-13", "amount": 82000 },
+    { "date": "2026-01-14", "amount": 66000 },
+    { "date": "2026-01-15", "amount": 85000 }
+  ],
+  "summary": {
+    "min_amount": 52000,
+    "max_amount": 148000,
+    "avg_amount": 87000,
+    "total_amount": 1305000
+  }
+}

@@ -1,0 +1,169 @@
+{
+  "metadata": {
+    "source": "nlp_train.txt",
+    "total_records": 15,
+    "intent": "add_transaction",
+    "description": "Training data for Vietnamese NLP expense parsing"
+  },
+  "data": [
+    {
+      "id": 1,
+      "raw_text": "Hôm nay ăn trà sữa hết 215000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trà sữa",
+        "price": 215000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 2,
+      "raw_text": "Hôm nay ăn sửa xe hết 28000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "sửa xe",
+        "price": 28000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 3,
+      "raw_text": "Hôm nay ăn mua áo hết 213000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua áo",
+        "price": 213000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 4,
+      "raw_text": "Hôm nay ăn đổ xăng hết 93000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đổ xăng",
+        "price": 93000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 5,
+      "raw_text": "Hôm nay ăn tiền điện hết 115000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "tiền điện",
+        "price": 115000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 6,
+      "raw_text": "Hôm nay ăn cafe hết 109000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "cafe",
+        "price": 109000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 7,
+      "raw_text": "Hôm nay ăn sửa xe hết 210000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "sửa xe",
+        "price": 210000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 8,
+      "raw_text": "Hôm nay ăn mua áo hết 376000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua áo",
+        "price": 376000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 9,
+      "raw_text": "Hôm nay ăn cơm tấm hết 403000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "cơm tấm",
+        "price": 403000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 10,
+      "raw_text": "Hôm nay ăn cafe hết 360000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "cafe",
+        "price": 360000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 11,
+      "raw_text": "Hôm nay ăn trà sữa hết 474000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trà sữa",
+        "price": 474000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 12,
+      "raw_text": "Hôm nay ăn tiền điện hết 397000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "tiền điện",
+        "price": 397000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 13,
+      "raw_text": "Hôm nay ăn đổ xăng hết 67000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đổ xăng",
+        "price": 67000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 14,
+      "raw_text": "Hôm nay ăn mua áo hết 437000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua áo",
+        "price": 437000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 15,
+      "raw_text": "Hôm nay ăn cơm tấm hết 330000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "cơm tấm",
+        "price": 330000,
+        "category": "Ăn uống"
+      }
+    }
+  ],
+  "category_mapping": {
+    "trà sữa": "Ăn uống",
+    "cafe": "Ăn uống",
+    "cơm tấm": "Ăn uống",
+    "sửa xe": "Di chuyển",
+    "đổ xăng": "Di chuyển",
+    "mua áo": "Mua sắm",
+    "tiền điện": "Hóa đơn"
+  }
+}

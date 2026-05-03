@@ -1,162 +1,163 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import '../../core/data/mock_data.dart';
+import '../../core/models/budget.dart';
 import '../../core/models/transaction.dart';
-import '../../core/theme/app_colors.dart';
+import '../../core/services/api_service.dart';
+import '../../core/theme/theme_ext.dart';
 import '../../core/widgets/mobile_layout.dart';
-import '../../core/widgets/neon_line_painter.dart';
-import 'widgets/balance_card.dart';
-import 'widgets/recent_transactions.dart';
+import '../analytics/analytics_screen.dart';
+import '../budget/budget_screen.dart';
+import '../goals/savings_goals_screen.dart';
+import '../scan/scan_receipt_screen.dart';
+import '../settings/settings_screen.dart';
+import '../profile/profile_screen.dart';
+import '../smart_input/smart_input_screen.dart';
+import '../transactions/transaction_history_screen.dart';
+import '../wallet/wallet_model.dart';
+import '../wallet/wallet_screen.dart';
 
-/// Dữ liệu tổng hợp cho Dashboard — load một lần duy nhất.
-class _DashboardData {
+// ── Teal color palette ────────────────────────────────────────────────────────
+const _teal = Color(0xFF00897B);
+const _tealLight = Color(0xFFE0F2F1);
+const _tealMid = Color(0xFF4DB6AC);
+const _bg = Color(0xFFF5F7FA);
+const _cardBg = Colors.white;
+const _textDark = Color(0xFF1A2340);
+const _textGrey = Color(0xFF8A94A6);
+const _red = Color(0xFFE53935);
+const _green = Color(0xFF43A047);
+const _orange = Color(0xFFFB8C00);
+
+class _HomeData {
   final List<Transaction> transactions;
+  final List<Budget> budgets;
   final double balance;
-
-  const _DashboardData({
+  const _HomeData({
     required this.transactions,
+    required this.budgets,
     required this.balance,
   });
 }
 
+// ── DashboardScreen ───────────────────────────────────────────────────────────
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
-
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  // Future được khởi tạo một lần trong initState để tránh rebuild liên tục.
-  late final Future<_DashboardData> _dataFuture;
+  late Future<_HomeData> _future;
+  int _navIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    _dataFuture = _loadData();
+    _future = _load();
   }
 
-  Future<_DashboardData> _loadData() async {
-    // Gọi song song để nhanh hơn
-    final results = await Future.wait([
-      MockData.fetchTransactions(),
-      MockData.fetchBalance(),
-    ]);
-    return _DashboardData(
-      transactions: results[0] as List<Transaction>,
-      balance: results[1] as double,
-    );
+  Future<_HomeData> _load() async {
+    // Tổng số dư ví = tổng balance của tất cả ví (luôn dương)
+    // Đây là "tổng tài sản", không phải thu nhập - chi tiêu
+    final walletBalance = mockWallets.fold(0.0, (sum, w) => sum + w.balance);
+
+    try {
+      final results = await Future.wait([
+        ApiService.instance.getTransactions('user_01'),
+        ApiService.instance.getTransactionStats('user_01'),
+        MockData.fetchBudgets(),
+      ]);
+      final txs     = results[0] as List<Transaction>;
+      final stats   = results[1] as TransactionStats;
+      final budgets = results[2] as List<Budget>;
+
+      // Dùng walletBalance (tổng ví) thay vì stats.balance (thu - chi)
+      // vì stats.balance có thể âm nếu chi tiêu > thu nhập trong DB
+      return _HomeData(
+        transactions: txs,
+        budgets: budgets,
+        balance: walletBalance,
+      );
+    } catch (_) {
+      // Fallback MockData khi backend chưa chạy
+      final txs     = await MockData.fetchTransactions();
+      final budgets = await MockData.fetchBudgets();
+      return _HomeData(
+        transactions: txs,
+        budgets: budgets,
+        balance: walletBalance,
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: c.bg,
       body: MobileLayout(
-        child: SafeArea(
-          child: FutureBuilder<_DashboardData>(
-          future: _dataFuture,
-          builder: (context, snapshot) {
-            // ── Loading ──────────────────────────────────────────────────
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(color: AppColors.neonCyan),
-              );
+        child: FutureBuilder<_HomeData>(
+          future: _future,
+          builder: (ctx, snap) {
+            if (snap.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator(color: c.teal));
             }
-
-            // ── Error ────────────────────────────────────────────────────
-            if (snapshot.hasError) {
+            if (snap.hasError) {
               return Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.error_outline, color: AppColors.alert, size: 48),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Không thể tải dữ liệu\n${snapshot.error}',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: AppColors.textSecondary),
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () => setState(() {}),
-                      child: const Text('Thử lại'),
-                    ),
-                  ],
-                ),
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  Icon(Icons.error_outline, color: c.red, size: 48),
+                  const SizedBox(height: 12),
+                  Text('${snap.error}', textAlign: TextAlign.center,
+                      style: TextStyle(color: c.textSecondary)),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(backgroundColor: c.teal),
+                    onPressed: () => WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) setState(() => _future = _load());
+                    }),
+                    child: const Text('Thu lai'),
+                  ),
+                ]),
               );
             }
-
-            // ── Data ─────────────────────────────────────────────────────
-            final data = snapshot.data!;
-
-            // Tính tổng chi tiêu 7 ngày để truyền vào NeonLinePainter
-            final dailyTotals = NeonLinePainter.buildDailyTotals(
-              data.transactions,
-              days: 7,
-            );
-
+            final data = snap.data!;
             return RefreshIndicator(
-              color: AppColors.neonCyan,
-              onRefresh: () async {
-                // TODO: Thay bằng ApiService khi backend sẵn sàng
-                await Future.delayed(const Duration(milliseconds: 500));
-              },
+              color: _teal,
+              onRefresh: () async => setState(() => _future = _load()),
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.fromLTRB(20, 52, 20, 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 24),
-
-                    // ── Header ───────────────────────────────────────────
-                    _buildHeader(),
-
+                    _Header(),
+                    const SizedBox(height: 16),
+                    _AiSearchBar(onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (context.mounted) Navigator.push(context,
+                          MaterialPageRoute(builder: (_) => const SmartInputScreen()))
+                        .then((saved) {
+                          // Reload dashboard nếu user đã lưu giao dịch mới
+                          if (saved == true && mounted) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (mounted) setState(() => _future = _load());
+                            });
+                          }
+                        });
+                    })),
                     const SizedBox(height: 20),
-
-                    // ── Smart Input Bar ──────────────────────────────────
-                    _buildSmartInputBar(context),
-
-                    const SizedBox(height: 24),
-
-                    // ── Balance Card + Biểu đồ 7 ngày ───────────────────
-                    // dailyTotals được tính từ transactions thực tế
-                    // và truyền thẳng vào NeonLinePainter bên trong BalanceCard
-                    BalanceCard(
-                      balance: data.balance,
-                      dailyTotals: dailyTotals,
+                    _BalanceCard(balance: data.balance, transactions: data.transactions),
+                    const SizedBox(height: 20),
+                    _AiAdvisorySection(transactions: data.transactions, budgets: data.budgets),
+                    const SizedBox(height: 20),
+                    _GoalSection(budgets: data.budgets),
+                    const SizedBox(height: 20),
+                    _RecentTransactionsSection(
+                      transactions: data.transactions,
+                      onViewAll: () => Navigator.push(context,
+                          MaterialPageRoute(builder: (_) => const TransactionHistoryScreen())),
                     ),
-
-                    const SizedBox(height: 28),
-
-                    // ── Recent Transactions ──────────────────────────────
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Giao dịch gần đây',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            // TODO: Navigate to TransactionHistoryScreen
-                          },
-                          child: const Text(
-                            'Xem tất cả',
-                            style: TextStyle(color: AppColors.neonCyan),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    RecentTransactions(transactions: data.transactions),
-
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
                   ],
                 ),
               ),
@@ -164,92 +165,698 @@ class _DashboardScreenState extends State<DashboardScreen> {
           },
         ),
       ),
-
-      // ── Bottom Nav (placeholder) ─────────────────────────────────────────
-      bottomNavigationBar: _buildBottomNav(),
+      floatingActionButton: _OcrFab(onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) Navigator.push(context,
+            MaterialPageRoute(builder: (_) => const ScanReceiptScreen()));
+      })),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: _CustomBottomBar(
+        currentIndex: _navIndex,
+        onTap: (i) {
+          // addPostFrameCallback tránh setState/Navigator trong mouse event frame (Windows fix)
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            setState(() => _navIndex = i);
+            switch (i) {
+              case 1:
+                Navigator.push(context, _slideRoute(const WalletScreen()))
+                    .then((_) {
+                      // Reload balance sau khi quay về từ WalletScreen
+                      // (user có thể đã chuyển tiền hoặc chỉnh sửa ví)
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (mounted) setState(() => _future = _load());
+                      });
+                    });
+              case 3:
+                Navigator.push(context, _slideRoute(const SavingsGoalsScreen()))
+                    .then((_) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (mounted) setState(() => _future = _load());
+                      });
+                    });
+              case 4:
+                Navigator.push(context, _slideRoute(const ProfileScreen()));
+            }
+          });
+        },
+      ),
     );
   }
+}
 
-  Widget _buildHeader() {
+// ── Header ────────────────────────────────────────────────────────────────────
+class _Header extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Chào bạn,',
-              style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
-            ),
-            Text(
-              'Nguyễn Văn A',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-        CircleAvatar(
-          radius: 22,
-          backgroundColor: AppColors.neonCyan.withValues(alpha: 0.15),
-          child: const Icon(Icons.person, color: AppColors.primary),
-        ),
+        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Xin chao,', style: TextStyle(fontSize: 13, color: c.textSecondary)),
+          Text('Nguyen Van A',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: c.textPrimary)),
+        ]),
+        Row(children: [
+          IconButton(
+            icon: Icon(Icons.notifications_outlined, color: c.textPrimary),
+            onPressed: () {},
+          ),
+          const SizedBox(width: 4),
+          CircleAvatar(
+            radius: 20,
+            backgroundColor: c.tealLight,
+            child: Text('A', style: TextStyle(color: c.teal, fontWeight: FontWeight.bold)),
+          ),
+        ]),
       ],
     );
   }
+}
 
-  Widget _buildSmartInputBar(BuildContext context) {
+// ── AI Search Bar ─────────────────────────────────────────────────────────────
+class _AiSearchBar extends StatelessWidget {
+  final VoidCallback onTap;
+  const _AiSearchBar({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
     return GestureDetector(
-      onTap: () {
-        // TODO: Navigate to SmartInputScreen
-      },
+      onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) => onTap()),
       child: Container(
-        padding: const EdgeInsets.all(4),
+        height: 52,
         decoration: BoxDecoration(
-          color: AppColors.inputBackground,
-          borderRadius: BorderRadius.circular(16),
+          color: c.card,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: c.cardShadow,
         ),
-        child: Row(
-          children: [
-            const Expanded(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                child: Text(
-                  "Hôm nay bạn chi gì? 'Ăn phở 50k'",
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textSecondary,
-                  ),
+        child: Row(children: [
+          const SizedBox(width: 16),
+          Icon(Icons.search, color: c.textSecondary, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text('Hoi AI ve tai chinh cua ban...',
+                style: TextStyle(color: c.textSecondary, fontSize: 14)),
+          ),
+          Container(
+            margin: const EdgeInsets.all(6),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(colors: [c.teal, _tealMid]),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Row(mainAxisSize: MainAxisSize.min, children: [
+              Icon(Icons.auto_awesome, color: Colors.white, size: 14),
+              SizedBox(width: 4),
+              Text('AI', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+            ]),
+          ),
+          const SizedBox(width: 4),
+          IconButton(
+            icon: Icon(Icons.mic_none, color: c.teal),
+            onPressed: () {},
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+          ),
+        ]),
+      ),
+    );
+  }
+}
+
+// ── Balance Card with Line Chart ──────────────────────────────────────────────
+class _BalanceCard extends StatelessWidget {
+  final double balance;
+  final List<Transaction> transactions;
+  const _BalanceCard({required this.balance, required this.transactions});
+
+  List<FlSpot> _buildSpots() {
+    final now = DateTime.now();
+    final Map<int, double> daily = {};
+    for (final t in transactions) {
+      if (!t.isExpense) continue;
+      final diff = now.difference(t.date).inDays;
+      if (diff >= 0 && diff < 7) {
+        daily[6 - diff] = (daily[6 - diff] ?? 0) + t.amount;
+      }
+    }
+    return List.generate(7, (i) => FlSpot(i.toDouble(), (daily[i] ?? 0) / 1000));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final spots = _buildSpots();
+    final isPositive = balance >= 0;
+    final fmt = _fmt(balance.abs());
+
+    return Container(
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF00695C), Color(0xFF00897B), Color(0xFF26A69A)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [BoxShadow(color: _teal.withValues(alpha: 0.35), blurRadius: 20, offset: const Offset(0, 8))],
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          const Text('Tong tai san', style: TextStyle(color: Colors.white70, fontSize: 13)),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: const Text('7 ngay', style: TextStyle(color: Colors.white, fontSize: 11)),
+          ),
+        ]),
+        const SizedBox(height: 6),
+        Text(
+          '${isPositive ? '' : '-'}$fmt d',
+          style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900, letterSpacing: -0.5),
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          height: 70,
+          child: LineChart(LineChartData(
+            gridData: const FlGridData(show: false),
+            titlesData: const FlTitlesData(show: false),
+            borderData: FlBorderData(show: false),
+            lineTouchData: const LineTouchData(enabled: false),
+            lineBarsData: [
+              LineChartBarData(
+                spots: spots,
+                isCurved: true,
+                color: Colors.white,
+                barWidth: 2.5,
+                dotData: const FlDotData(show: false),
+                belowBarData: BarAreaData(
+                  show: true,
+                  color: Colors.white.withValues(alpha: 0.15),
                 ),
               ),
-            ),
+            ],
+          )),
+        ),
+        const SizedBox(height: 12),
+        Row(children: [
+          _BalanceStat(
+            label: 'Thu nhap',
+            amount: transactions.where((t) => !t.isExpense).fold(0.0, (s, t) => s + t.amount),
+            color: const Color(0xFF80CBC4),
+            icon: Icons.arrow_downward,
+          ),
+          const SizedBox(width: 20),
+          _BalanceStat(
+            label: 'Chi tieu',
+            amount: transactions.where((t) => t.isExpense).fold(0.0, (s, t) => s + t.amount),
+            color: const Color(0xFFFFCDD2),
+            icon: Icons.arrow_upward,
+          ),
+        ]),
+      ]),
+    );
+  }
+}
+
+class _BalanceStat extends StatelessWidget {
+  final String label;
+  final double amount;
+  final Color color;
+  final IconData icon;
+  const _BalanceStat({required this.label, required this.amount, required this.color, required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(children: [
+      Container(
+        width: 28, height: 28,
+        decoration: BoxDecoration(color: color.withValues(alpha: 0.25), shape: BoxShape.circle),
+        child: Icon(icon, color: color, size: 14),
+      ),
+      const SizedBox(width: 8),
+      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(label, style: const TextStyle(color: Colors.white60, fontSize: 11)),
+        Text(_fmt(amount) + ' d', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
+      ]),
+    ]);
+  }
+}
+
+// ── AI Advisory Section ───────────────────────────────────────────────────────
+class _AiAdvisorySection extends StatelessWidget {
+  final List<Transaction> transactions;
+  final List<Budget> budgets;
+  const _AiAdvisorySection({required this.transactions, required this.budgets});
+
+  List<_AiCard> _buildCards() {
+    final totalExpense = transactions.where((t) => t.isExpense).fold(0.0, (s, t) => s + t.amount);
+    final overBudget = budgets.where((b) => b.isOverWarningThreshold).toList();
+    return [
+      _AiCard(
+        icon: Icons.trending_up,
+        iconColor: _green,
+        title: 'Chi tieu hom nay',
+        highlight: _fmt(transactions.where((t) => t.isExpense && _isToday(t.date)).fold(0.0, (s, t) => s + t.amount)) + ' d',
+        highlightColor: _green,
+        subtitle: 'Thap hon trung binh 7 ngay',
+        action: 'Xem chi tiet',
+      ),
+      if (overBudget.isNotEmpty)
+        _AiCard(
+          icon: Icons.warning_amber_rounded,
+          iconColor: _red,
+          title: 'Canh bao ngan sach',
+          highlight: overBudget.first.category,
+          highlightColor: _red,
+          subtitle: 'Da dung ${(overBudget.first.progress * 100).toStringAsFixed(0)}% han muc',
+          action: 'Dieu chinh',
+        ),
+      _AiCard(
+        icon: Icons.savings_outlined,
+        iconColor: _teal,
+        title: 'Goi y tiet kiem',
+        highlight: _fmt(totalExpense * 0.1) + ' d',
+        highlightColor: _teal,
+        subtitle: 'Co the tiet kiem them thang nay',
+        action: 'Xem ke hoach',
+      ),
+    ];
+  }
+
+  bool _isToday(DateTime d) {
+    final now = DateTime.now();
+    return d.year == now.year && d.month == now.month && d.day == now.day;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    final cards = _buildCards();
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        Text('Co van AI noi gi?',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: c.textPrimary)),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(color: c.tealLight, borderRadius: BorderRadius.circular(8)),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Icon(Icons.auto_awesome, size: 12, color: c.teal),
+            const SizedBox(width: 4),
+            Text('AI', style: TextStyle(fontSize: 11, color: c.teal, fontWeight: FontWeight.bold)),
+          ]),
+        ),
+      ]),
+      const SizedBox(height: 12),
+      SizedBox(
+        height: 140,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          itemCount: cards.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 12),
+          itemBuilder: (_, i) => _AiCardWidget(card: cards[i]),
+        ),
+      ),
+    ]);
+  }
+}
+class _AiCard {
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String highlight;
+  final Color highlightColor;
+  final String subtitle;
+  final String action;
+  const _AiCard({
+    required this.icon, required this.iconColor, required this.title,
+    required this.highlight, required this.highlightColor,
+    required this.subtitle, required this.action,
+  });
+}
+
+class _AiCardWidget extends StatelessWidget {
+  final _AiCard card;
+  const _AiCardWidget({required this.card});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return Container(
+      width: 200,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: c.card,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: c.cardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(children: [
             Container(
-              padding: const EdgeInsets.all(10),
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [AppColors.primary, AppColors.neonCyan],
-                ),
-              ),
-              child: const Icon(Icons.auto_awesome, color: Colors.white, size: 20),
+              width: 34, height: 34,
+              decoration: BoxDecoration(color: card.iconColor.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(10)),
+              child: Icon(card.icon, color: card.iconColor, size: 17),
             ),
+            const SizedBox(width: 8),
+            Expanded(child: Text(card.title, style: TextStyle(fontSize: 12, color: c.textSecondary), maxLines: 1, overflow: TextOverflow.ellipsis)),
+          ]),
+          const SizedBox(height: 8),
+          Text(card.highlight, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: card.highlightColor)),
+          const SizedBox(height: 3),
+          Text(card.subtitle, style: TextStyle(fontSize: 11, color: c.textSecondary), maxLines: 2),
+          const SizedBox(height: 8),
+          GestureDetector(
+            onTap: () {},
+            child: Text(card.action, style: TextStyle(fontSize: 12, color: c.teal, fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Goal / Progress Section ───────────────────────────────────────────────────
+class _GoalSection extends StatelessWidget {
+  final List<Budget> budgets;
+  const _GoalSection({required this.budgets});
+
+  Color _progressColor(double p) {
+    if (p >= 0.9) return _red;
+    if (p >= 0.75) return _orange;
+    return _teal;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (budgets.isEmpty) return const SizedBox.shrink();
+    final c = context.colors;
+    final daily = budgets.first;
+    final others = budgets.skip(1).take(2).toList();
+
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text('Chi so muc tieu', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: c.textPrimary)),
+      const SizedBox(height: 12),
+      Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: c.card,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: c.cardShadow,
+        ),
+        child: Column(children: [
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            Text('Muc tieu: ${daily.category}', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: c.textPrimary)),
+            Text('${(daily.progress * 100).toStringAsFixed(0)}%',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _progressColor(daily.progress))),
+          ]),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(
+              value: daily.progress,
+              minHeight: 10,
+              backgroundColor: c.tealLight,
+              valueColor: AlwaysStoppedAnimation<Color>(_progressColor(daily.progress)),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            Text('${_fmt(daily.spent)} d', style: TextStyle(fontSize: 11, color: c.textSecondary)),
+            Text('/ ${_fmt(daily.limit)} d', style: TextStyle(fontSize: 11, color: c.textSecondary)),
+          ]),
+          if (others.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            const Divider(height: 1),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: others.map((b) => _CircularGoal(budget: b)).toList(),
+            ),
+          ],
+        ]),
+      ),
+    ]);
+  }
+}
+
+class _CircularGoal extends StatelessWidget {
+  final Budget budget;
+  const _CircularGoal({required this.budget});
+
+  Color get _color {
+    if (budget.progress >= 0.9) return _red;
+    if (budget.progress >= 0.75) return _orange;
+    return _teal;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return Column(children: [
+      SizedBox(
+        width: 64, height: 64,
+        child: Stack(alignment: Alignment.center, children: [
+          CircularProgressIndicator(
+            value: budget.progress,
+            strokeWidth: 6,
+            backgroundColor: c.tealLight,
+            valueColor: AlwaysStoppedAnimation<Color>(_color),
+          ),
+          Text('${(budget.progress * 100).toStringAsFixed(0)}%',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: _color)),
+        ]),
+      ),
+      const SizedBox(height: 6),
+      Text(budget.category, style: TextStyle(fontSize: 11, color: c.textSecondary)),
+    ]);
+  }
+}
+
+// ── Recent Transactions — ListView với FadeIn ─────────────────────────────────
+class _RecentTransactionsSection extends StatelessWidget {
+  final List<Transaction> transactions;
+  final VoidCallback onViewAll;
+  const _RecentTransactionsSection({required this.transactions, required this.onViewAll});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    final display = ([...transactions]..sort((a, b) => b.date.compareTo(a.date))).take(5).toList();
+
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        Text('Giao dich gan day', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: c.textPrimary)),
+        GestureDetector(
+          onTap: onViewAll,
+          child: Text('Xem tat ca', style: TextStyle(fontSize: 13, color: c.teal, fontWeight: FontWeight.w600)),
+        ),
+      ]),
+      const SizedBox(height: 12),
+      Container(
+        decoration: BoxDecoration(
+          color: c.card,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: c.cardShadow,
+        ),
+        child: display.isEmpty
+            ? Padding(
+                padding: const EdgeInsets.all(24),
+                child: Center(child: Text('Chua co giao dich nao.', style: TextStyle(color: c.textSecondary))),
+              )
+            : Column(
+                children: display.asMap().entries.map((e) {
+                  final i = e.key;
+                  final t = e.value;
+                  return Column(children: [
+                    _TxRow(transaction: t),
+                    if (i < display.length - 1)
+                      Divider(height: 1, indent: 64, endIndent: 16, color: c.border),
+                  ]);
+                }).toList(),
+              ),
+      ),
+    ]);
+  }
+}
+
+class _TxRow extends StatelessWidget {
+  final Transaction transaction;
+  const _TxRow({required this.transaction});
+
+  IconData _icon(String cat) {
+    switch (cat) {
+      case 'An uong': case 'Ăn uống': return Icons.restaurant;
+      case 'Di chuyen': case 'Di chuyển': return Icons.directions_bike;
+      case 'Mua sam': case 'Mua sắm': return Icons.shopping_bag;
+      case 'Giai tri': case 'Giải trí': return Icons.movie;
+      case 'Suc khoe': case 'Sức khỏe': return Icons.local_hospital;
+      case 'Thu nhap': case 'Thu nhập': return Icons.account_balance_wallet;
+      default: return Icons.attach_money;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    final t = transaction;
+    final now = DateTime.now();
+    final diff = now.difference(t.date).inDays;
+    final timeStr = diff == 0 ? 'Hom nay' : diff == 1 ? 'Hom qua' : '${t.date.day}/${t.date.month}';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(children: [
+        Container(
+          width: 42, height: 42,
+          decoration: BoxDecoration(
+            color: t.isExpense ? const Color(0xFFFFF3E0) : c.tealLight,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(_icon(t.category), size: 20, color: t.isExpense ? c.orange : c.teal),
+        ),
+        const SizedBox(width: 12),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(t.itemName.isNotEmpty ? t.itemName : t.category,
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textPrimary),
+              maxLines: 1, overflow: TextOverflow.ellipsis),
+          Text('$timeStr · ${t.category}', style: TextStyle(fontSize: 11, color: c.textSecondary)),
+        ])),
+        Text(
+          '${t.isExpense ? '-' : '+'}${_fmt(t.amount)} d',
+          style: TextStyle(
+            fontSize: 14, fontWeight: FontWeight.w700,
+            color: t.isExpense ? c.red : c.green,
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
+// ── Slide transition helper ───────────────────────────────────────────────────
+Route<T> _slideRoute<T>(Widget page) {
+  return PageRouteBuilder<T>(
+    pageBuilder: (_, __, ___) => page,
+    transitionDuration: const Duration(milliseconds: 320),
+    transitionsBuilder: (_, animation, __, child) {
+      return SlideTransition(
+        position: Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero)
+            .animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
+        child: child,
+      );
+    },
+  );
+}
+
+// ── OCR FAB ───────────────────────────────────────────────────────────────────
+class _OcrFab extends StatelessWidget {
+  final VoidCallback onTap;
+  const _OcrFab({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) => onTap()),
+      child: Container(
+        width: 60, height: 60,
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(colors: [_teal, _tealMid], begin: Alignment.topLeft, end: Alignment.bottomRight),
+          shape: BoxShape.circle,
+          boxShadow: [BoxShadow(color: _teal.withValues(alpha: 0.45), blurRadius: 16, offset: const Offset(0, 6))],
+        ),
+        child: const Icon(Icons.document_scanner_outlined, color: Colors.white, size: 26),
+      ),
+    );
+  }
+}
+
+// ── Custom Bottom Navigation Bar ──────────────────────────────────────────────
+class _CustomBottomBar extends StatelessWidget {
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+  const _CustomBottomBar({required this.currentIndex, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return BottomAppBar(
+      shape: const CircularNotchedRectangle(),
+      notchMargin: 8,
+      color: c.card,
+      elevation: 0,
+      clipBehavior: Clip.antiAlias,
+      child: Container(
+        decoration: BoxDecoration(
+          color: c.card,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(28),
+            topRight: Radius.circular(28),
+          ),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 20, offset: const Offset(0, -4))],
+        ),
+        height: 64,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _NavItem(icon: Icons.home_rounded, label: 'Trang chu', index: 0, current: currentIndex, onTap: onTap),
+            _NavItem(icon: Icons.account_balance_wallet_outlined, label: 'Vi cua toi', index: 1, current: currentIndex, onTap: onTap),
+            const SizedBox(width: 60),
+            _NavItem(icon: Icons.track_changes, label: 'Muc tieu', index: 3, current: currentIndex, onTap: onTap),
+            _NavItem(icon: Icons.person_outline_rounded, label: 'Ca nhan', index: 4, current: currentIndex, onTap: onTap),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildBottomNav() {
-    return BottomNavigationBar(
-      type: BottomNavigationBarType.fixed,
-      selectedItemColor: AppColors.primary,
-      unselectedItemColor: AppColors.textSecondary,
-      currentIndex: 0,
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
-        BottomNavigationBarItem(icon: Icon(Icons.add_circle_outline), label: 'Nhập'),
-        BottomNavigationBarItem(icon: Icon(Icons.bar_chart_outlined), label: 'Phân tích'),
-        BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_outlined), label: 'Ngân sách'),
-        BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Cài đặt'),
-      ],
+class _NavItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final int index;
+  final int current;
+  final ValueChanged<int> onTap;
+  const _NavItem({required this.icon, required this.label, required this.index, required this.current, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    final isActive = index == current;
+    return GestureDetector(
+      onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) => onTap(index)),
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isActive ? c.teal.withValues(alpha: 0.12) : Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 22, color: isActive ? c.teal : c.textSecondary),
+          ),
+          Text(label, style: TextStyle(fontSize: 10, color: isActive ? c.teal : c.textSecondary, fontWeight: isActive ? FontWeight.w700 : FontWeight.normal)),
+        ]),
+      ),
     );
   }
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+String _fmt(double v) {
+  final parts = v.toStringAsFixed(0).split('');
+  final buf = StringBuffer();
+  for (int i = 0; i < parts.length; i++) {
+    if (i > 0 && (parts.length - i) % 3 == 0) buf.write('.');
+    buf.write(parts[i]);
+  }
+  return buf.toString();
 }

@@ -31,28 +31,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  // ── Actions ───────────────────────────────────────────────────────────────
-
   Future<void> _onRegister() async {
     if (!_formKey.currentState!.validate()) return;
     if (!_agreedToTerms) {
       setState(() => _errorMessage = 'Vui lòng đồng ý với điều khoản sử dụng.');
       return;
     }
-
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
-
     try {
-      // TODO: Thay bằng ApiService.register() khi backend sẵn sàng
       await Future.delayed(const Duration(seconds: 2));
-
       if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const DashboardScreen()),
-      );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const DashboardScreen()),
+        );
+      });
     } catch (e) {
       setState(() => _errorMessage = 'Đăng ký thất bại. Vui lòng thử lại.');
     } finally {
@@ -61,12 +58,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _goToLogin() {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+      );
+    });
   }
-
-  // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -74,197 +72,169 @@ class _RegisterScreenState extends State<RegisterScreen> {
       backgroundColor: AppColors.background,
       body: MobileLayout.scrollable(
         child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ── Back button ──────────────────────────────────────────
-                IconButton(
-                  icon: const Icon(Icons.arrow_back_ios_new, size: 18),
-                  padding: EdgeInsets.zero,
-                  onPressed: () => Navigator.of(context).maybePop(),
-                ),
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Back
+              IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new, size: 18),
+                padding: EdgeInsets.zero,
+                onPressed: () => WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (context.mounted) Navigator.of(context).maybePop();
+                }),
+              ),
+              const SizedBox(height: 16),
 
-                const SizedBox(height: 16),
+              const AuthHeader(
+                title: 'Tạo tài khoản',
+                subtitle: 'Bắt đầu hành trình quản lý tài chính thông minh.',
+              ),
+              const SizedBox(height: 32),
 
-                // ── Header ──────────────────────────────────────────────
-                const AuthHeader(
-                  title: 'Tạo tài khoản',
-                  subtitle: 'Bắt đầu hành trình quản lý tài chính thông minh.',
-                ),
+              // Họ tên
+              CustomTextField(
+                label: 'Họ và tên',
+                hint: 'Nguyen Van A',
+                controller: _nameCtrl,
+                keyboardType: TextInputType.name,
+                prefixIcon: Icons.person_outline,
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return 'Vui lòng nhập họ tên';
+                  if (v.trim().length < 2) return 'Họ tên quá ngắn';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
 
-                const SizedBox(height: 32),
+              // Email
+              CustomTextField(
+                label: 'Email',
+                hint: 'example@email.com',
+                controller: _emailCtrl,
+                keyboardType: TextInputType.emailAddress,
+                prefixIcon: Icons.email_outlined,
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return 'Vui lòng nhập email';
+                  if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(v.trim())) {
+                    return 'Email không hợp lệ';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
 
-                // ── Họ tên ───────────────────────────────────────────────
-                CustomTextField(
-                  label: 'Họ và tên',
-                  hint: 'Nguyễn Văn A',
-                  controller: _nameCtrl,
-                  keyboardType: TextInputType.name,
-                  prefixIcon: Icons.person_outline,
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) {
-                      return 'Vui lòng nhập họ tên';
-                    }
-                    if (v.trim().length < 2) return 'Họ tên quá ngắn';
-                    return null;
-                  },
-                ),
+              // Password
+              CustomTextField(
+                label: 'Mật khẩu',
+                hint: 'Tối thiểu 8 ký tự',
+                controller: _passwordCtrl,
+                isPassword: true,
+                prefixIcon: Icons.lock_outline,
+                validator: (v) {
+                  if (v == null || v.isEmpty) return 'Vui lòng nhập mật khẩu';
+                  if (v.length < 8) return 'Mật khẩu tối thiểu 8 ký tự';
+                  if (!v.contains(RegExp(r'[0-9]'))) {
+                    return 'Mật khẩu phải chứa ít nhất 1 chữ số';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
 
-                const SizedBox(height: 16),
+              // Confirm password
+              CustomTextField(
+                label: 'Xác nhận mật khẩu',
+                hint: 'Nhập lại mật khẩu',
+                controller: _confirmCtrl,
+                isPassword: true,
+                textInputAction: TextInputAction.done,
+                prefixIcon: Icons.lock_outline,
+                onSubmitted: (_) => _onRegister(),
+                validator: (v) {
+                  if (v == null || v.isEmpty) return 'Vui lòng xác nhận mật khẩu';
+                  if (v != _passwordCtrl.text) return 'Mật khẩu không khớp';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
 
-                // ── Email ────────────────────────────────────────────────
-                CustomTextField(
-                  label: 'Email',
-                  hint: 'example@email.com',
-                  controller: _emailCtrl,
-                  keyboardType: TextInputType.emailAddress,
-                  prefixIcon: Icons.email_outlined,
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) {
-                      return 'Vui lòng nhập email';
-                    }
-                    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
-                    if (!emailRegex.hasMatch(v.trim())) {
-                      return 'Email không hợp lệ';
-                    }
-                    return null;
-                  },
-                ),
+              // Terms
+              _TermsCheckbox(
+                value: _agreedToTerms,
+                onChanged: (v) => setState(() {
+                  _agreedToTerms = v ?? false;
+                  if (_agreedToTerms) _errorMessage = null;
+                }),
+              ),
+              const SizedBox(height: 8),
 
-                const SizedBox(height: 16),
-
-                // ── Password ─────────────────────────────────────────────
-                CustomTextField(
-                  label: 'Mật khẩu',
-                  hint: 'Tối thiểu 8 ký tự',
-                  controller: _passwordCtrl,
-                  isPassword: true,
-                  prefixIcon: Icons.lock_outline,
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return 'Vui lòng nhập mật khẩu';
-                    if (v.length < 8) return 'Mật khẩu tối thiểu 8 ký tự';
-                    if (!v.contains(RegExp(r'[0-9]'))) {
-                      return 'Mật khẩu phải chứa ít nhất 1 chữ số';
-                    }
-                    return null;
-                  },
-                ),
-
-                const SizedBox(height: 16),
-
-                // ── Xác nhận mật khẩu ────────────────────────────────────
-                CustomTextField(
-                  label: 'Xác nhận mật khẩu',
-                  hint: 'Nhập lại mật khẩu',
-                  controller: _confirmCtrl,
-                  isPassword: true,
-                  textInputAction: TextInputAction.done,
-                  prefixIcon: Icons.lock_outline,
-                  onSubmitted: (_) => _onRegister(),
-                  validator: (v) {
-                    if (v == null || v.isEmpty) {
-                      return 'Vui lòng xác nhận mật khẩu';
-                    }
-                    if (v != _passwordCtrl.text) {
-                      return 'Mật khẩu không khớp';
-                    }
-                    return null;
-                  },
-                ),
-
-                const SizedBox(height: 20),
-
-                // ── Checkbox điều khoản ──────────────────────────────────
-                _TermsCheckbox(
-                  value: _agreedToTerms,
-                  onChanged: (v) => setState(() {
-                    _agreedToTerms = v ?? false;
-                    if (_agreedToTerms) _errorMessage = null;
-                  }),
-                ),
-
-                const SizedBox(height: 8),
-
-                // ── Error message ────────────────────────────────────────
-                if (_errorMessage != null) ...[
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: AppColors.alert.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                          color: AppColors.alert.withValues(alpha: 0.2)),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.error_outline,
-                            size: 16, color: AppColors.alert),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            _errorMessage!,
-                            style: const TextStyle(
-                                fontSize: 13, color: AppColors.alert),
-                          ),
-                        ),
-                      ],
-                    ),
+              // Error
+              if (_errorMessage != null) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.alert.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.alert.withValues(alpha: 0.2)),
                   ),
-                  const SizedBox(height: 16),
-                ],
-
-                const SizedBox(height: 8),
-
-                // ── Nút Đăng ký ──────────────────────────────────────────
-                AuthButton(
-                  label: 'Tạo tài khoản',
-                  onPressed: _onRegister,
-                  isLoading: _isLoading,
-                  icon: Icons.person_add_outlined,
-                ),
-
-                const SizedBox(height: 28),
-
-                // ── Chuyển sang Login ────────────────────────────────────
-                Center(
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
-                        'Đã có tài khoản? ',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: _goToLogin,
-                        child: const Text(
-                          'Đăng nhập',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w700,
-                          ),
+                      const Icon(Icons.error_outline, size: 16, color: AppColors.alert),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _errorMessage!,
+                          style: const TextStyle(fontSize: 13, color: AppColors.alert),
                         ),
                       ),
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 16),
               ],
-            ),
+              const SizedBox(height: 8),
+
+              // Nút đăng ký
+              AuthButton(
+                label: 'Tạo tài khoản',
+                onPressed: _onRegister,
+                isLoading: _isLoading,
+                icon: Icons.person_add_outlined,
+              ),
+              const SizedBox(height: 28),
+
+              // Chuyển sang Login
+              Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Da co tai khoan? ',
+                      style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+                    ),
+                    GestureDetector(
+                      onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) => _goToLogin()),
+                      child: const Text(
+                        'Dang nhap',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
           ),
         ),
       ),
     );
   }
 }
-
-// ── Terms Checkbox ────────────────────────────────────────────────────────────
 
 class _TermsCheckbox extends StatelessWidget {
   final bool value;
@@ -275,7 +245,7 @@ class _TermsCheckbox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => onChanged(!value),
+      onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) => onChanged(!value)),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -296,34 +266,13 @@ class _TermsCheckbox extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 10),
-          Expanded(
-            child: RichText(
-              text: const TextSpan(
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.textSecondary,
-                  fontFamily: 'Inter',
-                  height: 1.5,
-                ),
-                children: [
-                  TextSpan(text: 'Tôi đồng ý với '),
-                  TextSpan(
-                    text: 'Điều khoản sử dụng',
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  TextSpan(text: ' và '),
-                  TextSpan(
-                    text: 'Chính sách bảo mật',
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  TextSpan(text: ' của SmartPrice AI.'),
-                ],
+          const Expanded(
+            child: Text(
+              'Toi dong y voi Dieu khoan su dung va Chinh sach bao mat cua SmartPrice AI.',
+              style: TextStyle(
+                fontSize: 13,
+                color: AppColors.textSecondary,
+                height: 1.5,
               ),
             ),
           ),

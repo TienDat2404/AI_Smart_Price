@@ -16,6 +16,7 @@ class MockData {
         Transaction(
           id: 't1',
           userId: 'user_01',
+          itemName: 'Phở bò buổi sáng',
           amount: 45000,
           category: 'Ăn uống',
           note: 'Phở bò buổi sáng',
@@ -25,6 +26,7 @@ class MockData {
         Transaction(
           id: 't2',
           userId: 'user_01',
+          itemName: 'Grab đi làm',
           amount: 25000,
           category: 'Di chuyển',
           note: 'Grab đi làm',
@@ -35,6 +37,7 @@ class MockData {
         Transaction(
           id: 't3',
           userId: 'user_01',
+          itemName: 'Siêu thị VinMart',
           amount: 120000,
           category: 'Mua sắm',
           note: 'Siêu thị VinMart',
@@ -44,6 +47,7 @@ class MockData {
         Transaction(
           id: 't4',
           userId: 'user_01',
+          itemName: 'Lương tháng',
           amount: 5000000,
           category: 'Thu nhập',
           note: 'Lương tháng',
@@ -54,6 +58,7 @@ class MockData {
         Transaction(
           id: 't5',
           userId: 'user_01',
+          itemName: 'Cơm văn phòng',
           amount: 85000,
           category: 'Ăn uống',
           note: 'Cơm văn phòng + trà sữa',
@@ -63,6 +68,7 @@ class MockData {
         Transaction(
           id: 't6',
           userId: 'user_01',
+          itemName: 'Xem phim CGV',
           amount: 200000,
           category: 'Giải trí',
           note: 'Xem phim CGV',
@@ -73,6 +79,7 @@ class MockData {
         Transaction(
           id: 't7',
           userId: 'user_01',
+          itemName: 'Bún bò Huế',
           amount: 60000,
           category: 'Ăn uống',
           note: 'Bún bò Huế',
@@ -82,6 +89,7 @@ class MockData {
         Transaction(
           id: 't8',
           userId: 'user_01',
+          itemName: 'Khám bác sĩ',
           amount: 350000,
           category: 'Sức khỏe',
           note: 'Khám bác sĩ',
@@ -92,6 +100,7 @@ class MockData {
         Transaction(
           id: 't9',
           userId: 'user_01',
+          itemName: 'Đổ xăng xe máy',
           amount: 50000,
           category: 'Di chuyển',
           note: 'Đổ xăng xe máy',
@@ -101,6 +110,7 @@ class MockData {
         Transaction(
           id: 't10',
           userId: 'user_01',
+          itemName: 'Freelance thiết kế',
           amount: 500000,
           category: 'Thu nhập',
           note: 'Freelance thiết kế',
@@ -111,6 +121,7 @@ class MockData {
         Transaction(
           id: 't11',
           userId: 'user_01',
+          itemName: 'Lẩu với bạn bè',
           amount: 75000,
           category: 'Ăn uống',
           note: 'Lẩu với bạn bè',
@@ -120,6 +131,7 @@ class MockData {
         Transaction(
           id: 't12',
           userId: 'user_01',
+          itemName: 'Quần áo sale',
           amount: 180000,
           category: 'Mua sắm',
           note: 'Quần áo sale',
@@ -130,6 +142,7 @@ class MockData {
         Transaction(
           id: 't13',
           userId: 'user_01',
+          itemName: 'Bánh mì ốp la',
           amount: 35000,
           category: 'Ăn uống',
           note: 'Bánh mì ốp la',
@@ -139,6 +152,7 @@ class MockData {
         Transaction(
           id: 't14',
           userId: 'user_01',
+          itemName: 'Grab về nhà',
           amount: 30000,
           category: 'Di chuyển',
           note: 'Grab về nhà',
