@@ -16,6 +16,7 @@ import '../smart_input/smart_input_screen.dart';
 import '../transactions/transaction_history_screen.dart';
 import '../wallet/wallet_model.dart';
 import '../wallet/wallet_screen.dart';
+import '../voice/voice_assistant_screen.dart';
 
 // ── Teal color palette ────────────────────────────────────────────────────────
 const _teal = Color(0xFF00897B);
@@ -133,18 +134,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   children: [
                     _Header(),
                     const SizedBox(height: 16),
-                    _AiSearchBar(onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (context.mounted) Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => const SmartInputScreen()))
-                        .then((saved) {
-                          // Reload dashboard nếu user đã lưu giao dịch mới
-                          if (saved == true && mounted) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              if (mounted) setState(() => _future = _load());
-                            });
-                          }
-                        });
-                    })),
+                    _AiSearchBar(
+                      onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (context.mounted) Navigator.push(context,
+                            MaterialPageRoute(builder: (_) => const SmartInputScreen()))
+                          .then((saved) {
+                            if (saved == true && mounted) {
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                if (mounted) setState(() => _future = _load());
+                              });
+                            }
+                          });
+                      }),
+                      onMicTap: () => WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (context.mounted) {
+                          showVoiceAssistant(context).then((saved) {
+                            if (saved == true && mounted) {
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                if (mounted) setState(() => _future = _load());
+                              });
+                            }
+                          });
+                        }
+                      }),
+                    ),
                     const SizedBox(height: 20),
                     _BalanceCard(balance: data.balance, transactions: data.transactions),
                     const SizedBox(height: 20),
@@ -237,7 +250,8 @@ class _Header extends StatelessWidget {
 // ── AI Search Bar ─────────────────────────────────────────────────────────────
 class _AiSearchBar extends StatelessWidget {
   final VoidCallback onTap;
-  const _AiSearchBar({required this.onTap});
+  final VoidCallback onMicTap;
+  const _AiSearchBar({required this.onTap, required this.onMicTap});
 
   @override
   Widget build(BuildContext context) {
@@ -275,7 +289,7 @@ class _AiSearchBar extends StatelessWidget {
           const SizedBox(width: 4),
           IconButton(
             icon: Icon(Icons.mic_none, color: c.teal),
-            onPressed: () {},
+            onPressed: () => WidgetsBinding.instance.addPostFrameCallback((_) => onMicTap()),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
           ),

@@ -53,6 +53,12 @@ dependencies:
   # Chọn ảnh từ thư viện
   image_picker: ^1.1.2
 
+  # Speech-to-text — nhận diện giọng nói
+  speech_to_text: ^7.0.0
+
+  # Hiệu ứng glow nhấp nháy quanh micro
+  avatar_glow: ^3.0.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
