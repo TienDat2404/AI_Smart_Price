@@ -116,7 +116,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     onPressed: () => WidgetsBinding.instance.addPostFrameCallback((_) {
                       if (mounted) setState(() => _future = _load());
                     }),
-                    child: const Text('Thu lai'),
+                    child: const Text('Thử lại'),
                   ),
                 ]),
               );
@@ -213,8 +213,8 @@ class _Header extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Xin chao,', style: TextStyle(fontSize: 13, color: c.textSecondary)),
-          Text('Nguyen Van A',
+          Text('Xin chào,', style: TextStyle(fontSize: 13, color: c.textSecondary)),
+          Text('Nguyễn Văn A',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: c.textPrimary)),
         ]),
         Row(children: [
@@ -256,7 +256,7 @@ class _AiSearchBar extends StatelessWidget {
           Icon(Icons.search, color: c.textSecondary, size: 20),
           const SizedBox(width: 10),
           Expanded(
-            child: Text('Hoi AI ve tai chinh cua ban...',
+            child: Text('Hỏi AI về tài chính của bạn...',
                 style: TextStyle(color: c.textSecondary, fontSize: 14)),
           ),
           Container(
@@ -323,14 +323,14 @@ class _BalanceCard extends StatelessWidget {
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          const Text('Tong tai san', style: TextStyle(color: Colors.white70, fontSize: 13)),
+          const Text('Tổng tài sản', style: TextStyle(color: Colors.white70, fontSize: 13)),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Text('7 ngay', style: TextStyle(color: Colors.white, fontSize: 11)),
+            child: const Text('7 ngày', style: TextStyle(color: Colors.white, fontSize: 11)),
           ),
         ]),
         const SizedBox(height: 6),
@@ -364,14 +364,14 @@ class _BalanceCard extends StatelessWidget {
         const SizedBox(height: 12),
         Row(children: [
           _BalanceStat(
-            label: 'Thu nhap',
+            label: 'Thu nhập',
             amount: transactions.where((t) => !t.isExpense).fold(0.0, (s, t) => s + t.amount),
             color: const Color(0xFF80CBC4),
             icon: Icons.arrow_downward,
           ),
           const SizedBox(width: 20),
           _BalanceStat(
-            label: 'Chi tieu',
+            label: 'Chi tiêu',
             amount: transactions.where((t) => t.isExpense).fold(0.0, (s, t) => s + t.amount),
             color: const Color(0xFFFFCDD2),
             icon: Icons.arrow_upward,
@@ -419,30 +419,30 @@ class _AiAdvisorySection extends StatelessWidget {
       _AiCard(
         icon: Icons.trending_up,
         iconColor: _green,
-        title: 'Chi tieu hom nay',
+        title: 'Chi tiêu hôm nay',
         highlight: _fmt(transactions.where((t) => t.isExpense && _isToday(t.date)).fold(0.0, (s, t) => s + t.amount)) + ' d',
         highlightColor: _green,
-        subtitle: 'Thap hon trung binh 7 ngay',
-        action: 'Xem chi tiet',
+        subtitle: 'Thấp hơn trung bình 7 ngày',
+        action: 'Xem chi tiết',
       ),
       if (overBudget.isNotEmpty)
         _AiCard(
           icon: Icons.warning_amber_rounded,
           iconColor: _red,
-          title: 'Canh bao ngan sach',
+          title: 'Cảnh báo ngân sách',
           highlight: overBudget.first.category,
           highlightColor: _red,
-          subtitle: 'Da dung ${(overBudget.first.progress * 100).toStringAsFixed(0)}% han muc',
-          action: 'Dieu chinh',
+          subtitle: 'Đã dùng ${(overBudget.first.progress * 100).toStringAsFixed(0)}% hạn mức',
+          action: 'Điều chỉnh',
         ),
       _AiCard(
         icon: Icons.savings_outlined,
         iconColor: _teal,
-        title: 'Goi y tiet kiem',
+        title: 'Gợi ý tiết kiệm',
         highlight: _fmt(totalExpense * 0.1) + ' d',
         highlightColor: _teal,
-        subtitle: 'Co the tiet kiem them thang nay',
-        action: 'Xem ke hoach',
+        subtitle: 'Có thể tiết kiệm thêm tháng này',
+        action: 'Xem kế hoạch',
       ),
     ];
   }
@@ -458,7 +458,7 @@ class _AiAdvisorySection extends StatelessWidget {
     final cards = _buildCards();
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Text('Co van AI noi gi?',
+        Text('Cố vấn AI nói gì?',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: c.textPrimary)),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -560,7 +560,7 @@ class _GoalSection extends StatelessWidget {
     final others = budgets.skip(1).take(2).toList();
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text('Chi so muc tieu', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: c.textPrimary)),
+      Text('Chỉ số mục tiêu', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: c.textPrimary)),
       const SizedBox(height: 12),
       Container(
         padding: const EdgeInsets.all(18),
@@ -571,7 +571,7 @@ class _GoalSection extends StatelessWidget {
         ),
         child: Column(children: [
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text('Muc tieu: ${daily.category}', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: c.textPrimary)),
+            Text('Mục tiêu: ${daily.category}', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: c.textPrimary)),
             Text('${(daily.progress * 100).toStringAsFixed(0)}%',
                 style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _progressColor(daily.progress))),
           ]),
@@ -651,10 +651,10 @@ class _RecentTransactionsSection extends StatelessWidget {
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Text('Giao dich gan day', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: c.textPrimary)),
+        Text('Giao dịch gần đây', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: c.textPrimary)),
         GestureDetector(
           onTap: onViewAll,
-          child: Text('Xem tat ca', style: TextStyle(fontSize: 13, color: c.teal, fontWeight: FontWeight.w600)),
+          child: Text('Xem tất cả', style: TextStyle(fontSize: 13, color: c.teal, fontWeight: FontWeight.w600)),
         ),
       ]),
       const SizedBox(height: 12),
@@ -667,7 +667,7 @@ class _RecentTransactionsSection extends StatelessWidget {
         child: display.isEmpty
             ? Padding(
                 padding: const EdgeInsets.all(24),
-                child: Center(child: Text('Chua co giao dich nao.', style: TextStyle(color: c.textSecondary))),
+                child: Center(child: Text('Chưa có giao dịch nào.', style: TextStyle(color: c.textSecondary))),
               )
             : Column(
                 children: display.asMap().entries.map((e) {
@@ -707,7 +707,7 @@ class _TxRow extends StatelessWidget {
     final t = transaction;
     final now = DateTime.now();
     final diff = now.difference(t.date).inDays;
-    final timeStr = diff == 0 ? 'Hom nay' : diff == 1 ? 'Hom qua' : '${t.date.day}/${t.date.month}';
+    final timeStr = diff == 0 ? 'Hôm nay' : diff == 1 ? 'Hôm qua' : '${t.date.day}/${t.date.month}';
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -804,11 +804,11 @@ class _CustomBottomBar extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _NavItem(icon: Icons.home_rounded, label: 'Trang chu', index: 0, current: currentIndex, onTap: onTap),
-            _NavItem(icon: Icons.account_balance_wallet_outlined, label: 'Vi cua toi', index: 1, current: currentIndex, onTap: onTap),
+            _NavItem(icon: Icons.home_rounded, label: 'Trang chủ', index: 0, current: currentIndex, onTap: onTap),
+            _NavItem(icon: Icons.account_balance_wallet_outlined, label: 'Ví của tôi', index: 1, current: currentIndex, onTap: onTap),
             const SizedBox(width: 60),
-            _NavItem(icon: Icons.track_changes, label: 'Muc tieu', index: 3, current: currentIndex, onTap: onTap),
-            _NavItem(icon: Icons.person_outline_rounded, label: 'Ca nhan', index: 4, current: currentIndex, onTap: onTap),
+            _NavItem(icon: Icons.track_changes, label: 'Mục tiêu', index: 3, current: currentIndex, onTap: onTap),
+            _NavItem(icon: Icons.person_outline_rounded, label: 'Cá nhân', index: 4, current: currentIndex, onTap: onTap),
           ],
         ),
       ),

@@ -19,13 +19,13 @@ class _Preset {
 }
 
 const _presets = [
-  _Preset('Du lich',  Icons.flight,          Color(0xFF1565C0)),
-  _Preset('Nha cua',  Icons.home_outlined,   Color(0xFF2E7D32)),
-  _Preset('Xe co',    Icons.two_wheeler,     Color(0xFFFF9800)),
-  _Preset('Hoc van',  Icons.school_outlined, Color(0xFF7B1FA2)),
-  _Preset('Cong nghe',Icons.phone_iphone,    Color(0xFF0277BD)),
-  _Preset('Suc khoe', Icons.favorite_border, Color(0xFFC62828)),
-  _Preset('Khac',     Icons.star_border,     Color(0xFF455A64)),
+  _Preset('Du lịch',   Icons.flight,          Color(0xFF1565C0)),
+  _Preset('Nhà cửa',   Icons.home_outlined,   Color(0xFF2E7D32)),
+  _Preset('Xe cộ',     Icons.two_wheeler,     Color(0xFFFF9800)),
+  _Preset('Học vấn',   Icons.school_outlined, Color(0xFF7B1FA2)),
+  _Preset('Công nghệ', Icons.phone_iphone,    Color(0xFF0277BD)),
+  _Preset('Sức khỏe',  Icons.favorite_border, Color(0xFFC62828)),
+  _Preset('Khác',      Icons.star_border,     Color(0xFF455A64)),
 ];
 
 // ── Show helper ───────────────────────────────────────────────────────────────
@@ -87,7 +87,7 @@ class _AddGoalSheetState extends State<_AddGoalSheet> {
   void _onSave() {
     if (_titleCtrl.text.trim().isEmpty || _amount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui long nhap ten va so tien muc tieu.'), backgroundColor: Colors.red),
+        const SnackBar(content: Text('Vui lòng nhập tên và số tiền mục tiêu.'), backgroundColor: Colors.red),
       );
       return;
     }
@@ -102,7 +102,7 @@ class _AddGoalSheetState extends State<_AddGoalSheet> {
       deadline: _deadline,
       categoryIcon: preset.icon,
       color: preset.color,
-      aiInsight: 'Can tiet kiem ${_fmtD(_monthlySaving)} d/thang de dat muc tieu dung han.',
+      aiInsight: 'Cần tiết kiệm ${_fmtD(_monthlySaving)} đ/tháng để đạt mục tiêu đúng hạn.',
     );
 
     Future.delayed(const Duration(milliseconds: 600), () {
@@ -132,10 +132,10 @@ class _AddGoalSheetState extends State<_AddGoalSheet> {
               onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (context.mounted) Navigator.of(context).pop();
               }),
-              child: const Text('Huy', style: TextStyle(fontSize: 15, color: _textGrey, fontWeight: FontWeight.w600)),
+              child: const Text('Hủy', style: TextStyle(fontSize: 15, color: _textGrey, fontWeight: FontWeight.w600)),
             ),
             const Expanded(
-              child: Text('Muc tieu moi', textAlign: TextAlign.center,
+              child: Text('Mục tiêu mới', textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: _textDark)),
             ),
             const Icon(Icons.mic_none, color: _textGrey, size: 22),
@@ -143,7 +143,7 @@ class _AddGoalSheetState extends State<_AddGoalSheet> {
           const SizedBox(height: 20),
 
           // ── Quick presets ────────────────────────────────────────────────────
-          const Text('Chon nhanh', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _textDark)),
+          const Text('Chọn nhanh', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _textDark)),
           const SizedBox(height: 10),
           SizedBox(
             height: 80,
@@ -180,14 +180,14 @@ class _AddGoalSheetState extends State<_AddGoalSheet> {
           const SizedBox(height: 20),
 
           // ── Title field ──────────────────────────────────────────────────────
-          const Text('Ten muc tieu', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _textDark)),
+          const Text('Tên mục tiêu', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _textDark)),
           const SizedBox(height: 8),
           _InputBox(
             child: TextField(
               controller: _titleCtrl,
               style: const TextStyle(fontSize: 15, color: _textDark),
               decoration: const InputDecoration(
-                hintText: 'Vi du: Mua Laptop moi',
+                hintText: 'Ví dụ: Mua Laptop mới',
                 hintStyle: TextStyle(color: _textGrey),
                 border: InputBorder.none, isDense: true,
               ),
@@ -196,7 +196,7 @@ class _AddGoalSheetState extends State<_AddGoalSheet> {
           const SizedBox(height: 16),
 
           // ── Amount field ─────────────────────────────────────────────────────
-          const Text('So tien muc tieu', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _textDark)),
+          const Text('Số tiền mục tiêu', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _textDark)),
           const SizedBox(height: 8),
           _InputBox(
             child: Row(children: [
@@ -217,7 +217,7 @@ class _AddGoalSheetState extends State<_AddGoalSheet> {
           const SizedBox(height: 16),
 
           // ── Deadline ─────────────────────────────────────────────────────────
-          const Text('Ngay hoan thanh', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _textDark)),
+          const Text('Ngày hoàn thành', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _textDark)),
           const SizedBox(height: 8),
           GestureDetector(
             onTap: _pickDate,
@@ -250,7 +250,7 @@ class _AddGoalSheetState extends State<_AddGoalSheet> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Dua tren thu nhap hien tai, ban can tiet kiem khoang ${_fmtD(_monthlySaving)} d/thang de dat muc tieu nay dung han.',
+                    'Dựa trên thu nhập hiện tại, bạn cần tiết kiệm khoảng ${_fmtD(_monthlySaving)} đ/tháng để đạt mục tiêu này đúng hạn.',
                     style: const TextStyle(fontSize: 12, color: Color(0xFF1565C0), height: 1.5),
                   ),
                 ),
@@ -267,8 +267,8 @@ class _AddGoalSheetState extends State<_AddGoalSheet> {
               const SizedBox(width: 10),
               const Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('Tiet kiem tu dong', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _textDark)),
-                  Text('Tu dong trich tien hang thang', style: TextStyle(fontSize: 11, color: _textGrey)),
+                  Text('Tiết kiệm tự động', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _textDark)),
+                  Text('Tự động trích tiền hàng tháng', style: TextStyle(fontSize: 11, color: _textGrey)),
                 ]),
               ),
               Switch(value: _autoSave, onChanged: (v) => setState(() => _autoSave = v), activeColor: _teal),
@@ -278,7 +278,7 @@ class _AddGoalSheetState extends State<_AddGoalSheet> {
           // ── Wallet selector (when auto save on) ──────────────────────────────
           if (_autoSave) ...[
             const SizedBox(height: 12),
-            const Text('Chon vi nguon', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _textDark)),
+            const Text('Chọn ví nguồn', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _textDark)),
             const SizedBox(height: 8),
             ...mockWallets.asMap().entries.map((e) {
               final i = e.key; final w = e.value;
@@ -322,7 +322,7 @@ class _AddGoalSheetState extends State<_AddGoalSheet> {
                 icon: _isSaving
                     ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
                     : const Icon(Icons.arrow_upward_rounded, size: 20),
-                label: Text(_isSaving ? 'Dang luu...' : 'Bat dau tiet kiem',
+                label: Text(_isSaving ? 'Đang lưu...' : 'Bắt đầu tiết kiệm',
                     style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent, shadowColor: Colors.transparent,

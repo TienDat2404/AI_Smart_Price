@@ -57,8 +57,8 @@ class _ProfileScreenState extends State<ProfileScreen>
       context: context,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Dang xuat', style: TextStyle(fontWeight: FontWeight.w800, color: _textDark)),
-        content: const Text('Ban co chac muon dang xuat khoi SmartPrice?', style: TextStyle(color: _textGrey)),
+        title: const Text('Đăng xuất', style: TextStyle(fontWeight: FontWeight.w800, color: _textDark)),
+        content: const Text('Bạn có chắc muốn đăng xuất khỏi SmartPrice?', style: TextStyle(color: _textGrey)),
         actions: [
           TextButton(
             onPressed: () => WidgetsBinding.instance.addPostFrameCallback(
@@ -73,7 +73,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               foregroundColor: _white,
               shape: const StadiumBorder(),
             ),
-            child: const Text('Dang xuat'),
+            child: const Text('Đăng xuất'),
           ),
         ],
       ),
@@ -114,13 +114,13 @@ class _ProfileScreenState extends State<ProfileScreen>
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: _buildSection(
-                  label: 'TRO LY THONG MINH',
+                  label: 'TRỢ LÝ THÔNG MINH',
                   child: Column(children: [
                     _ToggleTile(
                       icon: Icons.smart_toy_outlined,
                       iconColor: const Color(0xFF1565C0),
-                      title: 'Tro ly AI nhac nho chi tieu',
-                      subtitle: 'Canh bao khi vuot ngan sach',
+                      title: 'Trợ lý AI nhắc nhở chi tiêu',
+                      subtitle: 'Cảnh báo khi vượt ngân sách',
                       value: _aiReminder,
                       onChanged: (v) => setState(() => _aiReminder = v),
                     ),
@@ -128,8 +128,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                     _ToggleTile(
                       icon: Icons.document_scanner_outlined,
                       iconColor: _teal,
-                      title: 'Tu dong phan tich hoa don OCR',
-                      subtitle: 'Nhan dien va phan loai tu dong',
+                      title: 'Tự động phân tích hóa đơn OCR',
+                      subtitle: 'Nhận diện và phân loại tự động',
                       value: _autoOcr,
                       onChanged: (v) => setState(() => _autoOcr = v),
                     ),
@@ -145,7 +145,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: _buildSection(
-                  label: 'GIAO DIEN',
+                  label: 'GIAO DIỆN',
                   child: _DarkModeToggle(),
                 ),
               ),
@@ -158,35 +158,35 @@ class _ProfileScreenState extends State<ProfileScreen>
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: _buildSection(
-                  label: 'CAI DAT TAI KHOAN',
+                  label: 'CÀI ĐẶT TÀI KHOẢN',
                   child: Column(children: [
                     _SettingRow(
                       icon: Icons.account_balance_outlined,
                       iconColor: _teal,
-                      title: 'Ngan hang da lien ket',
+                      title: 'Ngân hàng đã liên kết',
                       trailing: _BankLogos(),
-                      onTap: () => _showSnack('Ngan hang da lien ket'),
+                      onTap: () => _showSnack('Ngân hàng đã liên kết'),
                     ),
                     const Divider(height: 1, indent: 56),
                     _SettingRow(
                       icon: Icons.description_outlined,
                       iconColor: const Color(0xFFE65100),
-                      title: 'Xuat bao cao tai chinh',
-                      onTap: () => _showSnack('Xuat bao cao'),
+                      title: 'Xuất báo cáo tài chính',
+                      onTap: () => _showSnack('Xuất báo cáo'),
                     ),
                     const Divider(height: 1, indent: 56),
                     _SettingRow(
                       icon: Icons.speed_outlined,
                       iconColor: const Color(0xFF1565C0),
-                      title: 'Han muc chi tieu thang',
-                      onTap: () => _showSnack('Han muc chi tieu'),
+                      title: 'Hạn mức chi tiêu tháng',
+                      onTap: () => _showSnack('Hạn mức chi tiêu'),
                     ),
                     const Divider(height: 1, indent: 56),
                     _SettingRow(
                       icon: Icons.face_retouching_natural,
                       iconColor: const Color(0xFFC62828),
-                      title: 'Bao mat & FaceID',
-                      onTap: () => _showSnack('Bao mat'),
+                      title: 'Bảo mật & FaceID',
+                      onTap: () => _showSnack('Bảo mật'),
                     ),
                   ]),
                 ),
@@ -235,13 +235,13 @@ class _ProfileScreenState extends State<ProfileScreen>
             }),
           ),
           const Expanded(
-            child: Text('Ca nhan', textAlign: TextAlign.center,
+            child: Text('Cá nhân', textAlign: TextAlign.center,
                 style: TextStyle(color: _white, fontSize: 17, fontWeight: FontWeight.w800)),
           ),
           IconButton(
             icon: const Icon(Icons.edit_outlined, color: _white, size: 20),
             onPressed: () => WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (context.mounted) _showSnack('Chinh sua thong tin');
+              if (context.mounted) _showSnack('Chỉnh sửa thông tin');
             }),
           ),
         ]),
@@ -406,7 +406,7 @@ class _DarkModeToggle extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                isDark ? 'Giao dien toi voi hieu ung Neon' : 'Giao dien sang mac dinh',
+                isDark ? 'Giao diện tối với hiệu ứng Neon' : 'Giao diện sáng mặc định',
                 style: TextStyle(
                   fontSize: 11,
                   color: isDark ? AppColors.darkTextSecondary : _textGrey,
@@ -470,22 +470,22 @@ class _HealthCard extends StatelessWidget {
           text: TextSpan(
             style: TextStyle(fontSize: 15, color: c.textPrimary, fontWeight: FontWeight.w600),
             children: const [
-              TextSpan(text: 'Suc khoe tai chinh: '),
-              TextSpan(text: 'Rat tot', style: TextStyle(color: _green, fontWeight: FontWeight.w800)),
+              TextSpan(text: 'Sức khỏe tài chính: '),
+              TextSpan(text: 'Rất tốt', style: TextStyle(color: _green, fontWeight: FontWeight.w800)),
             ],
           ),
         ),
         const SizedBox(height: 6),
-        Text('Ban dang quan ly chi tieu rat hieu qua!',
+        Text('Bạn đang quản lý chi tiêu rất hiệu quả!',
             style: TextStyle(fontSize: 13, color: c.textSecondary, height: 1.4)),
         const SizedBox(height: 16),
         // Stats row
         Row(children: [
-          _StatChip(label: 'Tiet kiem', value: '+12%', color: _green),
+          _StatChip(label: 'Tiết kiệm', value: '+12%', color: _green),
           const SizedBox(width: 10),
-          _StatChip(label: 'Chi tieu', value: '-5%', color: _teal),
+          _StatChip(label: 'Chi tiêu', value: '-5%', color: _teal),
           const SizedBox(width: 10),
-          _StatChip(label: 'Muc tieu', value: '3/4', color: const Color(0xFF1565C0)),
+          _StatChip(label: 'Mục tiêu', value: '3/4', color: const Color(0xFF1565C0)),
         ]),
       ]),
     );
@@ -701,7 +701,7 @@ class _LogoutButton extends StatelessWidget {
           child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             Icon(Icons.logout_rounded, color: Colors.red, size: 20),
             SizedBox(width: 10),
-            Text('Dang xuat', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.red)),
+            Text('Đăng xuất', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.red)),
           ]),
         ),
       ),

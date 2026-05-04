@@ -15,7 +15,7 @@ class _WalletReportScreenState extends State<WalletReportScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _chartAnim;
   late Animation<double> _chartProgress;
-  String _selectedMonth = 'Thang 10, 2023';
+  String _selectedMonth = 'Tháng 10, 2023';
 
   // Mock balance trend data (31 ngày)
   static final List<double> _trendData = [
@@ -26,9 +26,9 @@ class _WalletReportScreenState extends State<WalletReportScreen>
 
   // Top spending categories mock
   static const _topCategories = [
-    ('An uong',   Icons.restaurant,       1750000.0),
-    ('Mua sam',   Icons.shopping_bag,      820000.0),
-    ('Di chuyen', Icons.directions_bike,   500000.0),
+    ('Ăn uống',   Icons.restaurant,       1750000.0),
+    ('Mua sắm',   Icons.shopping_bag,      820000.0),
+    ('Di chuyển', Icons.directions_bike,   500000.0),
   ];
 
   double get _changePercent {
@@ -91,7 +91,7 @@ class _WalletReportScreenState extends State<WalletReportScreen>
                     if (context.mounted) Navigator.of(context).pop();
                   })),
                   Expanded(
-                    child: Text('Vi ${widget.wallet.name}', textAlign: TextAlign.center,
+                    child: Text('Ví ${widget.wallet.name}', textAlign: TextAlign.center,
                         style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Color(0xFF1A2340))),
                   ),
                   _CircleBtn(icon: Icons.auto_awesome, onTap: () {}, color: _primary),
@@ -131,9 +131,9 @@ class _WalletReportScreenState extends State<WalletReportScreen>
                       ),
                     ),
                     const SizedBox(height: 14),
-                    const Text('So du hien tai', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                    const Text('Số dư hiện tại', style: TextStyle(color: Colors.white70, fontSize: 13)),
                     const SizedBox(height: 4),
-                    Text('${_fmt(widget.wallet.balance)} d',
+                    Text('${_fmt(widget.wallet.balance)} đ',
                         style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900, letterSpacing: -0.5)),
                     const SizedBox(height: 8),
                     Row(children: [
@@ -146,7 +146,7 @@ class _WalletReportScreenState extends State<WalletReportScreen>
                         child: Row(mainAxisSize: MainAxisSize.min, children: [
                           Icon(isPositive ? Icons.trending_up : Icons.trending_down, color: Colors.white, size: 14),
                           const SizedBox(width: 4),
-                          Text('${isPositive ? '+' : ''}${pct.toStringAsFixed(1)}% thang nay',
+                          Text('${isPositive ? '+' : ''}${pct.toStringAsFixed(1)}% tháng này',
                               style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
                         ]),
                       ),
@@ -171,7 +171,7 @@ class _WalletReportScreenState extends State<WalletReportScreen>
                   ),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                      const Text('XU HUONG SO DU',
+                      const Text('XU HƯỚNG SỐ DƯ',
                           style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF8A94A6), letterSpacing: 1.2)),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -220,7 +220,7 @@ class _WalletReportScreenState extends State<WalletReportScreen>
                                     showTitles: true,
                                     interval: 15,
                                     getTitlesWidget: (value, _) {
-                                      final labels = {0.0: '01 Th10', 15.0: '15 Th10', 30.0: '31 Th10'};
+                                      final labels = {0.0: '01 Th.10', 15.0: '15 Th.10', 30.0: '31 Th.10'};
                                       return labels.containsKey(value)
                                           ? Text(labels[value]!, style: const TextStyle(fontSize: 10, color: Color(0xFF8A94A6)))
                                           : const SizedBox.shrink();
@@ -272,7 +272,7 @@ class _WalletReportScreenState extends State<WalletReportScreen>
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  const Text('Top chi tieu tu vi nay',
+                  const Text('Top chi tiêu từ ví này',
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF1A2340))),
                   const SizedBox(height: 12),
                   Container(
@@ -310,7 +310,7 @@ class _WalletReportScreenState extends State<WalletReportScreen>
                                 ),
                               ])),
                               const SizedBox(width: 12),
-                              Text('-${_fmt(amount)} d',
+                              Text('-${_fmt(amount)} đ',
                                   style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFFE53935))),
                             ]),
                           ),
@@ -332,7 +332,7 @@ class _WalletReportScreenState extends State<WalletReportScreen>
   }
 
   void _showMonthPicker() {
-    const months = ['Thang 8, 2023', 'Thang 9, 2023', 'Thang 10, 2023', 'Thang 11, 2023'];
+    const months = ['Tháng 8, 2023', 'Tháng 9, 2023', 'Tháng 10, 2023', 'Tháng 11, 2023'];
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),

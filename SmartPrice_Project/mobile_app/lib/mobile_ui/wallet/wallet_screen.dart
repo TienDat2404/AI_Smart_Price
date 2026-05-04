@@ -30,11 +30,11 @@ class _WalletTx {
 }
 
 const _mockTxs = [
-  _WalletTx(title: 'Pho Thin',     subtitle: 'An uong · Hom nay',  amount: -85000,   icon: Icons.restaurant,          iconBg: Color(0xFFFFF3E0)),
-  _WalletTx(title: 'Netflix',      subtitle: 'Giai tri · Hom qua', amount: -199000,  icon: Icons.play_circle_outline, iconBg: Color(0xFFFFEBEE)),
-  _WalletTx(title: 'Grab',         subtitle: 'Di chuyen · Hom qua',amount: -35000,   icon: Icons.directions_bike,     iconBg: Color(0xFFE8F5E9)),
-  _WalletTx(title: 'Luong thang 4',subtitle: 'Thu nhap · 01/04',   amount: 15000000, icon: Icons.account_balance_wallet, iconBg: Color(0xFFE0F2F1)),
-  _WalletTx(title: 'Shopee',       subtitle: 'Mua sam · 30/03',    amount: -450000,  icon: Icons.shopping_bag_outlined,  iconBg: Color(0xFFFFF3E0)),
+  _WalletTx(title: 'Phở Thìn',      subtitle: 'Ăn uống · Hôm nay',  amount: -85000,   icon: Icons.restaurant,          iconBg: Color(0xFFFFF3E0)),
+  _WalletTx(title: 'Netflix',      subtitle: 'Giải trí · Hôm qua', amount: -199000,  icon: Icons.play_circle_outline, iconBg: Color(0xFFFFEBEE)),
+  _WalletTx(title: 'Grab',         subtitle: 'Di chuyển · Hôm qua',amount: -35000,   icon: Icons.directions_bike,     iconBg: Color(0xFFE8F5E9)),
+  _WalletTx(title: 'Lương tháng 4', subtitle: 'Thu nhập · 01/04',   amount: 15000000, icon: Icons.account_balance_wallet, iconBg: Color(0xFFE0F2F1)),
+  _WalletTx(title: 'Shopee',       subtitle: 'Mua sắm · 30/03',    amount: -450000,  icon: Icons.shopping_bag_outlined,  iconBg: Color(0xFFFFF3E0)),
 ];
 
 const _sparkline = [0.6, 0.4, 0.7, 0.5, 0.8, 0.65, 0.9];
@@ -74,7 +74,7 @@ class _WalletScreenState extends State<WalletScreen> {
             const SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.fromLTRB(20, 20, 20, 10),
-                child: Text('Tai khoan cua ban',
+                child: Text('Tài khoản của bạn',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: _textDark)),
               ),
             ),
@@ -87,9 +87,9 @@ class _WalletScreenState extends State<WalletScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Lich su giao dich',
+                    Text('Lịch sử giao dịch',
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: _textDark)),
-                    Text('Xem tat ca',
+                    Text('Xem tất cả',
                         style: TextStyle(fontSize: 13, color: _teal, fontWeight: FontWeight.w600)),
                   ],
                 ),
@@ -140,7 +140,7 @@ class _HeaderCard extends StatelessWidget {
               child: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 16),
             ),
           ),
-          const Text('Vi cua toi',
+          const Text('Ví của tôi',
               style: TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w600)),
           Row(children: [
             IconButton(
@@ -161,7 +161,7 @@ class _HeaderCard extends StatelessWidget {
         Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Tong tai san',
+              const Text('Tổng tài sản',
                   style: TextStyle(color: Colors.white60, fontSize: 13)),
               const SizedBox(height: 4),
               Text('${_fmt(totalBalance)} d',
@@ -178,7 +178,7 @@ class _HeaderCard extends StatelessWidget {
                 child: const Row(mainAxisSize: MainAxisSize.min, children: [
                   Icon(Icons.trending_up, color: Color(0xFF80CBC4), size: 14),
                   SizedBox(width: 4),
-                  Text('+2.4% thang nay',
+                  Text('+2.4% tháng này',
                       style: TextStyle(color: Color(0xFF80CBC4), fontSize: 11, fontWeight: FontWeight.w600)),
                 ]),
               ),
@@ -244,7 +244,7 @@ class _QuickActions extends StatelessWidget {
       child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
         _ActionBtn(
           icon: Icons.swap_horiz_rounded,
-          label: 'Chuyen tien',
+          label: 'Chuyển tiền',
           color: _teal,
           onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) {
             Navigator.push(
@@ -263,7 +263,7 @@ class _QuickActions extends StatelessWidget {
         ),
         _ActionBtn(
           icon: Icons.edit_outlined,
-          label: 'Chinh sua',
+          label: 'Chỉnh sửa',
           color: const Color(0xFF7C4DFF),
           onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) {
             Navigator.push(
@@ -288,7 +288,7 @@ class _QuickActions extends StatelessWidget {
         ),
         _ActionBtn(
           icon: Icons.bar_chart_rounded,
-          label: 'Bao cao',
+          label: 'Báo cáo',
           color: const Color(0xFFFF9800),
           onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) {
             Navigator.push(
@@ -398,7 +398,7 @@ class _MainWalletCard extends StatelessWidget {
           Icon(Icons.more_horiz, color: wallet.textColor.withValues(alpha: 0.6)),
         ]),
         const SizedBox(height: 20),
-        Text('So du', style: TextStyle(color: wallet.textColor.withValues(alpha: 0.6), fontSize: 12)),
+        Text('Số dư', style: TextStyle(color: wallet.textColor.withValues(alpha: 0.6), fontSize: 12)),
         const SizedBox(height: 4),
         Text('${_fmt(wallet.balance)} d',
             style: TextStyle(

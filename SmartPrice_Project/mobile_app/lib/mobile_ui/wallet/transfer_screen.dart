@@ -48,14 +48,14 @@ class _TransferScreenState extends State<TransferScreen> {
     final amount = _amountValue;
     if (amount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui long nhap so tien hop le.'), backgroundColor: Colors.red),
+        const SnackBar(content: Text('Vui lòng nhập số tiền hợp lệ.'), backgroundColor: Colors.red),
       );
       return;
     }
     if (amount > mockWallets[_fromIdx].balance) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('So du ${mockWallets[_fromIdx].name} khong du de chuyen.'),
+          content: Text('Số dư ${mockWallets[_fromIdx].name} không đủ để chuyển.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -77,7 +77,7 @@ class _TransferScreenState extends State<TransferScreen> {
         content: Row(children: [
           const Icon(Icons.check_circle, color: Colors.white, size: 18),
           const SizedBox(width: 8),
-          Text('Chuyen ${_fmt(amount)} d thanh cong!'),
+          Text('Chuyển ${_fmt(amount)} đ thành công!'),
         ]),
         backgroundColor: _tealDark,
         behavior: SnackBarBehavior.floating,
@@ -115,7 +115,7 @@ class _TransferScreenState extends State<TransferScreen> {
                   ),
                 ),
                 const Expanded(
-                  child: Text('Chuyen noi bo', textAlign: TextAlign.center,
+                  child: Text('Chuyển nội bộ', textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: _textDark)),
                 ),
                 const SizedBox(width: 38),
@@ -168,9 +168,9 @@ class _TransferScreenState extends State<TransferScreen> {
 
                   // ── From / To boxes ───────────────────────────────────────
                   Row(children: [
-                    Expanded(child: _WalletBox(label: 'TU', wallet: from, isSource: true)),
+                    Expanded(child: _WalletBox(label: 'TỪ', wallet: from, isSource: true)),
                     const SizedBox(width: 12),
-                    Expanded(child: _WalletBox(label: 'DEN', wallet: to, isSource: false)),
+                    Expanded(child: _WalletBox(label: 'ĐẾN', wallet: to, isSource: false)),
                   ]),
 
                   const SizedBox(height: 20),
@@ -200,7 +200,7 @@ class _TransferScreenState extends State<TransferScreen> {
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: const Center(
-                        child: Text('Quay lai', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: _textGrey)),
+                        child: Text('Quay lại', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: _textGrey)),
                       ),
                     ),
                   ),
@@ -224,7 +224,7 @@ class _TransferScreenState extends State<TransferScreen> {
                       child: _isProcessing
                           ? const Center(child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5)))
                           : const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                              Text('Tiep tuc', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white)),
+                              Text('Tiếp tục', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white)),
                               SizedBox(width: 8),
                               Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
                             ]),

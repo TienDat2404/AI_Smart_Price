@@ -73,7 +73,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
     try {
       final cameras = await availableCameras();
       if (cameras.isEmpty) {
-        if (mounted) setState(() => _cameraError = 'Khong tim thay camera.');
+        if (mounted) setState(() => _cameraError = 'Không tìm thấy camera.');
         return;
       }
       _cameraCtrl = CameraController(
@@ -85,7 +85,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
       if (mounted) setState(() => _cameraReady = true);
     } catch (e) {
       debugPrint('[Camera] $e');
-      if (mounted) setState(() => _cameraError = 'Che do gia lap (Windows Preview)');
+      if (mounted) setState(() => _cameraError = 'Chế độ giả lập (Windows Preview)');
     }
   }
 
@@ -153,7 +153,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
       setState(() => _isProcessing = false);
 
       final result = OcrResult(
-        store:      json['storeName']   as String? ?? 'Khong ro',
+        store:      json['storeName']   as String? ?? 'Không rõ',
         total:      (json['totalAmount'] as num? ?? 0).toDouble(),
         date:       json['date']        as String? ?? '',
         category:   json['category']    as String? ?? 'Khac',
@@ -176,7 +176,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
       store: 'WinMart (Demo)',
       total: 450000,
       date: '24/04/2026',
-      category: 'Mua sam',
+      category: 'Mua sắm',
       invoiceId: 'INV-DEMO-0001',
       confidence: 0.92,
     ));
@@ -193,16 +193,16 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
     final bool isTimeout = e is ApiException && e.statusCode == 408;
 
     final String title = isOcrFail
-        ? 'Khong nhan dien duoc'
+        ? 'Không nhận diện được'
         : isTimeout
-            ? 'Qua thoi gian cho'
-            : 'Co loi xay ra';
+            ? 'Quá thời gian chờ'
+            : 'Có lỗi xảy ra';
 
     final String message = e is ApiException
         ? e.message
         : e is Exception
             ? e.toString().replaceFirst('Exception: ', '')
-            : 'Khong the nhan dien hoa don nay, vui long thu lai hoac nhap tay.';
+            : 'Không thể nhận diện hóa đơn này, vui lòng thử lại hoặc nhập tay.';
 
     showDialog(
       context: context,
@@ -225,11 +225,11 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(color: const Color(0xFFF5F5F5), borderRadius: BorderRadius.circular(10)),
               child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('Goi y:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.black54)),
+                Text('Gợi ý:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.black54)),
                 SizedBox(height: 4),
-                Text('• Chup lai voi anh ro net hon', style: TextStyle(fontSize: 12, color: Colors.black54)),
-                Text('• Dam bao du anh sang', style: TextStyle(fontSize: 12, color: Colors.black54)),
-                Text('• Hoac nhap thu cong ben duoi', style: TextStyle(fontSize: 12, color: Colors.black54)),
+                Text('• Chụp lại với ảnh rõ nét hơn', style: TextStyle(fontSize: 12, color: Colors.black54)),
+                Text('• Đảm bảo đủ ánh sáng', style: TextStyle(fontSize: 12, color: Colors.black54)),
+                Text('• Hoặc nhập thủ công bên dưới', style: TextStyle(fontSize: 12, color: Colors.black54)),
               ]),
             ),
           ],
@@ -237,7 +237,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
         actions: [
           TextButton(
             onPressed: () => WidgetsBinding.instance.addPostFrameCallback((_) => Navigator.pop(context)),
-            child: const Text('Thu lai', style: TextStyle(color: _teal, fontWeight: FontWeight.w700)),
+            child: const Text('Thử lại', style: TextStyle(color: _teal, fontWeight: FontWeight.w700)),
           ),
           if (isOcrFail)
             TextButton(
@@ -245,7 +245,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
                 Navigator.pop(context);
                 Navigator.pop(context);
               }),
-              child: const Text('Nhap thu cong', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w600)),
+              child: const Text('Nhập thủ công', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w600)),
             ),
         ],
       ),
@@ -308,7 +308,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
                       _GlassButton(icon: Icons.arrow_back_ios_new, onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) {
                         if (context.mounted) Navigator.of(context).pop();
                       })),
-                      const Text('Quet hoa don', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700)),
+                      const Text('Quét hóa đơn', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700)),
                       _GlassButton(icon: Icons.flash_off, onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) => _cameraCtrl?.setFlashMode(FlashMode.torch))),
                     ],
                   ),
@@ -321,7 +321,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
                   top: h / 2 + frameH / 2 + 16,
                   left: 0, right: 0,
                   child: const Text(
-                    'Dat hoa don vao trong khung de quet',
+                    'Đặt hóa đơn vào trong khung để quét',
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.white70, fontSize: 13),
                   ),
@@ -350,13 +350,13 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
                         ),
                         const SizedBox(height: 24),
                         const Text(
-                          'AI dang phan tich du lieu hoa don...',
+                          'AI đang phân tích dữ liệu hóa đơn...',
                           style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 8),
                         const Text(
-                          'Vui long giu nguyen hoa don trong khung',
+                          'Vui lòng giữ nguyên hóa đơn trong khung',
                           style: TextStyle(color: Colors.white54, fontSize: 12),
                           textAlign: TextAlign.center,
                         ),
@@ -407,7 +407,7 @@ class _MockCameraBackground extends StatelessWidget {
                 const Icon(Icons.desktop_windows_outlined, size: 13, color: _tealLight),
                 const SizedBox(width: 6),
                 Text(
-                  errorMsg ?? 'Che do gia lap camera (Windows Preview)',
+                  errorMsg ?? 'Chế độ giả lập camera (Windows Preview)',
                   style: const TextStyle(color: Colors.white70, fontSize: 11),
                 ),
               ]),
@@ -597,7 +597,7 @@ class _BottomControls extends StatelessWidget {
             border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
           ),
           child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-            _ControlBtn(icon: Icons.image_outlined, label: 'Thu vien', onTap: isProcessing ? () {} : onPickImage),
+            _ControlBtn(icon: Icons.image_outlined, label: 'Thư viện', onTap: isProcessing ? () {} : onPickImage),
             // Capture FAB
             GestureDetector(
               onTap: isProcessing ? null : () => WidgetsBinding.instance.addPostFrameCallback((_) => onCapture()),
@@ -617,7 +617,7 @@ class _BottomControls extends StatelessWidget {
                     : const Icon(Icons.camera_alt, color: Colors.white, size: 30),
               ),
             ),
-            _ControlBtn(icon: Icons.history, label: 'Lich su', onTap: isProcessing ? () {} : onHistory),
+            _ControlBtn(icon: Icons.history, label: 'Lịch sử', onTap: isProcessing ? () {} : onHistory),
           ]),
         ),
       ),
@@ -677,7 +677,7 @@ class _ResultBottomSheet extends StatelessWidget {
           const SizedBox(width: 14),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Ket qua nhan dien', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Color(0xFF1A2340))),
+              const Text('Kết quả nhận diện', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Color(0xFF1A2340))),
               if (result.invoiceId.isNotEmpty)
                 Text(result.invoiceId, style: const TextStyle(fontSize: 12, color: Colors.grey)),
             ]),
@@ -704,7 +704,7 @@ class _ResultBottomSheet extends StatelessWidget {
           const Expanded(child: Divider()),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Text('Thong tin hoa don', style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+            child: Text('Thông tin hóa đơn', style: TextStyle(fontSize: 11, color: Colors.grey[500])),
           ),
           const Expanded(child: Divider()),
         ]),
@@ -719,20 +719,20 @@ class _ResultBottomSheet extends StatelessWidget {
             border: Border.all(color: Colors.grey.withValues(alpha: 0.12)),
           ),
           child: Column(children: [
-            _DataRow(icon: Icons.store_outlined, label: 'Cua hang', value: result.store, isFirst: true),
+            _DataRow(icon: Icons.store_outlined, label: 'Cửa hàng', value: result.store, isFirst: true),
             const _RowDivider(),
             _DataRow(
               icon: Icons.attach_money,
-              label: 'Tong tien',
-              value: '${_fmt(result.total)} d',
+              label: 'Tổng tiền',
+              value: '${_fmt(result.total)} đ',
               valueColor: const Color(0xFFE53935),
               valueFontSize: 18,
               valueFontWeight: FontWeight.w900,
             ),
             const _RowDivider(),
-            _DataRow(icon: Icons.calendar_today_outlined, label: 'Ngay', value: result.date),
+            _DataRow(icon: Icons.calendar_today_outlined, label: 'Ngày', value: result.date),
             const _RowDivider(),
-            _DataRow(icon: Icons.label_outline, label: 'Hang muc', value: result.category, isLast: true),
+            _DataRow(icon: Icons.label_outline, label: 'Hạng mục', value: result.category, isLast: true),
           ]),
         ),
 
@@ -749,7 +749,7 @@ class _ResultBottomSheet extends StatelessWidget {
           child: const Row(children: [
             Icon(Icons.info_outline, size: 15, color: Color(0xFFF9A825)),
             SizedBox(width: 8),
-            Expanded(child: Text('Kiem tra lai thong tin truoc khi luu', style: TextStyle(fontSize: 12, color: Color(0xFF795548)))),
+            Expanded(child: Text('Kiểm tra lại thông tin trước khi lưu', style: TextStyle(fontSize: 12, color: Color(0xFF795548)))),
           ]),
         ),
 
@@ -763,7 +763,7 @@ class _ResultBottomSheet extends StatelessWidget {
                 if (context.mounted) Navigator.pop(context);
               }),
               icon: const Icon(Icons.edit_outlined, size: 16),
-              label: const Text('Chinh sua'),
+              label: const Text('Chỉnh sửa'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: _teal,
                 side: const BorderSide(color: _teal),
@@ -784,7 +784,7 @@ class _ResultBottomSheet extends StatelessWidget {
                     content: Row(children: [
                       const Icon(Icons.check_circle, color: Colors.white, size: 18),
                       const SizedBox(width: 8),
-                      Text('Da luu: ${result.store} - ${_fmt(result.total)} d'),
+                      Text('Đã lưu: ${result.store} - ${_fmt(result.total)} đ'),
                     ]),
                     backgroundColor: _tealDark,
                     behavior: SnackBarBehavior.floating,
@@ -793,7 +793,7 @@ class _ResultBottomSheet extends StatelessWidget {
                 );
               },
               icon: const Icon(Icons.save_outlined, size: 18),
-              label: const Text('Luu giao dich', style: TextStyle(fontWeight: FontWeight.w700)),
+              label: const Text('Lưu giao dịch', style: TextStyle(fontWeight: FontWeight.w700)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: _teal,
                 foregroundColor: Colors.white,

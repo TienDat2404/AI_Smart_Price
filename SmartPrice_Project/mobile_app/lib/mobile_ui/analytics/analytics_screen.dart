@@ -56,7 +56,7 @@ List<_CategoryStat> _mockStats() {
 
 _AiAdvice _mockAdvice(List<_CategoryStat> stats) {
   if (stats.isEmpty) {
-    return const _AiAdvice(advice: 'Chua co du lieu. Hay bat dau ghi chep chi tieu!', type: 'default');
+    return const _AiAdvice(advice: 'Chưa có dữ liệu. Hãy bắt đầu ghi chép chi tiêu!', type: 'default');
   }
   final top = stats.first;
   if (top.category.contains('An uong')) {
@@ -66,7 +66,7 @@ _AiAdvice _mockAdvice(List<_CategoryStat> stats) {
     );
   }
   return _AiAdvice(
-    advice: "Hang muc '${top.category}' chiem ty trong cao nhat. Hay theo doi de quan ly tot hon!",
+    advice: "Hạng mục '${top.category}' chiếm tỷ trọng cao nhất. Hãy theo dõi để quản lý tốt hơn!",
     type: 'default',
   );
 }
@@ -124,7 +124,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text('Phan tich chi tieu',
+        title: const Text('Phân tích chi tiêu',
             style: TextStyle(fontWeight: FontWeight.w800, color: _textDark, fontSize: 17)),
         iconTheme: const IconThemeData(color: _teal),
         actions: [
@@ -148,14 +148,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
                   const Icon(Icons.pie_chart_outline, size: 56, color: _textGrey),
                   const SizedBox(height: 12),
-                  const Text('Chua co du lieu phan tich.', style: TextStyle(color: _textGrey)),
+                  const Text('Chưa có dữ liệu phân tích.', style: TextStyle(color: _textGrey)),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(backgroundColor: _teal),
                     onPressed: () => WidgetsBinding.instance.addPostFrameCallback((_) {
                       if (mounted) setState(() => _future = _load());
                     }),
-                    child: const Text('Thu lai'),
+                    child: const Text('Thử lại'),
                   ),
                 ]),
               );
@@ -275,7 +275,7 @@ class _AiAdviceCardState extends State<_AiAdviceCard> {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
               Text(
-                isWarning ? 'Canh bao chi tieu' : isTip ? 'Goi y tiet kiem' : 'Nhan xet AI',
+                isWarning ? 'Cảnh báo chi tiêu' : isTip ? 'Gợi ý tiết kiệm' : 'Nhận xét AI',
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: iconColor, letterSpacing: 0.3),
               ),
               const SizedBox(width: 6),
@@ -351,10 +351,10 @@ class _SummaryCard extends StatelessWidget {
         const Icon(Icons.pie_chart_outline, color: Colors.white, size: 36),
         const SizedBox(width: 16),
         Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('Tong chi tieu', style: TextStyle(color: Colors.white70, fontSize: 13)),
+          const Text('Tổng chi tiêu', style: TextStyle(color: Colors.white70, fontSize: 13)),
           Text('${_fmt(grandTotal)} d',
               style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900, letterSpacing: -0.5)),
-          Text('$count hang muc', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+          Text('$count hạng mục', style: const TextStyle(color: Colors.white70, fontSize: 12)),
         ]),
       ]),
     );
@@ -380,7 +380,7 @@ class _PieChartCard extends StatelessWidget {
       child: Column(children: [
         const Align(
           alignment: Alignment.centerLeft,
-          child: Text('Ti le chi tieu', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: _textDark)),
+          child: Text('Tỉ lệ chi tiêu', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: _textDark)),
         ),
         const SizedBox(height: 4),
         const Align(
@@ -435,8 +435,8 @@ class _PieChartCard extends StatelessWidget {
                         style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: _colorFor(stats[touchedIndex].category))),
                   ])
                 : const Column(mainAxisSize: MainAxisSize.min, children: [
-                    Text('Chi tieu', style: TextStyle(fontSize: 12, color: _textGrey)),
-                    Text('theo hang muc', style: TextStyle(fontSize: 11, color: _textGrey)),
+                    Text('Chi tiêu', style: TextStyle(fontSize: 12, color: _textGrey)),
+                    Text('theo hạng mục', style: TextStyle(fontSize: 11, color: _textGrey)),
                   ]),
           ]),
         ),
@@ -481,7 +481,7 @@ class _CategoryListCard extends StatelessWidget {
         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 12, offset: const Offset(0, 4))],
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('Chi tiet theo hang muc',
+        const Text('Chi tiết theo hạng mục',
             style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: _textDark)),
         const SizedBox(height: 16),
         ...stats.asMap().entries.map((e) {

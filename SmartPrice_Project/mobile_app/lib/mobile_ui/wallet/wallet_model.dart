@@ -28,13 +28,13 @@ final List<WalletModel> mockWallets = [
     icon: Icons.account_balance,
   ),
   WalletModel(
-    name: 'Tien mat', subtitle: 'Tien mat',
+    name: 'Tiền mặt', subtitle: 'Tiền mặt',
     balance: 12500000,
     color: const Color(0xFFE8F5E9), textColor: const Color(0xFF2E7D32),
     icon: Icons.payments_outlined,
   ),
   WalletModel(
-    name: 'MoMo', subtitle: 'Vi dien tu',
+    name: 'MoMo', subtitle: 'Ví điện tử',
     balance: 29050000,
     color: const Color(0xFFFCE4EC), textColor: const Color(0xFFC62828),
     icon: Icons.phone_android,

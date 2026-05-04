@@ -43,14 +43,14 @@ class _SavingsGoalsScreenState extends State<SavingsGoalsScreen> {
                       onPressed: () => WidgetsBinding.instance.addPostFrameCallback((_) {
                         if (context.mounted) Navigator.pop(context);
                       }),
-                      tooltip: 'Quay lai',
+                      tooltip: 'Quay lại',
                     ),
                     const SizedBox(width: 2),
                     // Title
                     const Expanded(
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text('Muc tieu', style: TextStyle(fontSize: 13, color: _textGrey)),
-                        Text('Tiet kiem', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: _textDark)),
+                        Text('Mục tiêu', style: TextStyle(fontSize: 13, color: _textGrey)),
+                        Text('Tiết kiệm', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: _textDark)),
                       ]),
                     ),
                     // Right actions
@@ -89,7 +89,7 @@ class _SavingsGoalsScreenState extends State<SavingsGoalsScreen> {
               const SliverToBoxAdapter(
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: Text('Muc tieu khac', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: _textDark)),
+                  child: Text('Mục tiêu khác', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: _textDark)),
                 ),
               ),
               const SliverToBoxAdapter(child: SizedBox(height: 12)),
@@ -183,7 +183,7 @@ class _PriorityGoalCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(20)),
-              child: const Text('Uu tien cao', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
+              child: const Text('Ưu tiên cao', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
             ),
             Container(
               width: 44, height: 44,
@@ -209,9 +209,9 @@ class _PriorityGoalCard extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text('${goal.progressPercent.toStringAsFixed(0)}% hoan thanh',
+            Text('${goal.progressPercent.toStringAsFixed(0)}% hoàn thành',
                 style: const TextStyle(color: Colors.white70, fontSize: 11)),
-            Text('Con ${goal.daysLeft} ngay', style: const TextStyle(color: Colors.white70, fontSize: 11)),
+            Text('Còn ${goal.daysLeft} ngày', style: const TextStyle(color: Colors.white70, fontSize: 11)),
           ]),
           const SizedBox(height: 14),
           // AI insight
@@ -309,13 +309,13 @@ class _AiStrategyCard extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Chien luoc tu AI', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w800)),
-            Text('Goi y ca nhan hoa', style: TextStyle(color: Colors.white60, fontSize: 11)),
+            Text('Chiến lược từ AI', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w800)),
+            Text('Gợi ý cá nhân hóa', style: TextStyle(color: Colors.white60, fontSize: 11)),
           ]),
         ]),
         const SizedBox(height: 14),
         const Text(
-          'Giam chi tieu an ngoai 30% (khoang 500k/thang) se giup ban dat muc tieu "Mua iPhone 16 Pro" som hon 15 ngay!',
+          'Giảm chi tiêu ăn ngoài 30% (khoảng 500k/tháng) sẽ giúp bạn đạt mục tiêu "Mua iPhone 16 Pro" sớm hơn 15 ngày!',
           style: TextStyle(color: Colors.white, fontSize: 13, height: 1.5),
         ),
         const SizedBox(height: 16),
@@ -330,7 +330,7 @@ class _AiStrategyCard extends StatelessWidget {
             child: const Row(mainAxisSize: MainAxisSize.min, children: [
               Icon(Icons.auto_awesome, color: Colors.white, size: 15),
               SizedBox(width: 6),
-              Text('Toi uu hoa ngay', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
+              Text('Tối ưu hóa ngay', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
             ]),
           ),
         ),
@@ -421,7 +421,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> with SingleTickerPr
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text('${g.progressPercent.toStringAsFixed(1)}% · Con ${_fmt(g.remaining)} d · ${g.daysLeft} ngay',
+                    Text('${g.progressPercent.toStringAsFixed(1)}% · Còn ${_fmt(g.remaining)} đ · ${g.daysLeft} ngày',
                         style: const TextStyle(color: Colors.white70, fontSize: 12)),
                   ]),
                 ),
@@ -448,7 +448,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> with SingleTickerPr
                   child: ElevatedButton.icon(
                     onPressed: () {},
                     icon: const Icon(Icons.add, size: 18),
-                    label: const Text('Them tien vao quy', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                    label: const Text('Thêm tiền vào quỹ', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _teal, foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

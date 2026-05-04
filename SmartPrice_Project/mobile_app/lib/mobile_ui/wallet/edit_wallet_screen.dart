@@ -73,10 +73,10 @@ class _EditWalletScreenState extends State<EditWalletScreen> {
       final adjustTx = Transaction(
         id: '',
         userId: 'user_01',
-        itemName: 'Dieu chinh so du - ${widget.wallet.name}',
+        itemName: 'Điều chỉnh số dư - ${widget.wallet.name}',
         amount: diff.abs(),
-        category: 'Dieu chinh',
-        note: 'Auto adjustment: ${diff > 0 ? '+' : ''}${_fmt(diff)} d',
+        category: 'Điều chỉnh',
+        note: 'Điều chỉnh tự động: ${diff > 0 ? '+' : ''}${_fmt(diff)} đ',
         date: DateTime.now(),
         isExpense: diff < 0,
       );
@@ -99,7 +99,7 @@ class _EditWalletScreenState extends State<EditWalletScreen> {
         content: Row(children: [
           const Icon(Icons.check_circle, color: Colors.white, size: 18),
           const SizedBox(width: 8),
-          Text('Cap nhat so du thanh cong! ${diff > 0 ? '+' : ''}${_fmt(diff)} d'),
+          Text('Cập nhật số dư thành công! ${diff > 0 ? '+' : ''}${_fmt(diff)} d'),
         ]),
         backgroundColor: _tealDark,
         behavior: SnackBarBehavior.floating,
@@ -137,7 +137,7 @@ class _EditWalletScreenState extends State<EditWalletScreen> {
                 }),
               ),
               const Expanded(
-                child: Text('Chinh sua vi', textAlign: TextAlign.center,
+                child: Text('Chỉnh sửa ví', textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: _textDark)),
               ),
               _CircleBtn(icon: Icons.mic_none, onTap: () {}),
@@ -160,7 +160,7 @@ class _EditWalletScreenState extends State<EditWalletScreen> {
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        const Text('Ngan hang lien ket',
+                        const Text('Ngân hàng liên kết',
                             style: TextStyle(fontSize: 12, color: _textGrey, fontWeight: FontWeight.w500)),
                         const SizedBox(height: 4),
                         Text(widget.wallet.name,
@@ -177,7 +177,7 @@ class _EditWalletScreenState extends State<EditWalletScreen> {
                       ),
                     ]),
                     const SizedBox(height: 20),
-                    const Text('SO DU HIEN TAI',
+                    const Text('SỐ DƯ HIỆN TẠI',
                         style: TextStyle(fontSize: 10, color: _textGrey, letterSpacing: 1.5, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 6),
                     Text('${_fmt(widget.wallet.balance)} d',
@@ -188,7 +188,7 @@ class _EditWalletScreenState extends State<EditWalletScreen> {
                 const SizedBox(height: 24),
 
                 // ── Input section ────────────────────────────────────────────
-                const Text('So du thuc te moi:',
+                const Text('Số dư thực tế mới:',
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _textDark)),
                 const SizedBox(height: 10),
                 Container(
@@ -220,9 +220,9 @@ class _EditWalletScreenState extends State<EditWalletScreen> {
 
                 // ── 3 action buttons ─────────────────────────────────────────
                 Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-                  _ActionIcon(icon: Icons.balance, label: 'Can bang vi', color: _teal, onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) => _onBalance())),
-                  _ActionIcon(icon: Icons.save_outlined, label: 'Luu thay doi', color: const Color(0xFF1565C0), onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) => _onUpdate())),
-                  _ActionIcon(icon: Icons.close, label: 'Huy bo', color: const Color(0xFFE53935), onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) {
+                  _ActionIcon(icon: Icons.balance, label: 'Cân bằng ví', color: _teal, onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) => _onBalance())),
+                  _ActionIcon(icon: Icons.save_outlined, label: 'Lưu thay đổi', color: const Color(0xFF1565C0), onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) => _onUpdate())),
+                  _ActionIcon(icon: Icons.close, label: 'Hủy bỏ', color: const Color(0xFFE53935), onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) {
                     if (context.mounted) Navigator.of(context).pop();
                   })),
                 ]),
@@ -242,7 +242,7 @@ class _EditWalletScreenState extends State<EditWalletScreen> {
                     const SizedBox(width: 8),
                     const Expanded(
                       child: Text(
-                        'Viec dieu chinh so du se tao mot giao dich bu tru tu dong de khop voi thuc te ma ban vua nhap.',
+                        'Việc điều chỉnh số dư sẽ tạo một giao dịch bù trừ tự động để khớp với thực tế mà bạn vừa nhập.',
                         style: TextStyle(fontSize: 11, color: _textGrey, height: 1.5),
                       ),
                     ),
@@ -278,7 +278,7 @@ class _EditWalletScreenState extends State<EditWalletScreen> {
                   ),
                   child: _isProcessing
                       ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
-                      : const Text('Cap nhat so du', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
+                      : const Text('Cập nhật số dư', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
                 ),
               ),
             ),

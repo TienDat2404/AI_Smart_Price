@@ -15,14 +15,14 @@ const _textGrey  = Color(0xFF8A94A6);
 
 // ── Danh mục ──────────────────────────────────────────────────────────────────
 const _categories = [
-  'An uong',
-  'Di chuyen',
-  'Mua sam',
-  'Giai tri',
-  'Suc khoe',
-  'Hoa don',
-  'Thu nhap',
-  'Khac',
+  'Ăn uống',
+  'Di chuyển',
+  'Mua sắm',
+  'Giải trí',
+  'Sức khỏe',
+  'Hóa đơn',
+  'Thu nhập',
+  'Khác',
 ];
 
 // ── Slide transition helper ───────────────────────────────────────────────────
@@ -66,9 +66,9 @@ class _ConfirmInvoiceScreenState extends State<ConfirmInvoiceScreen>
     final original = widget.ocrResult.category;
     // Giả lập AI gợi ý category khác
     const suggestions = {
-      'Mua sam': 'Giai tri',
-      'An uong': 'Suc khoe',
-      'Di chuyen': 'Hoa don',
+      'Mua sắm': 'Giải trí',
+      'Ăn uống': 'Sức khỏe',
+      'Di chuyển': 'Hóa đơn',
     };
     return suggestions[original];
   }
@@ -143,7 +143,7 @@ class _ConfirmInvoiceScreenState extends State<ConfirmInvoiceScreen>
         itemName: _storeCtrl.text.trim(),
         amount: amount,
         category: _selectedCategory,
-        note: 'Quet hoa don - ${widget.ocrResult.invoiceId}',
+        note: 'Quét hóa đơn - ${widget.ocrResult.invoiceId}',
         date: DateTime.now(),
         isExpense: true,
       );
@@ -163,7 +163,7 @@ class _ConfirmInvoiceScreenState extends State<ConfirmInvoiceScreen>
           content: Row(children: [
             const Icon(Icons.check_circle, color: Colors.white, size: 18),
             const SizedBox(width: 8),
-            Text('Da luu: ${_storeCtrl.text} - ${_fmt(amount)} d'),
+            Text('Đã lưu: ${_storeCtrl.text} - ${_fmt(amount)} đ'),
           ]),
           backgroundColor: _tealDark,
           behavior: SnackBarBehavior.floating,
@@ -174,7 +174,7 @@ class _ConfirmInvoiceScreenState extends State<ConfirmInvoiceScreen>
       if (mounted) {
         setState(() => _isSaving = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Loi luu: $e'), backgroundColor: _red),
+          SnackBar(content: Text('Lỗi lưu: $e'), backgroundColor: _red),
         );
       }
     }
@@ -219,7 +219,7 @@ class _ConfirmInvoiceScreenState extends State<ConfirmInvoiceScreen>
                     const SizedBox(width: 12),
                     const Expanded(
                       child: Text(
-                        'Xac nhan hoa don',
+                        'Xác nhận hóa đơn',
                         style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w700),
                       ),
                     ),
@@ -334,7 +334,7 @@ class _InvoiceCard extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('HOA DON', style: TextStyle(color: Colors.white70, fontSize: 11, letterSpacing: 1.5, fontWeight: FontWeight.w600)),
+              const Text('HÓA ĐƠN', style: TextStyle(color: Colors.white70, fontSize: 11, letterSpacing: 1.5, fontWeight: FontWeight.w600)),
               if (invoiceId.isNotEmpty)
                 Text(invoiceId, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
             ])),
@@ -350,7 +350,7 @@ class _InvoiceCard extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
           child: Column(children: [
-            const Text('TONG TIEN', style: TextStyle(fontSize: 11, color: _textGrey, letterSpacing: 1.5, fontWeight: FontWeight.w600)),
+            const Text('TỔNG TIỀN', style: TextStyle(fontSize: 11, color: _textGrey, letterSpacing: 1.5, fontWeight: FontWeight.w600)),
             const SizedBox(height: 6),
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Expanded(
@@ -376,9 +376,9 @@ class _InvoiceCard extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.all(20),
           child: Column(children: [
-            _EditableRow(icon: Icons.store_outlined, label: 'Cua hang', controller: storeCtrl),
+            _EditableRow(icon: Icons.store_outlined, label: 'Cửa hàng', controller: storeCtrl),
             const SizedBox(height: 14),
-            _EditableRow(icon: Icons.calendar_today_outlined, label: 'Ngay', controller: dateCtrl),
+            _EditableRow(icon: Icons.calendar_today_outlined, label: 'Ngày', controller: dateCtrl),
             const SizedBox(height: 14),
 
             // Category dropdown
@@ -389,7 +389,7 @@ class _InvoiceCard extends StatelessWidget {
                 child: const Icon(Icons.label_outline, size: 18, color: _teal),
               ),
               const SizedBox(width: 12),
-              const SizedBox(width: 80, child: Text('Hang muc', style: TextStyle(fontSize: 13, color: _textGrey))),
+              const SizedBox(width: 80, child: Text('Hạng mục', style: TextStyle(fontSize: 13, color: _textGrey))),
               Expanded(
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
@@ -419,7 +419,7 @@ class _InvoiceCard extends StatelessWidget {
           child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             const Icon(Icons.auto_awesome, size: 13, color: _teal),
             const SizedBox(width: 6),
-            Text('Nhan dien boi SmartPrice AI', style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+            Text('Nhận diện bởi SmartPrice AI', style: TextStyle(fontSize: 11, color: Colors.grey[500])),
           ]),
         ),
       ]),
@@ -484,14 +484,14 @@ class _AiSuggestionCard extends StatelessWidget {
         ),
         const SizedBox(width: 12),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('Goi y tu AI', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600)),
+          const Text('Gợi ý từ AI', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600)),
           const SizedBox(height: 2),
           RichText(text: TextSpan(
             style: const TextStyle(fontSize: 13, color: Colors.white),
             children: [
-              const TextSpan(text: 'Nen doi thanh '),
+              const TextSpan(text: 'Nên đổi thành '),
               TextSpan(text: suggestion, style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFFFFD740))),
-              TextSpan(text: ' thay vi $original?', style: const TextStyle(color: Colors.white70)),
+              TextSpan(text: ' thay vì $original?', style: const TextStyle(color: Colors.white70)),
             ],
           )),
         ])),
@@ -504,7 +504,7 @@ class _AiSuggestionCard extends StatelessWidget {
               color: const Color(0xFFFFD740),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Text('Ap dung', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Colors.black87)),
+            child: const Text('Áp dụng', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Colors.black87)),
           ),
         ),
       ]),
@@ -531,7 +531,7 @@ class _ActionButtons extends StatelessWidget {
           icon: isSaving
               ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
               : const Icon(Icons.save_outlined, size: 20),
-          label: Text(isSaving ? 'Dang luu...' : 'Xac nhan & Luu', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+          label: Text(isSaving ? 'Đang lưu...' : 'Xác nhận & Lưu', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
           style: ElevatedButton.styleFrom(
             backgroundColor: _teal,
             foregroundColor: Colors.white,
@@ -548,7 +548,7 @@ class _ActionButtons extends StatelessWidget {
         child: OutlinedButton.icon(
           onPressed: () => WidgetsBinding.instance.addPostFrameCallback((_) => onCancel()),
           icon: const Icon(Icons.arrow_back, size: 18),
-          label: const Text('Huy bo', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+          label: const Text('Hủy bỏ', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
           style: OutlinedButton.styleFrom(
             foregroundColor: Colors.white,
             side: BorderSide(color: Colors.white.withValues(alpha: 0.4)),
