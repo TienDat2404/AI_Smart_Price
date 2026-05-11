@@ -1,11 +1,12 @@
-import { useState } from 'react'
-import { Users, DollarSign, ScanLine, AlertTriangle, MoreHorizontal, Play, Activity } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { Users, DollarSign, ScanLine, AlertTriangle, MoreHorizontal, Play, Activity, RefreshCw } from 'lucide-react'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts'
 import MetricCard from '../components/MetricCard'
 import { chartData6M, chartData12M, recentUsers, systemHealth } from '../data/mockData'
 import { adminService } from '../api/adminService'
+import { walletService, formatVND, formatVNDShort } from '../api/walletService'
 import { useApi } from '../hooks/useApi'
 
 // ── Tier badge ────────────────────────────────────────────────────────────────
@@ -40,7 +41,25 @@ function CustomTooltip({ active, payload, label }) {
 export default function OverviewPage() {
   const [chartRange, setChartRange] = useState('6M')
 
-  // Live data — fallback về mock nếu API chưa chạy
+  // ── Live balance state – cập nhật real-time ──────────────────────────────
+  const [totalBalance, setTotalBalance]   = useState(null)
+  const [balanceLoading, setBalanceLoading] = useState(true)
+
+  const fetchBalance = useCallback(async () => {
+    setBalanceLoading(true)
+    try {
+      const data = await walletService.getBalance('user_01')
+      setTotalBalance(data?.balance ?? null)
+    } catch {
+      setTotalBalance(null) // fallback về overview.totalRevenue
+    } finally {
+      setBalanceLoading(false)
+    }
+  }, [])
+
+  useEffect(() => { fetchBalance() }, [fetchBalance])
+
+  // ── Live data – fallback về mock nếu API chưa chạy ───────────────────────
   const { data: overview } = useApi(() => adminService.getOverview(), [])
   const { data: liveChart } = useApi(
     () => adminService.getChartData(chartRange === '6M' ? 6 : 12),
@@ -48,14 +67,32 @@ export default function OverviewPage() {
   )
   const { data: usersData } = useApi(() => adminService.getUsers({ limit: 6 }), [])
 
+  // Số dư hiển thị: ưu tiên live balance từ /api/wallet/balance
+  const displayBalance = totalBalance !== null
+    ? totalBalance
+    : (overview?.totalRevenue ?? 45200)
+
   // Dùng live data nếu có, fallback về mock
   const chartData = (liveChart?.length ? liveChart : chartRange === '6M' ? chartData6M : chartData12M)
-  const displayUsers = usersData?.data?.length ? usersData.data : recentUsers
+
+  // ✦ Normalize user fields – API trả PascalCase, mock dùng camelCase
+  const normalizeUser = (u) => ({
+    id:     u.id     ?? u.Id     ?? String(Math.random()),
+    name:   u.name   ?? u.FullName ?? '?',
+    email:  u.email  ?? u.Email  ?? '',
+    joined: u.joined ?? (u.CreatedAt ? new Date(u.CreatedAt).toLocaleDateString('vi-VN') : '—'),
+    tier:   u.tier   ?? u.Tier   ?? 'Hạng đồng',
+    score:  u.score  ?? u.HealthScore ?? 0,
+    active: u.active ?? u.IsActive ?? true,
+  })
+
+  const rawUsers     = usersData?.data?.length ? usersData.data : recentUsers
+  const displayUsers = rawUsers.map(normalizeUser)
 
   return (
     <div className="space-y-6">
 
-      {/* ── Metric cards ──────────────────────────────────────────────────── */}
+      {/* ── Metric cards ──────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <MetricCard
           icon={Users}
@@ -70,7 +107,7 @@ export default function OverviewPage() {
           icon={DollarSign}
           iconBg="bg-gradient-to-br from-cyan-500 to-teal-500"
           title="Doanh thu / Tháng"
-          value={`$${((overview?.totalRevenue ?? 45200) / 1000).toFixed(1)}k`}
+          value={`${((overview?.totalRevenue ?? 45200) / 1000).toFixed(1)}k`}
           trend={`+${overview?.revenueGrowthPercent ?? 8.3}%`}
           trendUp={true}
           sub={`${(overview?.totalTransactions ?? 3200).toLocaleString()} giao dịch`}
@@ -95,7 +132,7 @@ export default function OverviewPage() {
         />
       </div>
 
-      {/* ── Main chart + Users table ───────────────────────────────────────── */}
+      {/* ── Main chart + Users table ──────────────────────────────────────────── */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
 
         {/* Area Chart */}
@@ -197,7 +234,7 @@ export default function OverviewPage() {
         </div>
       </div>
 
-      {/* ── Users table ───────────────────────────────────────────────────── */}
+      {/* ── Users table ───────────────────────────────────────────────────────── */}
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
           <div>
@@ -223,7 +260,7 @@ export default function OverviewPage() {
                   <td className="px-6 py-3.5">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                        {user.name.charAt(0)}
+                        {(user.name ?? '?').charAt(0)}
                       </div>
                       <span className="text-sm font-semibold text-gray-800 dark:text-gray-200 whitespace-nowrap">{user.name}</span>
                     </div>
@@ -256,7 +293,7 @@ export default function OverviewPage() {
         </div>
       </div>
 
-      {/* ── Bottom section ─────────────────────────────────────────────────── */}
+      {/* ── Bottom section ────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* AI Banner */}

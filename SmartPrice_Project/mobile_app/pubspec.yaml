@@ -50,8 +50,11 @@ dependencies:
   # Camera preview
   camera: ^0.11.1
 
-  # Chọn ảnh từ thư viện
+  # Chọn ảnh từ thư viện (Android/iOS)
   image_picker: ^1.1.2
+
+  # Chọn file từ máy tính (Windows/macOS/Linux)
+  file_picker: ^8.1.2
 
   # Speech-to-text — nhận diện giọng nói
   speech_to_text: ^7.0.0

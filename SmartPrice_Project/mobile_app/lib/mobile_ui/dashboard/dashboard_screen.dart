@@ -16,6 +16,7 @@ import '../smart_input/smart_input_screen.dart';
 import '../transactions/transaction_history_screen.dart';
 import '../wallet/wallet_model.dart';
 import '../wallet/wallet_screen.dart';
+import '../../core/services/balance_notifier.dart';
 import '../voice/voice_assistant_screen.dart';
 
 // ── Teal color palette ────────────────────────────────────────────────────────
@@ -56,39 +57,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     _future = _load();
+    // Lắng nghe BalanceNotifier — rebuild ngay khi có giao dịch mới
+    BalanceNotifier.instance.addListener(_onBalanceChanged);
+  }
+
+  @override
+  void dispose() {
+    BalanceNotifier.instance.removeListener(_onBalanceChanged);
+    super.dispose();
+  }
+
+  void _onBalanceChanged() {
+    // Rebuild _future với balance mới từ mockWallets (không cần gọi API)
+    if (mounted) setState(() => _future = _load());
   }
 
   Future<_HomeData> _load() async {
-    // Tổng số dư ví = tổng balance của tất cả ví (luôn dương)
-    // Đây là "tổng tài sản", không phải thu nhập - chi tiêu
-    final walletBalance = mockWallets.fold(0.0, (sum, w) => sum + w.balance);
+    // Số dư = từ BalanceNotifier (đã được cập nhật real-time khi có giao dịch mới)
+    // Thử lấy từ API nếu có, fallback về mockWallets
+    double walletBalance = BalanceNotifier.instance.totalBalance;
+
+    try {
+      final apiBalance = await ApiService.instance.getWalletBalance('user_01');
+      // Chỉ dùng API balance nếu > 0 (có dữ liệu thực)
+      if (apiBalance > 0) walletBalance = apiBalance;
+    } catch (_) {
+      // Giữ nguyên mockWallets balance
+    }
 
     try {
       final results = await Future.wait([
         ApiService.instance.getTransactions('user_01'),
-        ApiService.instance.getTransactionStats('user_01'),
         MockData.fetchBudgets(),
       ]);
       final txs     = results[0] as List<Transaction>;
-      final stats   = results[1] as TransactionStats;
-      final budgets = results[2] as List<Budget>;
-
-      // Dùng walletBalance (tổng ví) thay vì stats.balance (thu - chi)
-      // vì stats.balance có thể âm nếu chi tiêu > thu nhập trong DB
-      return _HomeData(
-        transactions: txs,
-        budgets: budgets,
-        balance: walletBalance,
-      );
+      final budgets = results[1] as List<Budget>;
+      return _HomeData(transactions: txs, budgets: budgets, balance: walletBalance);
     } catch (_) {
-      // Fallback MockData khi backend chưa chạy
       final txs     = await MockData.fetchTransactions();
       final budgets = await MockData.fetchBudgets();
-      return _HomeData(
-        transactions: txs,
-        budgets: budgets,
-        balance: walletBalance,
-      );
+      return _HomeData(transactions: txs, budgets: budgets, balance: walletBalance);
     }
   }
 

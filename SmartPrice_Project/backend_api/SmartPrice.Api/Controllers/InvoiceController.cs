@@ -143,10 +143,10 @@ namespace SmartPrice.Api.Controllers
                 return new InvoiceScanResponse
                 {
                     InvoiceId   = $"INV-{DateTime.Now:yyyyMMdd}-{new Random().Next(1000, 9999)}",
-                    StoreName   = GetString(doc, "store", "item") ?? "Khong ro",
+                    StoreName   = GetString(doc, "store", "item") ?? "Không rõ",
                     TotalAmount = GetDouble(doc, "total", "price"),
                     Date        = GetString(doc, "date") ?? DateTime.Now.ToString("dd/MM/yyyy"),
-                    Category    = GetString(doc, "category") ?? "Khac",
+                    Category    = GetString(doc, "category") ?? "Khác",
                     Confidence  = GetDouble(doc, "confidence"),
                     FileName    = fileName,
                 };
@@ -185,17 +185,43 @@ namespace SmartPrice.Api.Controllers
             return 0;
         }
 
-        /// <summary>Stub response khi AI Engine chưa sẵn sàng.</summary>
-        private static InvoiceScanResponse BuildStubResponse(string fileName) => new()
+        /// <summary>Stub response khi AI Engine chưa sẵn sàng — dữ liệu đa dạng theo thời gian.</summary>
+        private static InvoiceScanResponse BuildStubResponse(string fileName)
         {
-            InvoiceId   = $"INV-{DateTime.Now:yyyyMMdd}-{new Random().Next(1000, 9999)}",
-            StoreName   = "WinMart (Stub)",
-            TotalAmount = 450000,
-            Date        = DateTime.Now.ToString("dd/MM/yyyy"),
-            Category    = "Mua sam",
-            Confidence  = 0.75,
-            FileName    = fileName,
-        };
+            // Dùng hash của fileName + timestamp để tạo kết quả đa dạng
+            var seed = Math.Abs(fileName.GetHashCode()) + DateTime.Now.Second;
+            var rng  = new Random(seed);
+
+            var stubs = new[]
+            {
+                ("WinMart Quận 1",   125000.0, "Mua sắm"),
+                ("Phở Thìn",          85000.0, "Ăn uống"),
+                ("Circle K",          45000.0, "Ăn uống"),
+                ("Grab Food",         65000.0, "Ăn uống"),
+                ("Shopee Express",   320000.0, "Mua sắm"),
+                ("CGV Cinemas",      200000.0, "Giải trí"),
+                ("Pharmacity",       180000.0, "Sức khỏe"),
+                ("Highlands Coffee",  75000.0, "Ăn uống"),
+                ("Bún bò Huế",        60000.0, "Ăn uống"),
+                ("Điện Máy Xanh",  1250000.0, "Mua sắm"),
+            };
+
+            var (store, baseTotal, category) = stubs[rng.Next(stubs.Length)];
+            // Thêm biến động nhỏ ±10%
+            var variation = baseTotal * (rng.NextDouble() * 0.2 - 0.1);
+            var total     = Math.Round((baseTotal + variation) / 1000) * 1000;
+
+            return new InvoiceScanResponse
+            {
+                InvoiceId   = $"INV-{DateTime.Now:yyyyMMdd}-{rng.Next(1000, 9999)}",
+                StoreName   = store,
+                TotalAmount = total,
+                Date        = DateTime.Now.ToString("dd/MM/yyyy"),
+                Category    = category,
+                Confidence  = Math.Round(0.70 + rng.NextDouble() * 0.20, 2),
+                FileName    = fileName,
+            };
+        }
     }
 
     // ── Response DTO ──────────────────────────────────────────────────────────

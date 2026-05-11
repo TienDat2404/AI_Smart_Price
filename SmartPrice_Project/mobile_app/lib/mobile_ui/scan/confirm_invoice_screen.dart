@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/models/transaction.dart';
 import '../../core/services/api_service.dart';
+import '../../core/services/balance_notifier.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/widgets/mobile_layout.dart';
 import 'scan_receipt_screen.dart';
@@ -150,6 +151,13 @@ class _ConfirmInvoiceScreenState extends State<ConfirmInvoiceScreen>
 
       // Gọi API lưu vào MongoDB
       await ApiService.instance.saveTransaction(tx);
+
+      // ✅ Cập nhật số dư real-time — trừ/cộng vào mockWallets ngay lập tức
+      // Dashboard sẽ nhận được thông báo qua BalanceNotifier và rebuild
+      BalanceNotifier.instance.applyTransaction(
+        amount:    amount,
+        isExpense: tx.isExpense,
+      );
 
       // ── Kiểm tra ngân sách và gửi notification nếu cần ──────────────────
       await _checkBudgetAndNotify(amount);

@@ -62,13 +62,27 @@ namespace SmartPrice.Api.Controllers
 
         // POST api/transactions
         [HttpPost]
-        public async Task<ActionResult<Transaction>> Create([FromBody] Transaction transaction)
+        public async Task<ActionResult<object>> Create([FromBody] Transaction transaction)
         {
-            transaction.Id   = null; // MongoDB tự sinh ObjectId
+            transaction.Id   = null;
             transaction.Date = transaction.Date == default ? DateTime.UtcNow : transaction.Date;
 
             await _collection.InsertOneAsync(transaction);
-            return CreatedAtAction(nameof(GetById), new { id = transaction.Id }, transaction);
+
+            // Tính lại số dư sau khi lưu — trả về cùng response để client cập nhật UI ngay
+            var filter       = Builders<Transaction>.Filter.Eq(t => t.UserId, transaction.UserId);
+            var all          = await _collection.Find(filter).ToListAsync();
+            var totalIncome  = all.Where(t => !t.IsExpense).Sum(t => (double)t.Amount);
+            var totalExpense = all.Where(t => t.IsExpense).Sum(t => (double)t.Amount);
+            var newBalance   = totalIncome - totalExpense;
+
+            return CreatedAtAction(nameof(GetById), new { id = transaction.Id }, new
+            {
+                transaction,
+                newBalance,
+                totalIncome,
+                totalExpense,
+            });
         }
 
         // PUT api/transactions/{id}

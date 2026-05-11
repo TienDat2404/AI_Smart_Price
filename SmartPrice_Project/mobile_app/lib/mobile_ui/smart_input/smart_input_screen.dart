@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/models/transaction.dart';
 import '../../core/services/ai_service.dart';
 import '../../core/services/api_service.dart';
+import '../../core/services/balance_notifier.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/mobile_layout.dart';
 import 'widgets/ai_preview_card.dart';
@@ -125,6 +126,11 @@ class _SmartInputScreenState extends State<SmartInputScreen> {
           isExpense: item.category != 'Thu nhập',
         );
         await ApiService.instance.saveTransaction(tx);
+        // ✅ Cập nhật số dư real-time
+        BalanceNotifier.instance.applyTransaction(
+          amount:    item.amount,
+          isExpense: item.category != 'Thu nhập',
+        );
         savedCount++;
       } catch (e) {
         errors.add('${item.note}: ${e.toString()}');

@@ -62,7 +62,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: AppColors.primary),
-            onPressed: _refresh,
+            onPressed: () => WidgetsBinding.instance.addPostFrameCallback((_) => _refresh()),
           ),
         ],
       ),
@@ -128,7 +128,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                   // ── Data — ListView.builder ────────────────────────────
                   return RefreshIndicator(
                     color: AppColors.neonCyan,
-                    onRefresh: () async => _refresh(),
+                    onRefresh: () async {
+                      WidgetsBinding.instance.addPostFrameCallback((_) => _refresh());
+                    },
                     child: ListView.builder(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                       itemCount: filtered.length,
@@ -354,7 +356,7 @@ class _CategoryFilter extends StatelessWidget {
           final cat = categories[index];
           final isSelected = cat == selected;
           return GestureDetector(
-            onTap: () => onChanged(cat),
+            onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) => onChanged(cat)),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -429,7 +431,7 @@ class _ErrorView extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             ElevatedButton.icon(
-              onPressed: onRetry,
+              onPressed: () => WidgetsBinding.instance.addPostFrameCallback((_) => onRetry()),
               icon: const Icon(Icons.refresh, size: 18),
               label: const Text('Thử lại'),
             ),

@@ -57,12 +57,12 @@ export default function UsersPage() {
 
   // Normalize field names (API PascalCase vs mock camelCase)
   const normalize = (u) => ({
-    id:     u.id     ?? u.Id,
-    name:   u.name   ?? u.FullName,
-    email:  u.email  ?? u.Email,
+    id:     u.id     ?? u.Id     ?? String(Math.random()),
+    name:   u.name   ?? u.FullName ?? '?',
+    email:  u.email  ?? u.Email  ?? '',
     joined: u.joined ?? (u.CreatedAt ? new Date(u.CreatedAt).toLocaleDateString('vi-VN') : '—'),
     tier:   u.tier   ?? u.Tier   ?? 'Hạng đồng',
-    score:  u.score  ?? u.HealthScore ?? 500,
+    score:  u.score  ?? u.HealthScore ?? 0,
     active: u.active ?? u.IsActive ?? true,
   })
 
@@ -133,7 +133,7 @@ export default function UsersPage() {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                        {user.name.charAt(0)}
+                        {(user.name ?? '?').charAt(0)}
                       </div>
                       <div>
                         <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 whitespace-nowrap">{user.name}</p>

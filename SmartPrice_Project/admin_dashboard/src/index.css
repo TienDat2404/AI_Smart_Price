@@ -4,12 +4,56 @@
 
 @layer base {
   * { box-sizing: border-box; }
+
+  html {
+    /* Ngăn browser tự điều chỉnh font-size trên mobile */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
   body {
-    font-family: 'Inter', 'Roboto', sans-serif;
+    font-family:
+      'Be Vietnam Pro',
+      'Inter',
+      system-ui,
+      -apple-system,
+      'Segoe UI',
+      'Helvetica Neue',
+      Arial,
+      sans-serif;
+
+    /* Tối ưu render — tránh chữ bị "nặng" / "đậm" bất thường */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-synthesis: none;           /* Ngăn browser tự tạo bold/italic giả */
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "kern" 1;
+
+    /* Reset font-weight về normal để tránh inherit sai */
+    font-weight: 400;
+    line-height: 1.5;
+
     background-color: #F8F9FA;
     color: #1a2340;
     margin: 0;
   }
+
+  /* Đảm bảo tất cả element kế thừa font đúng */
+  *, *::before, *::after {
+    font-family: inherit;
+  }
+
+  /* Normalize heading weights — tránh browser default quá đậm */
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    line-height: 1.25;
+  }
+
+  /* Input/button kế thừa font */
+  input, button, textarea, select {
+    font: inherit;
+  }
+
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: #f1f5f9; }
   ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
@@ -18,4 +62,7 @@
 
 @layer utilities {
   .scrollbar-thin { scrollbar-width: thin; }
+  .font-vi {
+    font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif;
+  }
 }

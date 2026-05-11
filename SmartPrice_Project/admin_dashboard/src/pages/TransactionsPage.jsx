@@ -39,8 +39,8 @@ export default function TransactionsPage() {
   const [search, setSearch] = useState('')
 
   const filtered = recentTransactions.filter(t =>
-    t.user.toLowerCase().includes(search.toLowerCase()) ||
-    t.category.toLowerCase().includes(search.toLowerCase())
+    (t.user ?? t.UserName ?? '').toLowerCase().includes(search.toLowerCase()) ||
+    (t.category ?? '').toLowerCase().includes(search.toLowerCase())
   )
 
   const totalIncome  = recentTransactions.filter(t => t.amount > 0).reduce((s, t) => s + t.amount, 0)
@@ -132,9 +132,9 @@ export default function TransactionsPage() {
                   <td className="px-6 py-3.5">
                     <div className="flex items-center gap-2">
                       <div className="w-7 h-7 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                        {tx.user.charAt(0)}
+                        {(tx.user ?? tx.UserName ?? '?').charAt(0)}
                       </div>
-                      <span className="text-sm font-medium text-gray-800 dark:text-gray-200 whitespace-nowrap">{tx.user}</span>
+                      <span className="text-sm font-medium text-gray-800 dark:text-gray-200 whitespace-nowrap">{tx.user ?? tx.UserName ?? '—'}</span>
                     </div>
                   </td>
                   <td className="px-6 py-3.5"><TypeBadge type={tx.type} /></td>

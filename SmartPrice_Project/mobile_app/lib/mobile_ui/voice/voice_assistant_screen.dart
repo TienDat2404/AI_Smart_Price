@@ -1,9 +1,10 @@
+
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
-import '../../core/services/ai_service.dart';
 import '../../core/services/api_service.dart';
+import '../../core/services/balance_notifier.dart';
 import '../../core/models/transaction.dart';
 
 // ── Palette ───────────────────────────────────────────────────────────────────
@@ -14,9 +15,52 @@ const _bg        = Color(0xFFF8FAFB);
 const _textDark  = Color(0xFF1A2340);
 const _textGrey  = Color(0xFF8A94A6);
 
-// ── Helper để mở sheet ────────────────────────────────────────────────────────
+// ── Kết quả sau khi processAndTranslate ──────────────────────────────────────
+class _ParsedResult {
+  final String category;
+  final double amount;
+  final String timeLabel;
+  final String note;
+  const _ParsedResult({
+    required this.category,
+    required this.amount,
+    required this.timeLabel,
+    required this.note,
+  });
+}
+
+// ── Bảng từ khóa tiếng Anh → tiếng Việt ─────────────────────────────────────
+const _enCategoryMap = {
+  'eat': 'Ăn uống',   'food': 'Ăn uống',   'lunch': 'Ăn uống',
+  'dinner': 'Ăn uống','breakfast': 'Ăn uống','coffee': 'Ăn uống',
+  'drink': 'Ăn uống', 'pho': 'Ăn uống',    'rice': 'Ăn uống',
+  'grab': 'Di chuyển','taxi': 'Di chuyển',  'bus': 'Di chuyển',
+  'uber': 'Di chuyển','ride': 'Di chuyển',  'gas': 'Di chuyển',
+  'fuel': 'Di chuyển','transport': 'Di chuyển',
+  'shop': 'Mua sắm',  'buy': 'Mua sắm',    'purchase': 'Mua sắm',
+  'clothes': 'Mua sắm','shirt': 'Mua sắm', 'shoes': 'Mua sắm',
+  'movie': 'Giải trí','game': 'Giải trí',  'netflix': 'Giải trí',
+  'play': 'Giải trí', 'entertainment': 'Giải trí',
+  'doctor': 'Sức khỏe','medicine': 'Sức khỏe','gym': 'Sức khỏe',
+  'hospital': 'Sức khỏe','health': 'Sức khỏe',
+  'electric': 'Hóa đơn','water': 'Hóa đơn','internet': 'Hóa đơn',
+  'bill': 'Hóa đơn',  'rent': 'Hóa đơn',
+  'salary': 'Thu nhập','income': 'Thu nhập','bonus': 'Thu nhập',
+  'freelance': 'Thu nhập','earn': 'Thu nhập',
+};
+
+// ── Bảng từ khóa thời gian ────────────────────────────────────────────────────
+const _enTimeMap = {
+  'today': 'Hôm nay',     'now': 'Hôm nay',
+  'yesterday': 'Hôm qua', 'morning': 'Sáng nay',
+  'noon': 'Trưa nay',     'evening': 'Tối nay',
+  'night': 'Tối nay',     'this week': 'Tuần này',
+  'last week': 'Tuần trước',
+};
+
+// ── Helper mở sheet ───────────────────────────────────────────────────────────
 Future<dynamic> showVoiceAssistant(BuildContext context) {
-  return showModalBottomSheet(
+  return showModalBottomSheet<dynamic>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
@@ -38,17 +82,17 @@ class _VoiceAssistantSheetState extends State<_VoiceAssistantSheet>
   final SpeechToText _speech = SpeechToText();
   bool _speechAvailable = false;
   bool _isListening      = false;
-  String _liveText       = '';
+  String _liveText       = '';   // raw English text from STT
 
-  // ── AI result ─────────────────────────────────────────────────────────────
+  // ── Result state ──────────────────────────────────────────────────────────
   bool _hasData      = false;
   bool _isProcessing = false;
-  String _category   = '';
-  double _amount     = 0;
-  String _timeLabel  = 'Hôm nay';
-  String _note       = '';
+  String _processingLabel = 'AI đang phân tích...'; // label thay đổi theo giai đoạn
+  _ParsedResult? _result;
+  String? _normalizedText;   // text sau khi chuẩn hóa dialect
+  bool _dialectDetected = false; // có phát hiện từ địa phương không
 
-  // ── Animations ────────────────────────────────────────────────────────────
+  // ── Card animation ────────────────────────────────────────────────────────
   late AnimationController _cardAnim;
   late Animation<double>   _cardFade;
   late Animation<Offset>   _cardSlide;
@@ -59,17 +103,12 @@ class _VoiceAssistantSheetState extends State<_VoiceAssistantSheet>
   @override
   void initState() {
     super.initState();
-
-    // Card appear animation
-    _cardAnim = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
+    _cardAnim = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
     _cardFade  = CurvedAnimation(parent: _cardAnim, curve: Curves.easeOut);
-    _cardSlide = Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero)
+    _cardSlide = Tween<Offset>(begin: const Offset(0, 0.25), end: Offset.zero)
         .animate(CurvedAnimation(parent: _cardAnim, curve: Curves.easeOutCubic));
-
-    // Blinking dot
     _dotAnim = AnimationController(vsync: this, duration: const Duration(milliseconds: 700))
       ..repeat(reverse: true);
-
     _initSpeech();
   }
 
@@ -81,112 +120,301 @@ class _VoiceAssistantSheetState extends State<_VoiceAssistantSheet>
     super.dispose();
   }
 
-  // ── Speech init ───────────────────────────────────────────────────────────
+  // ── Init STT ──────────────────────────────────────────────────────────────
   Future<void> _initSpeech() async {
     _speechAvailable = await _speech.initialize(
       onError: (e) => debugPrint('[STT] Error: $e'),
+      onStatus: (s) => debugPrint('[STT] Status: $s'),
     );
     if (mounted) setState(() {});
   }
 
-  // ── Start / Stop listening ────────────────────────────────────────────────
+  // ── Toggle listening ──────────────────────────────────────────────────────
   Future<void> _toggleListening() async {
     if (_isListening) {
       await _speech.stop();
       setState(() => _isListening = false);
       if (_liveText.trim().isNotEmpty) {
-        _runMockAI(_liveText.trim());
+        _processAndTranslate(_liveText.trim());
       }
       return;
     }
 
-    // Reset state
     setState(() {
       _hasData      = false;
       _liveText     = '';
       _isProcessing = false;
+      _result       = null;
     });
     _cardAnim.reset();
 
     if (!_speechAvailable) {
-      // Fallback: giả lập trên Windows (không có mic thật)
-      setState(() { _isListening = true; _liveText = ''; });
-      await Future.delayed(const Duration(seconds: 2));
-      if (!mounted) return;
-      setState(() {
-        _isListening = false;
-        _liveText    = 'Hôm nay đi ăn phở hết 50k';
-      });
-      _runMockAI(_liveText);
+      _showManualInputDialog();
       return;
     }
 
     setState(() => _isListening = true);
     await _speech.listen(
       onResult: _onSpeechResult,
-      localeId: 'vi_VN',
-      listenFor: const Duration(seconds: 15),
-      pauseFor: const Duration(seconds: 3),
+      // en_US — hoạt động tốt trên Windows
+      // Để nhận tiếng Việt tốt hơn trên Android/iOS, đổi thành 'vi_VN'
+      localeId: 'en_US',
+      listenFor: const Duration(seconds: 20),
+      pauseFor: const Duration(seconds: 4),
       partialResults: true,
+      cancelOnError: false,
+      // onDevice: false → ưu tiên xử lý qua cloud (Google/Apple) để tăng độ chính xác
+      // Đặc biệt quan trọng cho tiếng Việt vùng miền
     );
+
+    // Auto-fallback nếu không nhận được gì sau 20s
+    Future.delayed(const Duration(seconds: 20), () {
+      if (mounted && _isListening && _liveText.isEmpty) {
+        _speech.stop();
+        setState(() => _isListening = false);
+        _showManualInputDialog();
+      }
+    });
   }
 
   void _onSpeechResult(SpeechRecognitionResult result) {
     setState(() => _liveText = result.recognizedWords);
-    if (result.finalResult) {
+    if (result.finalResult && _liveText.trim().isNotEmpty) {
       setState(() => _isListening = false);
-      if (_liveText.trim().isNotEmpty) _runMockAI(_liveText.trim());
+      _processAndTranslate(_liveText.trim());
     }
   }
 
-  // ── Mock AI extraction ────────────────────────────────────────────────────
-  Future<void> _runMockAI(String text) async {
-    setState(() => _isProcessing = true);
-
-    // Giả lập AI xử lý 1.5 giây
-    await Future.delayed(const Duration(milliseconds: 1500));
-
-    if (!mounted) return;
-
-    // Dùng AiService để parse
-    final response = await AiService.instance.parseText(text);
-    final item     = response.first;
-
+  // ── processAndTranslate: giả lập AI dịch + bóc tách ─────────────────────
+  // Nhận text (tiếng Anh hoặc tiếng Việt vùng miền) → xử lý → hiển thị 3 thẻ
+  Future<void> _processAndTranslate(String inputText) async {
     setState(() {
-      _category   = item.category;
-      _amount     = item.amount;
-      _note       = item.note;
-      _timeLabel  = 'Hôm nay';
-      _isProcessing = false;
-      _hasData    = true;
+      _isProcessing   = true;
+      _processingLabel = 'AI đang lắng nghe...';
+      _normalizedText  = null;
+      _dialectDetected = false;
     });
 
+    // Giai đoạn 1: nhận diện
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (!mounted) return;
+
+    // Giai đoạn 2: chuẩn hóa vùng miền
+    setState(() => _processingLabel = 'AI đang hiểu bạn...');
+    await Future.delayed(const Duration(milliseconds: 700));
+    if (!mounted) return;
+
+    final lower = inputText.toLowerCase();
+
+    // ── Chuẩn hóa từ địa phương (Bắc / Trung / Nam) ──────────────────────
+    final normalized = _normalizeDialect(lower);
+    final dialectFound = normalized != lower;
+
+    // ── Tìm hạng mục ─────────────────────────────────────────────────────
+    String category = 'Khác';
+    // Kiểm tra cả text gốc lẫn normalized
+    for (final entry in _enCategoryMap.entries) {
+      if (lower.contains(entry.key) || normalized.contains(entry.key)) {
+        category = entry.value;
+        break;
+      }
+    }
+    // Kiểm tra thêm từ khóa tiếng Việt vùng miền
+    for (final entry in _viCategoryMap.entries) {
+      if (lower.contains(entry.key) || normalized.contains(entry.key)) {
+        category = entry.value;
+        break;
+      }
+    }
+
+    // ── Tìm số tiền (hỗ trợ số đếm vùng miền) ────────────────────────────
+    double amount = _extractAmountDialect(normalized.isNotEmpty ? normalized : lower);
+    if (amount == 0) amount = _extractAmountDialect(lower);
+
+    // ── Tìm thời gian ─────────────────────────────────────────────────────
+    String timeLabel = 'Hôm nay';
+    for (final entry in _enTimeMap.entries) {
+      if (lower.contains(entry.key) || normalized.contains(entry.key)) {
+        timeLabel = entry.value;
+        break;
+      }
+    }
+
+    // ── Tạo ghi chú ───────────────────────────────────────────────────────
+    final note = _buildVietnameseNote(normalized.isNotEmpty ? normalized : lower, category, amount);
+
+    setState(() {
+      _result          = _ParsedResult(category: category, amount: amount, timeLabel: timeLabel, note: note);
+      _normalizedText  = dialectFound ? normalized : null;
+      _dialectDetected = dialectFound;
+      _isProcessing    = false;
+      _hasData         = true;
+    });
     _cardAnim.forward();
+  }
+
+  // ── Từ điển vùng miền → từ phổ thông ─────────────────────────────────────
+  static const Map<String, String> _dialectWords = {
+    // Động từ
+    'mần':    'ăn',    // Nghệ Tĩnh/Huế: "mần cái bánh" = ăn
+    'nhậu':   'ăn',
+    'kiếm':   'mua',   // miền Nam
+    'chộp':   'mua',
+    'coi':    'xem',
+    'xài':    'dùng',
+    // Đại từ
+    'tui':    'tôi',
+    'tau':    'tôi',   // Nghệ Tĩnh
+    // Từ chỉ nơi chốn / thời gian
+    'chừ':    'giờ',   // Huế/miền Trung
+    'mô':     'đâu',
+    'ni':     'này',
+    'tê':     'kia',
+    // Đơn vị tiền
+    'ngàn':   'nghìn', // miền Nam
+    'chục':   'mười',  // "hai chục" = hai mươi
+  };
+
+  // Từ khóa tiếng Việt → hạng mục (bổ sung cho _enCategoryMap)
+  static const Map<String, String> _viCategoryMap = {
+    'phở':       'Ăn uống',
+    'cơm':       'Ăn uống',
+    'bún':       'Ăn uống',
+    'bánh':      'Ăn uống',
+    'ăn':        'Ăn uống',
+    'uống':      'Ăn uống',
+    'cà phê':    'Ăn uống',
+    'cafe':      'Ăn uống',
+    'trà':       'Ăn uống',
+    'mần':       'Ăn uống',   // dialect
+    'tô':        'Ăn uống',   // "tô phở"
+    'xe ôm':     'Di chuyển',
+    'grab':      'Di chuyển',
+    'xăng':      'Di chuyển',
+    'xe':        'Di chuyển',
+    'taxi':      'Di chuyển',
+    'mua':       'Mua sắm',
+    'shopee':    'Mua sắm',
+    'quần':      'Mua sắm',
+    'áo':        'Mua sắm',
+    'thuốc':     'Sức khỏe',
+    'khám':      'Sức khỏe',
+    'điện':      'Hóa đơn',
+    'nước':      'Hóa đơn',
+    'lương':     'Thu nhập',
+    'thưởng':    'Thu nhập',
+  };
+
+  String _normalizeDialect(String text) {
+    var result = text;
+    _dialectWords.forEach((dialect, standard) {
+      result = result.replaceAll(RegExp(r'\b' + RegExp.escape(dialect) + r'\b'), standard);
+    });
+    return result;
+  }
+
+  /// Bóc tách số tiền hỗ trợ số đếm vùng miền
+  double _extractAmountDialect(String text) {
+    // Số đếm vùng miền → số thực
+    final dialectNumbers = <String, double>{
+      // Miền Nam
+      r'hăm\s*lăm':   25000,
+      r'hăm\s*mốt':   21000,
+      r'hăm\s*hai':   22000,
+      r'hăm\s*ba':    23000,
+      r'hăm\s*bốn':   24000,
+      r'hăm\s*sáu':   26000,
+      r'hăm\s*bảy':   27000,
+      r'hăm\s*tám':   28000,
+      r'hăm\s*chín':  29000,
+      r'hăm':         20000,
+      r'nhăm':        25000,
+      // Số chục
+      r'năm\s*chục':  50000,
+      r'bốn\s*chục':  40000,
+      r'ba\s*chục':   30000,
+      r'hai\s*chục':  20000,
+      r'một\s*chục':  10000,
+      r'sáu\s*chục':  60000,
+      r'bảy\s*chục':  70000,
+      r'tám\s*chục':  80000,
+      r'chín\s*chục': 90000,
+      // Số + nghìn/ngàn
+      r'mười\s*lăm\s*(?:nghìn|ngàn|k)': 15000,
+      r'hai\s*mươi\s*lăm\s*(?:nghìn|ngàn|k)': 25000,
+    };
+
+    for (final entry in dialectNumbers.entries) {
+      final m = RegExp(entry.key, caseSensitive: false).firstMatch(text);
+      if (m != null) return entry.value;
+    }
+
+    // Fallback: số thông thường
+    // "50k", "50 nghìn", "50 ngàn", "50000"
+    final kMatch = RegExp(r'(\d+(?:[.,]\d+)?)\s*k\b', caseSensitive: false).firstMatch(text);
+    if (kMatch != null) return (double.tryParse(kMatch.group(1)!.replaceAll(',', '.')) ?? 0) * 1000;
+
+    final nghìnMatch = RegExp(r'(\d+)\s*(?:nghìn|ngàn|nghin|ngan)\b', caseSensitive: false).firstMatch(text);
+    if (nghìnMatch != null) return (double.tryParse(nghìnMatch.group(1)!) ?? 0) * 1000;
+
+    final plainMatch = RegExp(r'\b(\d{4,})\b').firstMatch(text);
+    if (plainMatch != null) return double.tryParse(plainMatch.group(1)!) ?? 0;
+
+    return 0;
+  }
+
+  /// Tạo ghi chú tiếng Việt thông minh từ text tiếng Anh
+  String _buildVietnameseNote(String lower, String category, double amount) {
+    // Map một số cụm từ phổ biến
+    const phrases = {
+      'pho': 'Phở',
+      'coffee': 'Cà phê',
+      'lunch': 'Ăn trưa',
+      'dinner': 'Ăn tối',
+      'breakfast': 'Ăn sáng',
+      'grab': 'Grab',
+      'taxi': 'Taxi',
+      'movie': 'Xem phim',
+      'shopping': 'Mua sắm',
+      'medicine': 'Thuốc',
+      'gym': 'Gym',
+      'salary': 'Lương',
+      'bonus': 'Thưởng',
+    };
+    for (final entry in phrases.entries) {
+      if (lower.contains(entry.key)) return entry.value;
+    }
+    // Fallback: dùng tên hạng mục
+    return category;
   }
 
   // ── Save transaction ──────────────────────────────────────────────────────
   Future<void> _onSave() async {
-    if (!_hasData || _amount <= 0) return;
-
+    if (_result == null || _result!.amount <= 0) return;
     try {
       final tx = Transaction(
         id:        '',
         userId:    'user_01',
-        itemName:  _note.isNotEmpty ? _note : _category,
-        amount:    _amount,
-        category:  _category,
-        note:      _note,
+        itemName:  _result!.note,
+        amount:    _result!.amount,
+        category:  _result!.category,
+        note:      'Voice: $_liveText',
         date:      DateTime.now(),
-        isExpense: _category != 'Thu nhập',
+        isExpense: _result!.category != 'Thu nhập',
       );
       await ApiService.instance.saveTransaction(tx);
+      // ✅ Cập nhật số dư real-time
+      BalanceNotifier.instance.applyTransaction(
+        amount:    _result!.amount,
+        isExpense: _result!.category != 'Thu nhập',
+      );
       if (!mounted) return;
-      Navigator.of(context).pop(true); // báo dashboard reload
+      Navigator.of(context).pop(true);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Row(children: [
           const Icon(Icons.check_circle, color: Colors.white, size: 18),
           const SizedBox(width: 8),
-          Text('Đã lưu: $_note - ${_fmtAmount(_amount)} đ'),
+          Text('Đã lưu: ${_result!.note} — ${_fmtAmount(_result!.amount)} đ'),
         ]),
         backgroundColor: _teal,
         behavior: SnackBarBehavior.floating,
@@ -194,25 +422,145 @@ class _VoiceAssistantSheetState extends State<_VoiceAssistantSheet>
       ));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Lỗi lưu: $e'),
-        backgroundColor: Colors.red,
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi lưu: $e'), backgroundColor: Colors.red),
+      );
     }
+  }
+
+  // ── Manual input dialog (fallback) ────────────────────────────────────────
+  void _showManualInputDialog() {
+    final ctrl = TextEditingController();
+    const samples = [
+      'I ate pho for 50k',
+      'Grab ride home 35k',
+      'Shopping at Shopee 200k',
+      'Coffee this morning 30k',
+      'Salary received 5000k',
+      // Tiếng Việt vùng miền
+      'Sáng nay uống cà phê hết hăm lăm ngàn',
+      'Mần cái bánh mỳ mười lăm ngàn',
+      'Đi xe ôm hết hai chục',
+    ];
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(children: [
+          Container(
+            width: 32, height: 32,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(colors: [_teal, _cyan]),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(Icons.mic_none, color: Colors.white, size: 16),
+          ),
+          const SizedBox(width: 10),
+          const Text('Nhập bằng text', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+        ]),
+        content: SizedBox(
+          width: 320,
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: _tealLight.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Row(children: [
+                Icon(Icons.translate, size: 14, color: _teal),
+                SizedBox(width: 6),
+                Expanded(child: Text(
+                  'Nhập tiếng Anh — AI sẽ tự dịch sang tiếng Việt',
+                  style: TextStyle(fontSize: 11, color: _teal, fontWeight: FontWeight.w600),
+                )),
+              ]),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: ctrl,
+              autofocus: true,
+              decoration: InputDecoration(
+                hintText: 'Tiếng Anh hoặc tiếng Việt vùng miền...',
+                hintStyle: const TextStyle(color: _textGrey, fontSize: 13),
+                filled: true,
+                fillColor: const Color(0xFFF0F4F8),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              ),
+              onSubmitted: (v) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  Navigator.of(ctx).pop();
+                  if (v.trim().isNotEmpty) {
+                    setState(() => _liveText = v.trim());
+                    _processAndTranslate(v.trim());
+                  }
+                });
+              },
+            ),
+            const SizedBox(height: 10),
+            const Text('Câu mẫu:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: _textGrey)),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 6, runSpacing: 6,
+              children: samples.map((s) => GestureDetector(
+                onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) {
+                  ctrl.text = s;
+                  ctrl.selection = TextSelection.fromPosition(TextPosition(offset: s.length));
+                }),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: _tealLight,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: _teal.withValues(alpha: 0.3)),
+                  ),
+                  child: Text(s, style: const TextStyle(fontSize: 10, color: _teal, fontWeight: FontWeight.w600)),
+                ),
+              )).toList(),
+            ),
+          ]),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => WidgetsBinding.instance.addPostFrameCallback((_) => Navigator.of(ctx).pop()),
+            child: const Text('Hủy', style: TextStyle(color: _textGrey)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final text = ctrl.text.trim();
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                Navigator.of(ctx).pop();
+                if (text.isNotEmpty) {
+                  setState(() => _liveText = text);
+                  _processAndTranslate(text);
+                }
+              });
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _teal, foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Phân tích', style: TextStyle(fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
   }
 
   // ── Build ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     final screenH = MediaQuery.of(context).size.height;
-
     return Container(
       height: screenH * 0.82,
       decoration: const BoxDecoration(
         color: _bg,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(32),
-          topRight: Radius.circular(32),
+          topLeft: Radius.circular(32), topRight: Radius.circular(32),
         ),
       ),
       child: Column(children: [
@@ -222,7 +570,6 @@ class _VoiceAssistantSheetState extends State<_VoiceAssistantSheet>
           width: 40, height: 4,
           decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
         ),
-
         // Header
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
@@ -245,36 +592,39 @@ class _VoiceAssistantSheetState extends State<_VoiceAssistantSheet>
               child: Text('SmartPrice AI', textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: _textDark)),
             ),
-            const SizedBox(width: 36), // balance
+            // Language badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: _tealLight,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(Icons.translate, size: 12, color: _teal),
+                SizedBox(width: 4),
+                Text('EN → VI', style: TextStyle(fontSize: 10, color: _teal, fontWeight: FontWeight.w700)),
+              ]),
+            ),
           ]),
         ),
-
-        // Main content
+        // Content
         Expanded(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(children: [
               const SizedBox(height: 8),
-
-              // ── Micro button ─────────────────────────────────────────────
               _buildMicroSection(),
-
-              const SizedBox(height: 32),
-
-              // ── Result cards (animated) ──────────────────────────────────
+              const SizedBox(height: 28),
               if (_isProcessing)
                 _buildProcessingIndicator()
-              else if (_hasData)
+              else if (_hasData && _result != null)
                 _buildResultCards()
               else
                 _buildIdleHint(),
-
               const SizedBox(height: 24),
             ]),
           ),
         ),
-
-        // ── Input bar ────────────────────────────────────────────────────────
         _buildInputBar(),
       ]),
     );
@@ -283,7 +633,6 @@ class _VoiceAssistantSheetState extends State<_VoiceAssistantSheet>
   // ── Micro section ─────────────────────────────────────────────────────────
   Widget _buildMicroSection() {
     return Column(children: [
-      // Glow + button
       AvatarGlow(
         animate: _isListening,
         glowColor: _teal,
@@ -294,32 +643,24 @@ class _VoiceAssistantSheetState extends State<_VoiceAssistantSheet>
             width: 88, height: 88,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: _isListening
-                    ? [_teal, _cyan]
-                    : [const Color(0xFF00695C), _teal],
+                colors: _isListening ? [_teal, _cyan] : [const Color(0xFF00695C), _teal],
                 begin: Alignment.topLeft, end: Alignment.bottomRight,
               ),
               shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: _teal.withValues(alpha: _isListening ? 0.5 : 0.3),
-                  blurRadius: _isListening ? 24 : 14,
-                  offset: const Offset(0, 6),
-                ),
-              ],
+              boxShadow: [BoxShadow(
+                color: _teal.withValues(alpha: _isListening ? 0.5 : 0.3),
+                blurRadius: _isListening ? 24 : 14,
+                offset: const Offset(0, 6),
+              )],
             ),
             child: Icon(
               _isListening ? Icons.mic : Icons.mic_none,
-              color: Colors.white,
-              size: 38,
+              color: Colors.white, size: 38,
             ),
           ),
         ),
       ),
-
-      const SizedBox(height: 16),
-
-      // Status label
+      const SizedBox(height: 14),
       if (_isListening)
         Row(mainAxisAlignment: MainAxisAlignment.center, children: [
           AnimatedBuilder(
@@ -333,14 +674,29 @@ class _VoiceAssistantSheetState extends State<_VoiceAssistantSheet>
             ),
           ),
           const SizedBox(width: 8),
-          const Text('Đang lắng nghe...',
+          const Text('Đang lắng nghe (EN)...',
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _teal)),
         ])
       else
-        Text(
-          _speechAvailable ? 'Nhấn micro để bắt đầu' : 'Nhấn để nhập giọng nói',
-          style: const TextStyle(fontSize: 13, color: _textGrey),
-        ),
+        Column(children: [
+          Text(
+            _speechAvailable ? 'Nói tiếng Anh — AI dịch sang tiếng Việt' : 'Nhấn để nhập text',
+            style: const TextStyle(fontSize: 12, color: _textGrey),
+            textAlign: TextAlign.center,
+          ),
+          if (_speechAvailable) ...[
+            const SizedBox(height: 4),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+              decoration: BoxDecoration(
+                color: _tealLight,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Text('🎤 en_US  →  🤖 AI  →  🇻🇳 Tiếng Việt',
+                  style: TextStyle(fontSize: 10, color: _teal, fontWeight: FontWeight.w600)),
+            ),
+          ],
+        ]),
     ]);
   }
 
@@ -350,53 +706,122 @@ class _VoiceAssistantSheetState extends State<_VoiceAssistantSheet>
       const SizedBox(height: 16),
       const CircularProgressIndicator(color: _teal, strokeWidth: 2.5),
       const SizedBox(height: 14),
-      const Text('AI đang phân tích...', style: TextStyle(fontSize: 13, color: _textGrey)),
+      // Label thay đổi theo giai đoạn xử lý
+      AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        child: Text(
+          _processingLabel,
+          key: ValueKey(_processingLabel),
+          style: const TextStyle(fontSize: 13, color: _textGrey),
+        ),
+      ),
+      if (_liveText.isNotEmpty) ...[
+        const SizedBox(height: 10),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: _teal.withValues(alpha: 0.2)),
+          ),
+          child: Text('"$_liveText"',
+              style: const TextStyle(fontSize: 12, color: _textDark, fontStyle: FontStyle.italic)),
+        ),
+      ],
     ]);
   }
 
   // ── Idle hint ─────────────────────────────────────────────────────────────
   Widget _buildIdleHint() {
-    return Column(children: [
-      const SizedBox(height: 8),
-      Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: _tealLight.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(children: [
-          const Icon(Icons.tips_and_updates_outlined, color: _teal, size: 28),
-          const SizedBox(height: 10),
-          const Text('Thử nói:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: _teal)),
-          const SizedBox(height: 6),
-          ...[
-            '"Hôm nay ăn phở hết 50k"',
-            '"Đi Grab về nhà 35 nghìn"',
-            '"Mua sắm Shopee 200k"',
-          ].map((s) => Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Text(s, style: const TextStyle(fontSize: 12, color: _textGrey, fontStyle: FontStyle.italic)),
-          )),
-        ]),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _tealLight.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(16),
       ),
-    ]);
+      child: Column(children: [
+        const Icon(Icons.tips_and_updates_outlined, color: _teal, size: 26),
+        const SizedBox(height: 10),
+        const Text('Thử nói:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: _teal)),
+        const SizedBox(height: 6),
+        ...[
+          // Tiếng Anh (en_US STT)
+          '"I ate pho for 50k today"',
+          '"Grab ride home 35 thousand"',
+          // Tiếng Việt vùng miền (nhập text)
+          '"Sáng nay uống cà phê hết hăm lăm ngàn"',
+          '"Mần cái bánh mỳ mười lăm ngàn"',
+          '"Đi xe ôm hết hai chục"',
+        ].map((s) => Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(s, style: const TextStyle(fontSize: 11, color: _textGrey, fontStyle: FontStyle.italic)),
+        )),
+      ]),
+    );
   }
 
   // ── Result cards ──────────────────────────────────────────────────────────
   Widget _buildResultCards() {
+    final r = _result!;
     return FadeTransition(
       opacity: _cardFade,
       child: SlideTransition(
         position: _cardSlide,
         child: Column(children: [
-          // Row: Category + Amount
+          // Raw text chip — hiển thị những gì AI "nghe" được
+          if (_liveText.isNotEmpty)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              margin: const EdgeInsets.only(bottom: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: _teal.withValues(alpha: 0.15)),
+              ),
+              child: Row(children: [
+                const Icon(Icons.record_voice_over_outlined, size: 14, color: _textGrey),
+                const SizedBox(width: 8),
+                Expanded(child: Text('"$_liveText"',
+                    style: const TextStyle(fontSize: 11, color: _textGrey, fontStyle: FontStyle.italic),
+                    maxLines: 2, overflow: TextOverflow.ellipsis)),
+                const Icon(Icons.arrow_forward, size: 12, color: _textGrey),
+              ]),
+            ),
+
+          // Dialect badge — hiển thị khi phát hiện từ địa phương
+          if (_dialectDetected && _normalizedText != null)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF8E1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFFFE082)),
+              ),
+              child: Row(children: [
+                const Icon(Icons.translate, size: 14, color: Color(0xFFF9A825)),
+                const SizedBox(width: 8),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  const Text('Đã nhận diện từ địa phương',
+                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFFF57F17))),
+                  Text('→ "${_normalizedText}"',
+                      style: const TextStyle(fontSize: 11, color: Color(0xFF795548), fontStyle: FontStyle.italic),
+                      maxLines: 2, overflow: TextOverflow.ellipsis),
+                ])),
+              ]),
+            )
+          else
+            const SizedBox(height: 4),
+          // 3 cards
           Row(children: [
             Expanded(child: _ResultCard(
               icon: Icons.restaurant_outlined,
               iconBg: const Color(0xFFFFF3E0),
               iconColor: const Color(0xFFE65100),
               label: 'Hạng mục',
-              value: _category.isNotEmpty ? _category : 'Khác',
+              value: r.category,
             )),
             const SizedBox(width: 12),
             Expanded(child: _ResultCard(
@@ -404,23 +829,21 @@ class _VoiceAssistantSheetState extends State<_VoiceAssistantSheet>
               iconBg: const Color(0xFFE8F5E9),
               iconColor: const Color(0xFF2E7D32),
               label: 'Số tiền',
-              value: '${_fmtAmount(_amount)} đ',
+              value: '${_fmtAmount(r.amount)} đ',
               valueColor: const Color(0xFF2E7D32),
             )),
           ]),
           const SizedBox(height: 12),
-          // Time card (full width)
           _ResultCard(
             icon: Icons.access_time_outlined,
             iconBg: _tealLight,
             iconColor: _teal,
             label: 'Thời gian',
-            value: _timeLabel,
+            value: r.timeLabel,
             fullWidth: true,
           ),
-          const SizedBox(height: 16),
-          // Note if available
-          if (_note.isNotEmpty)
+          if (r.note.isNotEmpty) ...[
+            const SizedBox(height: 10),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -432,18 +855,21 @@ class _VoiceAssistantSheetState extends State<_VoiceAssistantSheet>
               child: Row(children: [
                 const Icon(Icons.notes, size: 16, color: _textGrey),
                 const SizedBox(width: 8),
-                Expanded(child: Text(_note,
+                Expanded(child: Text(r.note,
                     style: const TextStyle(fontSize: 13, color: _textDark))),
               ]),
             ),
+          ],
           const SizedBox(height: 20),
           // Save button
           SizedBox(
             width: double.infinity, height: 52,
             child: DecoratedBox(
               decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [_teal, _cyan],
-                    begin: Alignment.centerLeft, end: Alignment.centerRight),
+                gradient: const LinearGradient(
+                  colors: [_teal, _cyan],
+                  begin: Alignment.centerLeft, end: Alignment.centerRight,
+                ),
                 borderRadius: BorderRadius.circular(26),
                 boxShadow: [BoxShadow(color: _teal.withValues(alpha: 0.35), blurRadius: 14, offset: const Offset(0, 5))],
               ),
@@ -475,10 +901,9 @@ class _VoiceAssistantSheetState extends State<_VoiceAssistantSheet>
         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 12, offset: const Offset(0, -3))],
       ),
       child: Row(children: [
-        // Text display
         Expanded(
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
               color: const Color(0xFFF0F4F8),
               borderRadius: BorderRadius.circular(24),
@@ -486,26 +911,26 @@ class _VoiceAssistantSheetState extends State<_VoiceAssistantSheet>
             child: Row(children: [
               Expanded(
                 child: Text(
-                  _liveText.isEmpty ? 'Nói gì đó...' : _liveText,
+                  _liveText.isEmpty
+                      ? (_speechAvailable ? 'Đang chờ giọng nói...' : 'Nhập text tiếng Anh...')
+                      : _liveText,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 13,
                     color: _liveText.isEmpty ? _textGrey : _textDark,
                     fontStyle: _liveText.isEmpty ? FontStyle.italic : FontStyle.normal,
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2, overflow: TextOverflow.ellipsis,
                 ),
               ),
               const SizedBox(width: 8),
-              // Sound wave icon
               AnimatedBuilder(
                 animation: _dotAnim,
                 builder: (_, __) => Icon(
                   Icons.graphic_eq,
                   color: _isListening
                       ? _teal.withValues(alpha: 0.5 + _dotAnim.value * 0.5)
-                      : _textGrey.withValues(alpha: 0.4),
-                  size: 20,
+                      : _textGrey.withValues(alpha: 0.3),
+                  size: 18,
                 ),
               ),
             ]),
@@ -516,7 +941,9 @@ class _VoiceAssistantSheetState extends State<_VoiceAssistantSheet>
         GestureDetector(
           onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) {
             if (_liveText.trim().isNotEmpty && !_isProcessing) {
-              _runMockAI(_liveText.trim());
+              _processAndTranslate(_liveText.trim());
+            } else if (!_speechAvailable) {
+              _showManualInputDialog();
             }
           }),
           child: Container(
@@ -569,10 +996,7 @@ class _ResultCard extends StatelessWidget {
           Text(label, style: const TextStyle(fontSize: 11, color: _textGrey, fontWeight: FontWeight.w500)),
           const SizedBox(height: 2),
           Text(value,
-              style: TextStyle(
-                fontSize: 15, fontWeight: FontWeight.w800,
-                color: valueColor ?? _textDark,
-              ),
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: valueColor ?? _textDark),
               maxLines: 1, overflow: TextOverflow.ellipsis),
         ])),
       ]),
@@ -580,7 +1004,7 @@ class _ResultCard extends StatelessWidget {
   }
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helper ────────────────────────────────────────────────────────────────────
 String _fmtAmount(double v) {
   final parts = v.toStringAsFixed(0).split('');
   final buf   = StringBuffer();

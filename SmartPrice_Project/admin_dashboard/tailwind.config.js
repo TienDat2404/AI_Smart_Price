@@ -4,7 +4,16 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
-      fontFamily: { sans: ['Inter', 'Roboto', 'sans-serif'] },
+      fontFamily: {
+        sans: [
+          'Be Vietnam Pro',
+          'Inter',
+          'system-ui',
+          '-apple-system',
+          'Segoe UI',
+          'sans-serif',
+        ],
+      },
       colors: {
         teal: {
           50:  '#f0fdfa',

@@ -218,10 +218,19 @@ class ApiService {
         .toList();
   }
 
-  /// POST /api/transactions
+  /// POST /api/transactions — trả về { transaction, newBalance, totalIncome, totalExpense }
+  Future<Map<String, dynamic>> saveTransactionWithBalance(Transaction transaction) async {
+    final data = await _post('/transactions', transaction.toJson());
+    return data as Map<String, dynamic>;
+  }
+
+  /// POST /api/transactions (backward compat)
   Future<Transaction> saveTransaction(Transaction transaction) async {
     final data = await _post('/transactions', transaction.toJson());
-    return Transaction.fromJson(data as Map<String, dynamic>);
+    final map  = data as Map<String, dynamic>;
+    // Response có thể là { transaction: {...}, newBalance: ... } hoặc Transaction trực tiếp
+    final txData = map.containsKey('transaction') ? map['transaction'] : map;
+    return Transaction.fromJson(txData as Map<String, dynamic>);
   }
 
   /// GET /api/transactions/{id}
@@ -257,7 +266,33 @@ class ApiService {
     await _patch('/users/$userId', {'isActive': isActive});
   }
 
-  // ── Admin ─────────────────────────────────────────────────────────────────
+  // ── Wallet Balance ────────────────────────────────────────────────────────
+
+  /// GET /api/wallet/balance?userId={userId}
+  /// Trả về số dư thực tế tính từ toàn bộ lịch sử giao dịch.
+  Future<double> getWalletBalance(String userId) async {
+    try {
+      final data = await _get('/wallet/balance', query: {'userId': userId});
+      final map  = data as Map<String, dynamic>;
+      return (map['balance'] as num? ?? 0).toDouble();
+    } catch (_) {
+      // Fallback: tính từ mockWallets nếu API chưa chạy
+      return 0;
+    }
+  }
+
+  /// POST /api/wallet/deposit — nạp tiền vào ví
+  Future<void> deposit({
+    required String userId,
+    required double amount,
+    String? note,
+  }) async {
+    await _post('/wallet/deposit', {
+      'userId': userId,
+      'amount': amount,
+      if (note != null) 'note': note,
+    });
+  }
 
   Future<List<Transaction>> getAllTransactions({
     String? userId,
