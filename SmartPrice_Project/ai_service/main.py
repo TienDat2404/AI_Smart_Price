@@ -12,6 +12,7 @@ Chạy:
 import re
 import io
 import os
+import json
 import logging
 from datetime import datetime
 from typing import Optional
@@ -27,7 +28,25 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 logger = logging.getLogger(__name__)
 
 # ── FastAPI app ───────────────────────────────────────────────────────────────
-app = FastAPI(title="SmartPrice AI Engine", version="1.0.0")
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app):
+    """Tải EasyOCR model ngay khi server khởi động — tránh chậm ở request đầu tiên."""
+    import asyncio
+    logger.info("🚀 Server đang khởi động — tải EasyOCR model vào RAM...")
+    # Chạy trong thread pool để không block event loop
+    loop = asyncio.get_event_loop()
+    await loop.run_in_executor(None, get_ocr_reader)
+    if _ocr_reader is not None:
+        logger.info("✅ EasyOCR model đã sẵn sàng — server có thể nhận request!")
+    else:
+        logger.warning("⚠️  EasyOCR không khả dụng — OCR sẽ thất bại")
+    yield
+    # Cleanup khi shutdown (không cần làm gì)
+    logger.info("Server đang tắt...")
+
+app = FastAPI(title="SmartPrice AI Engine", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -73,15 +92,57 @@ def get_ocr_reader():
     return _ocr_reader
 
 
+# ── Load extended dialect map từ CentralVietnamDataset ───────────────────────
+_EXTENDED_DIALECT_MAP: dict = {}
+
+def _load_extended_dialect():
+    """Load dialect_extended.json (tạo bởi build_dialect_map.py) vào memory."""
+    global _EXTENDED_DIALECT_MAP
+    json_path = os.path.join(os.path.dirname(__file__), "dialect_extended.json")
+    if not os.path.exists(json_path):
+        logger.warning("dialect_extended.json chưa có. Chạy: python build_dialect_map.py")
+        return
+    try:
+        with open(json_path, encoding="utf-8") as f:
+            data = json.load(f)
+        # Dùng all_dialect_map (504 entries từ CentralVietnamDataset)
+        _EXTENDED_DIALECT_MAP = data.get("all_dialect_map", {})
+        logger.info(f"✅ Loaded {len(_EXTENDED_DIALECT_MAP)} dialect entries từ CentralVietnamDataset")
+    except Exception as e:
+        logger.warning(f"Không load được dialect_extended.json: {e}")
+
+# Gọi khi module load
+_load_extended_dialect()
+
+
 # ── Vietnamese Dialect Normalizer ─────────────────────────────────────────────
 
 # Từ địa phương → từ phổ thông
 DIALECT_WORD_MAP = {
-    # Động từ vùng miền
-    "mần":      "ăn",       # Miền Trung/Nghệ Tĩnh: "mần cái bánh" → "ăn cái bánh"
-    "nhậu":     "ăn",       # nhậu → ăn uống
-    "kiếm":     "mua",      # "kiếm cái áo" → "mua cái áo"
-    "chộp":     "mua",      # miền Nam
+    # ── Miền Trung / Nghệ Tĩnh ────────────────────────────────────────────
+    "mần":      "ăn",       # "mần cái bánh" → "ăn cái bánh"
+    "nhậu":     "ăn",
+    "nác":      "nước",
+    "mô":       "đâu",
+    "răng":     "sao",
+    "rứa":      "vậy",
+    "ni":       "này",
+    "tê":       "kia",
+    "chừ":      "giờ",
+    "tau":      "tôi",
+    "mi":       "bạn",
+    "eng":      "anh",
+    "ả":        "chị",
+    "bọ":       "bố",
+    "mạ":       "mẹ",
+    "nỏ":       "không",
+    "khòng":    "không",
+    "bénh":     "bánh",
+    "bỏ mối":   "bán sỉ",
+    "rót nước": "đổ nước",
+    # ── Miền Nam ──────────────────────────────────────────────────────────
+    "kiếm":     "mua",
+    "chộp":     "mua",
     "dzô":      "vào",
     "dzề":      "về",
     "dzậy":     "vậy",
@@ -89,66 +150,59 @@ DIALECT_WORD_MAP = {
     "hổng có":  "không có",
     "tui":      "tôi",
     "mình":     "tôi",
-    "tau":      "tôi",      # Nghệ Tĩnh
-    "mi":       "bạn",      # Nghệ Tĩnh
-    "eng":      "anh",      # Nghệ Tĩnh
-    "ả":        "chị",      # Nghệ Tĩnh
-    "nác":      "nước",     # Nghệ Tĩnh
-    "mô":       "đâu",      # Nghệ Tĩnh/Huế
-    "răng":     "sao",      # Nghệ Tĩnh/Huế
-    "rứa":      "vậy",      # Nghệ Tĩnh/Huế
-    "ni":       "này",      # Huế
-    "tê":       "kia",      # Huế
-    "chừ":      "giờ",      # Huế/miền Trung
-    "hết":      "hết",      # giữ nguyên (dùng trong "hết X tiền")
-    "xài":      "dùng",     # miền Nam
-    "lẹ":       "nhanh",    # miền Nam
-    "bự":       "lớn",      # miền Nam
-    "coi":      "xem",      # miền Nam
-    "thứ":      "cái",      # miền Nam
+    "xài":      "dùng",
+    "lẹ":       "nhanh",
+    "bự":       "lớn",
+    "coi":      "xem",
+    "thứ":      "cái",
+    # ── Số đếm / đơn vị tiền ─────────────────────────────────────────────
+    "ngàn":     "nghìn",    # miền Nam: "ngàn" = nghìn
+    "hết":      "hết",      # giữ nguyên
+    # ── Miền Bắc ─────────────────────────────────────────────────────────
+    "honda ôm": "xe ôm",
+    "đi chợ":   "mua sắm",
+    "tiền chợ": "tiền mua sắm",
 }
 
-# Số đếm vùng miền → giá trị số
 DIALECT_NUMBER_MAP = {
-    # Miền Nam đặc trưng
-    r"\bhăm\s*lăm\b":          "25",
-    r"\bhăm\s*mốt\b":          "21",
-    r"\bhăm\s*hai\b":          "22",
-    r"\bhăm\s*ba\b":           "23",
-    r"\bhăm\s*bốn\b":          "24",
-    r"\bhăm\s*sáu\b":          "26",
-    r"\bhăm\s*bảy\b":          "27",
-    r"\bhăm\s*tám\b":          "28",
-    r"\bhăm\s*chín\b":         "29",
-    r"\bhăm\b":                "20",   # "hăm ngàn" = 20k
-    r"\bnhăm\b":               "25",   # biến thể của "hăm lăm"
-    r"\blăm\b":                "5",    # "lăm ngàn" = 5k (khi đứng một mình)
-    r"\bmốt\b":                "1",    # "mốt ngàn" = 1k
-    # Đơn vị tiền tệ vùng miền
-    r"\bngàn\b":               "000",  # miền Nam: "ngàn" = nghìn
-    r"\bngàn\s*đồng\b":        "000",
-    r"\bchục\b":               "0",    # "hai chục" = 20 (x10)
-    r"\bchục\s*ngàn\b":        "0000", # "hai chục ngàn" = 20.000
-    r"\bchục\s*nghìn\b":       "0000",
-    # Số đếm phổ thông nhưng hay bị nhầm
-    r"\bmười\s*lăm\b":         "15",
-    r"\bmười\s*mốt\b":         "11",
-    r"\bmười\s*hai\b":         "12",
-    r"\bmười\s*ba\b":          "13",
-    r"\bmười\s*bốn\b":         "14",
-    r"\bmười\s*sáu\b":         "16",
-    r"\bmười\s*bảy\b":         "17",
-    r"\bmười\s*tám\b":         "18",
-    r"\bmười\s*chín\b":        "19",
-    r"\bnăm\s*chục\b":         "50",   # "năm chục" = 50
-    r"\bba\s*chục\b":          "30",
-    r"\bbốn\s*chục\b":         "40",
-    r"\bsáu\s*chục\b":         "60",
-    r"\bbảy\s*chục\b":         "70",
-    r"\btám\s*chục\b":         "80",
-    r"\bchín\s*chục\b":        "90",
-    r"\bhai\s*chục\b":         "20",
-    r"\bmột\s*chục\b":         "10",
+    # Miền Nam — hăm (20-29), thứ tự: dài trước
+    r"\bhăm\s*lăm\b":   "25",
+    r"\bhăm\s*mốt\b":   "21",
+    r"\bhăm\s*hai\b":   "22",
+    r"\bhăm\s*ba\b":    "23",
+    r"\bhăm\s*bốn\b":   "24",
+    r"\bhăm\s*sáu\b":   "26",
+    r"\bhăm\s*bảy\b":   "27",
+    r"\bhăm\s*tám\b":   "28",
+    r"\bhăm\s*chín\b":  "29",
+    r"\bhăm\b":         "20",
+    r"\bnhăm\b":        "25",
+    # Số + chục + đơn vị tiền → số nghìn trực tiếp
+    # "hai chục" = 20.000đ khi không có đơn vị → thêm "nghìn" ngầm
+    r"\bnăm\s*chục\s*(?:nghìn|ngàn|k)?\b":  "50 nghìn",
+    r"\bbốn\s*chục\s*(?:nghìn|ngàn|k)?\b":  "40 nghìn",
+    r"\bba\s*chục\s*(?:nghìn|ngàn|k)?\b":   "30 nghìn",
+    r"\bhai\s*chục\s*(?:nghìn|ngàn|k)?\b":  "20 nghìn",
+    r"\bmột\s*chục\s*(?:nghìn|ngàn|k)?\b":  "10 nghìn",
+    r"\bsáu\s*chục\s*(?:nghìn|ngàn|k)?\b":  "60 nghìn",
+    r"\bbảy\s*chục\s*(?:nghìn|ngàn|k)?\b":  "70 nghìn",
+    r"\btám\s*chục\s*(?:nghìn|ngàn|k)?\b":  "80 nghìn",
+    r"\bchín\s*chục\s*(?:nghìn|ngàn|k)?\b": "90 nghìn",
+    # mười lăm/mốt/... — PHẢI đứng trước rule "\blăm\b" đơn lẻ
+    r"\bmười\s*lăm\b":  "15",
+    r"\bmười\s*mốt\b":  "11",
+    r"\bmười\s*hai\b":  "12",
+    r"\bmười\s*ba\b":   "13",
+    r"\bmười\s*bốn\b":  "14",
+    r"\bmười\s*sáu\b":  "16",
+    r"\bmười\s*bảy\b":  "17",
+    r"\bmười\s*tám\b":  "18",
+    r"\bmười\s*chín\b": "19",
+    # lăm đứng một mình (sau khi đã xử lý "mười lăm", "hăm lăm")
+    r"\blăm\b":         "5",
+    r"\bmốt\b":         "1",
+    # Đơn vị tiền
+    r"\bngàn\b":        "nghìn",
 }
 
 # Số chữ → số (phổ thông)
@@ -164,7 +218,7 @@ WORD_TO_NUMBER = {
 def normalize_dialect(text: str) -> str:
     """
     Chuẩn hóa từ địa phương → từ phổ thông.
-    Xử lý theo thứ tự: số đếm → từ vựng → đơn vị tiền.
+    Ưu tiên: số đếm → từ vựng hardcoded → CentralVietnamDataset (504 entries)
     """
     result = text.lower().strip()
 
@@ -172,7 +226,7 @@ def normalize_dialect(text: str) -> str:
     for pattern, replacement in DIALECT_NUMBER_MAP.items():
         result = re.sub(pattern, replacement, result, flags=re.IGNORECASE)
 
-    # 2. Chuẩn hóa từ vựng địa phương (word boundary)
+    # 2. Chuẩn hóa từ vựng hardcoded (ưu tiên cao — đã kiểm tra kỹ)
     for dialect_word, standard_word in DIALECT_WORD_MAP.items():
         result = re.sub(
             r'\b' + re.escape(dialect_word) + r'\b',
@@ -181,8 +235,24 @@ def normalize_dialect(text: str) -> str:
             flags=re.IGNORECASE
         )
 
-    # 3. Chuẩn hóa "X chục" → số (nếu chưa được xử lý)
-    # "hai chục ngàn" → "20 ngàn" → 20000
+    # 3. Chuẩn hóa từ CentralVietnamDataset (504 entries — sắp xếp dài trước)
+    if _EXTENDED_DIALECT_MAP:
+        # Sắp xếp theo độ dài giảm dần để match cụm từ dài trước
+        sorted_entries = sorted(
+            _EXTENDED_DIALECT_MAP.items(),
+            key=lambda x: len(x[0]),
+            reverse=True
+        )
+        for dialect_word, standard_word in sorted_entries:
+            if dialect_word in result:
+                result = re.sub(
+                    r'\b' + re.escape(dialect_word) + r'\b',
+                    standard_word,
+                    result,
+                    flags=re.IGNORECASE
+                )
+
+    # 4. Chuẩn hóa "X chục" → số (nếu chưa được xử lý)
     def replace_chuc(m):
         word = m.group(1).lower()
         n = WORD_TO_NUMBER.get(word, 0)
@@ -220,12 +290,15 @@ CATEGORY_KEYWORDS = {
         "phở", "cơm", "bún", "bánh", "ăn", "cafe", "trà", "nhậu", "lẩu",
         "pizza", "burger", "sushi", "restaurant", "food", "drink", "coffee",
         "bữa", "ăn sáng", "ăn trưa", "ăn tối", "uống",
+        # Thực phẩm / rau củ (hóa đơn chợ, siêu thị thực phẩm)
+        "rau", "thịt", "cá", "trứng", "gạo", "mì", "bột", "đường", "muối",
+        "dầu ăn", "nước mắm", "tương", "gia vị", "trái cây", "hoa quả",
+        "rau muống", "rau cải", "thịt heo", "thịt bò", "thịt gà",
         # Miền Nam
         "cà phê", "hủ tiếu", "bánh mì", "cơm tấm", "bún bò",
         # Miền Trung / Nghệ Tĩnh
-        "mần",      # "mần cái bánh" = ăn cái bánh
-        "tô",       # "tô phở", "tô bún"
-        "chén",     # "chén cơm"
+        "mần",
+        "tô", "chén",
         # Miền Bắc
         "bát", "đĩa",
     ],
@@ -248,6 +321,9 @@ CATEGORY_KEYWORDS = {
         "chợ",      # đi chợ
         "kiếm",     # miền Nam: "kiếm cái áo" = mua cái áo
         "chộp",     # miền Nam: "chộp cái này"
+        "đồ",       # "mua đồ" = mua sắm
+        "hàng",     # "mua hàng"
+        "sắm",      # "đi sắm"
     ],
     "Giải trí":  [
         "phim", "game", "netflix", "spotify", "cinema", "cgv", "lotte",
@@ -302,57 +378,66 @@ def detect_category(text: str) -> str:
 def extract_amount(text: str) -> float:
     """
     Bóc tách số tiền từ văn bản OCR.
-    Hỗ trợ các định dạng:
-      - 450,000  /  450.000  /  450000
-      - 45k  /  45K
-      - 45 nghìn  /  45 nghin
-      - TOTAL: 450,000  /  Tổng: 450.000
+    Ưu tiên theo thứ tự:
+      1. Dòng có nhãn tổng (Tổng TT, Tổng cộng, Total, Thành tiền...)
+      2. Dòng cuối cùng có số tiền (thường là tổng)
+      3. Số lớn nhất trong toàn bộ text
     """
-    # Ưu tiên tìm dòng có nhãn tổng tiền
+    # ── Bước 1: Tìm dòng có nhãn tổng tiền (ưu tiên cao nhất) ───────────────
     total_patterns = [
-        r"(?:total|tổng|thanh toán|thành tiền|cộng|grand total)[:\s]*([0-9][0-9,. ]+)",
-        r"(?:tong|tong tien|tong cong)[:\s]*([0-9][0-9,. ]+)",
+        # Tiếng Việt — các biến thể phổ biến trên hóa đơn
+        r"t[oổ]ng\s*(?:tt|thanh\s*to[aá]n|ti[eề]n|c[oộ]ng|s[lố])[:\s]*([0-9][0-9,.\s]+)",
+        r"(?:th[aà]nh\s*ti[eề]n|t[oổ]ng\s*c[oộ]ng|thanh\s*to[aá]n)[:\s]*([0-9][0-9,.\s]+)",
+        r"(?:total|grand\s*total)[:\s]*([0-9][0-9,.\s]+)",
+        # Dòng kết thúc bằng số tiền sau nhãn
+        r"t[oổ]ng[^0-9\n]{0,30}([0-9]{1,3}(?:[.,][0-9]{3})+)\s*[đd]?\s*$",
     ]
     for pat in total_patterns:
-        m = re.search(pat, text, re.IGNORECASE)
+        m = re.search(pat, text, re.IGNORECASE | re.MULTILINE)
         if m:
-            raw = m.group(1).strip()
+            raw = m.group(1).strip().split()[0]  # lấy số đầu tiên, bỏ text thừa
             amount = _parse_number(raw)
             if amount > 0:
-                logger.info(f"Tìm thấy tổng tiền (label): {amount}")
+                logger.info(f"Tìm thấy tổng tiền (label): {amount} — pattern: {pat[:40]}")
                 return amount
 
-    # Tìm số tiền dạng "45k" / "45K"
+    # ── Bước 2: Tìm số tiền dạng "45k" / "45K" ───────────────────────────────
     k_match = re.search(r"(\d+(?:[.,]\d+)?)\s*[kK]\b", text)
     if k_match:
         amount = float(k_match.group(1).replace(",", ".")) * 1000
         logger.info(f"Tìm thấy số tiền (k): {amount}")
         return amount
 
-    # Tìm số tiền dạng "45 nghìn"
+    # ── Bước 3: Tìm số tiền dạng "45 nghìn" / "45 ngàn" ─────────────────────
     nghin_match = re.search(r"(\d+)\s*(?:nghìn|nghin|ngàn|ngan)", text, re.IGNORECASE)
     if nghin_match:
         amount = float(nghin_match.group(1)) * 1000
         logger.info(f"Tìm thấy số tiền (nghìn): {amount}")
         return amount
 
-    # Tìm số có dấu phân cách (450,000 hoặc 450.000)
-    sep_matches = re.findall(r"\b(\d{1,3}(?:[.,]\d{3})+)\b", text)
+    # ── Bước 4: Tìm số có dấu phân cách — lấy số xuất hiện CUỐI CÙNG ────────
+    # (dòng cuối hóa đơn thường là tổng, không phải giá từng món)
+    sep_matches = list(re.finditer(r"\b(\d{1,3}(?:[.,]\d{3})+)\b", text))
     if sep_matches:
-        amounts = [_parse_number(m) for m in sep_matches]
-        amounts = [a for a in amounts if a > 0]
-        if amounts:
-            best = max(amounts)  # lấy số lớn nhất (thường là tổng)
-            logger.info(f"Tìm thấy số tiền (phân cách): {best}")
-            return best
+        # Lọc bỏ số điện thoại (thường có dạng 0xxx/xxxxx hoặc đứng sau "ĐT:", "Tel:")
+        text_no_phone = re.sub(r"(?:đt|tel|phone|fax)[:\s]*[\d/\-\s]+", "", text, flags=re.IGNORECASE)
+        sep_matches_clean = list(re.finditer(r"\b(\d{1,3}(?:[.,]\d{3})+)\b", text_no_phone))
+        if sep_matches_clean:
+            # Lấy số xuất hiện cuối cùng (thường là tổng tiền ở cuối hóa đơn)
+            last_match = sep_matches_clean[-1]
+            amount = _parse_number(last_match.group(1))
+            if amount > 0:
+                logger.info(f"Tìm thấy số tiền (cuối cùng): {amount}")
+                return amount
 
-    # Tìm số nguyên >= 4 chữ số
+    # ── Bước 5: Số nguyên >= 4 chữ số (fallback) ─────────────────────────────
     plain_matches = re.findall(r"\b(\d{4,})\b", text)
     if plain_matches:
-        amounts = [float(m) for m in plain_matches]
-        best = max(amounts)
-        logger.info(f"Tìm thấy số tiền (plain): {best}")
-        return best
+        amounts = [float(m) for m in plain_matches if not m.startswith("0")]  # bỏ số bắt đầu bằng 0 (SĐT)
+        if amounts:
+            best = max(amounts)
+            logger.info(f"Tìm thấy số tiền (plain): {best}")
+            return best
 
     return 0.0
 
@@ -386,19 +471,75 @@ def _parse_number(raw: str) -> float:
 
 
 def extract_store_name(text: str) -> str:
-    """Bóc tách tên cửa hàng — thường ở dòng đầu tiên của hóa đơn."""
+    """
+    Bóc tách tên cửa hàng từ hóa đơn.
+    Bỏ qua: số điện thoại, địa chỉ, mã số, dòng chỉ có số.
+    """
     lines = [l.strip() for l in text.split("\n") if l.strip()]
     if not lines:
         return "Không rõ"
-    # Dòng đầu thường là tên cửa hàng (loại bỏ dòng chỉ có số)
-    for line in lines[:3]:
-        if re.search(r"[a-zA-ZÀ-ỹ]", line) and len(line) > 2:
-            return line[:50]  # giới hạn 50 ký tự
-    return lines[0][:50]
+
+    # Các pattern cần bỏ qua
+    skip_patterns = [
+        r"^đt[:\s]",           # ĐT: 0277...
+        r"^tel[:\s]",
+        r"^phone[:\s]",
+        r"^fax[:\s]",
+        r"^\d[\d/\-\s]{6,}",   # dòng bắt đầu bằng số dài (SĐT, mã số)
+        r"^địa chỉ",
+        r"^address",
+        r"^mã số thuế",
+        r"^mst",
+        r"^www\.",
+        r"^http",
+        r"hóa đơn",            # tiêu đề hóa đơn
+        r"^invoice",
+        r"^ngày[:\s]",         # Ngày: 08/06/2018
+        r"^date[:\s]",
+        r"^số hd",             # Số HĐ:
+        r"^số hóa đơn",
+        r"^nv bán",            # NV bán hàng
+        r"^người mua",
+        r"^khách hàng",
+        r"^mã kh",
+    ]
+
+    for line in lines[:6]:  # chỉ xét 6 dòng đầu
+        lower = line.lower()
+        # Bỏ qua nếu khớp pattern xấu
+        if any(re.search(p, lower) for p in skip_patterns):
+            continue
+        # Bỏ qua chuỗi toàn chữ hoa + số (thường là mã hóa đơn: CNHP0000029)
+        if re.match(r'^[A-Z0-9]{4,}$', line.strip()):
+            continue
+        # Phải có chữ cái, độ dài hợp lý
+        if re.search(r"[a-zA-ZÀ-ỹ]", line) and 3 <= len(line) <= 80:
+            return line[:60]
+
+    return "Không rõ"
 
 
 def extract_date(text: str) -> str:
-    """Bóc tách ngày từ văn bản OCR."""
+    """
+    Bóc tách ngày từ văn bản OCR.
+    Ưu tiên dòng có nhãn 'Ngày mua', 'Ngày', 'Date' trước.
+    """
+    # Ưu tiên 1: dòng có nhãn ngày
+    labeled = re.search(
+        r"(?:ng[aà]y\s*(?:mua|l[aậ]p|xu[aấ]t)?|date)[:\s]+(\d{1,2}[/\-.]\d{1,2}[/\-.]\d{2,4})",
+        text, re.IGNORECASE
+    )
+    if labeled:
+        raw = labeled.group(1)
+        # parse dd/mm/yyyy
+        m = re.match(r"(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2,4})", raw)
+        if m:
+            d, mo, y = m.groups()
+            if len(y) == 2:
+                y = "20" + y
+            return f"{d.zfill(2)}/{mo.zfill(2)}/{y}"
+
+    # Ưu tiên 2: pattern ngày thông thường
     patterns = [
         r"(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{4})",   # dd/mm/yyyy
         r"(\d{4})[/\-.](\d{1,2})[/\-.](\d{1,2})",   # yyyy-mm-dd
@@ -409,8 +550,12 @@ def extract_date(text: str) -> str:
         if m:
             groups = m.groups()
             if len(groups[0]) == 4:  # yyyy-mm-dd
-                return f"{groups[2]}/{groups[1]}/{groups[0]}"
-            return f"{groups[0].zfill(2)}/{groups[1].zfill(2)}/{groups[2]}"
+                return f"{groups[2].zfill(2)}/{groups[1].zfill(2)}/{groups[0]}"
+            y = groups[2]
+            if len(y) == 2:
+                y = "20" + y
+            return f"{groups[0].zfill(2)}/{groups[1].zfill(2)}/{y}"
+
     return datetime.now().strftime("%d/%m/%Y")
 
 
@@ -433,7 +578,40 @@ class ParseResponse(BaseModel):
 
 @app.get("/")
 def health():
-    return {"status": "ok", "service": "SmartPrice AI Engine", "version": "1.0.0"}
+    return {
+        "status": "ok",
+        "service": "SmartPrice AI Engine",
+        "version": "1.0.0",
+        "dialect_entries": len(_EXTENDED_DIALECT_MAP),
+        "dialect_source": "CentralVietnamDataset + hardcoded",
+    }
+
+
+@app.get("/dialect/stats")
+def dialect_stats():
+    """Thống kê dialect map đang dùng."""
+    return {
+        "hardcoded_entries": len(DIALECT_WORD_MAP),
+        "extended_entries":  len(_EXTENDED_DIALECT_MAP),
+        "total":             len(DIALECT_WORD_MAP) + len(_EXTENDED_DIALECT_MAP),
+        "number_patterns":   len(DIALECT_NUMBER_MAP),
+    }
+
+
+@app.post("/dialect/normalize")
+def dialect_normalize_endpoint(req: TextParseRequest):
+    """
+    Test endpoint: chuẩn hóa từ địa phương.
+    Input:  { "text": "Mần cái bánh mỳ hết hăm lăm ngàn" }
+    Output: { "original": "...", "normalized": "...", "changed": true }
+    """
+    original   = req.text.strip()
+    normalized = normalize_dialect(original)
+    return {
+        "original":   original,
+        "normalized": normalized,
+        "changed":    normalized != original.lower(),
+    }
 
 
 @app.post("/parse/text", response_model=ParseResponse)
@@ -495,8 +673,11 @@ async def parse_image(image: UploadFile = File(...)):
     Input:  multipart/form-data với field 'image'
     Output: { "store": "...", "total": 0, "date": "...", "category": "...", "confidence": 0.0 }
     """
-    # Validate file type
-    if not image.content_type or not image.content_type.startswith("image/"):
+    # Validate file type — chấp nhận image/* và octet-stream (C# có thể gửi không có MIME)
+    if image.content_type and not (
+        image.content_type.startswith("image/") or
+        image.content_type == "application/octet-stream"
+    ):
         raise HTTPException(status_code=400, detail="File phải là ảnh (jpg/png/webp).")
 
     # Đọc ảnh
@@ -528,10 +709,22 @@ async def parse_image(image: UploadFile = File(...)):
         raise HTTPException(status_code=422, detail=f"OCR thất bại: {str(e)}")
 
     if not ocr_results:
-        raise HTTPException(
-            status_code=422,
-            detail="Không nhận diện được text trong ảnh. Hãy chụp rõ hơn."
-        )
+        return {
+            "status":      "failed",
+            "store":       "Không rõ",
+            "total":       0,
+            "date":        datetime.now().strftime("%d/%m/%Y"),
+            "category":    "Khác",
+            "confidence":  0.0,
+            "invoice_id":  "",
+            "raw_text":    "",
+            "fail_reason": "no_text",
+            "suggestions": [
+                "Ảnh không chứa chữ nào có thể đọc được",
+                "Hãy chụp gần hơn và đảm bảo hóa đơn nằm trong khung",
+                "Bật đèn flash nếu thiếu sáng",
+            ],
+        }
 
     # Ghép toàn bộ text từ OCR
     full_text = "\n".join([item[1] for item in ocr_results])
@@ -540,28 +733,77 @@ async def parse_image(image: UploadFile = File(...)):
     logger.info(f"Full OCR text:\n{full_text}")
     logger.info(f"Avg confidence: {avg_confidence:.2f}")
 
+    # ── Đánh giá chất lượng ảnh ──────────────────────────────────────────────
+    # Tỷ lệ ký tự hợp lệ (chữ, số, dấu câu thông thường)
+    valid_chars = sum(1 for c in full_text if c.isalnum() or c in ' .,:-/\n()đĐ')
+    sanity_score = valid_chars / max(len(full_text), 1)
+
     # Bóc tách thông tin
     store    = extract_store_name(full_text)
     total    = extract_amount(full_text)
     date     = extract_date(full_text)
     category = detect_category(full_text)
 
-    # Nếu không tìm được số tiền → báo lỗi
-    if total == 0:
-        raise HTTPException(
-            status_code=422,
-            detail="Không tìm thấy số tiền trong hóa đơn. Hãy chụp rõ hơn hoặc nhập tay."
-        )
+    # ── Xác định trạng thái kết quả ──────────────────────────────────────────
+    has_amount = total > 0
+
+    if avg_confidence >= 0.75 and has_amount and sanity_score >= 0.65:
+        status = "success"
+        suggestions = []
+    elif avg_confidence >= 0.45 and sanity_score >= 0.45:
+        # Đọc được nhưng không chắc chắn
+        status = "low_confidence"
+        suggestions = []
+        if not has_amount:
+            suggestions.append("Không tìm thấy số tiền — hãy đảm bảo dòng 'Tổng' hoặc 'Total' nằm trong khung")
+        if avg_confidence < 0.6:
+            suggestions.append("Chữ hơi mờ — thử chụp gần hơn hoặc bật đèn flash")
+        if sanity_score < 0.6:
+            suggestions.append("Ảnh có nhiều nhiễu — đặt hóa đơn phẳng, tránh bóng đổ")
+    else:
+        # Chất lượng quá thấp
+        status = "failed"
+        fail_reason = "low_quality" if sanity_score < 0.45 else "no_amount"
+        suggestions = _build_suggestions(avg_confidence, sanity_score, has_amount)
+        logger.warning(f"OCR failed: conf={avg_confidence:.2f}, sanity={sanity_score:.2f}, amount={total}")
+        return {
+            "status":      status,
+            "store":       store or "Không rõ",
+            "total":       0,
+            "date":        date,
+            "category":    category,
+            "confidence":  round(avg_confidence, 2),
+            "invoice_id":  "",
+            "raw_text":    full_text[:300],
+            "fail_reason": fail_reason,
+            "suggestions": suggestions,
+        }
 
     result = {
-        "store":      store,
-        "total":      total,
-        "date":       date,
-        "category":   category,
-        "confidence": round(avg_confidence, 2),
-        "invoice_id": f"INV-{datetime.now().strftime('%Y%m%d')}-{hash(full_text) % 9000 + 1000}",
-        "raw_text":   full_text[:500],  # debug — giới hạn 500 ký tự
+        "status":      status,
+        "store":       store,
+        "total":       total,
+        "date":        date,
+        "category":    category,
+        "confidence":  round(avg_confidence, 2),
+        "invoice_id":  f"INV-{datetime.now().strftime('%Y%m%d')}-{hash(full_text) % 9000 + 1000}",
+        "raw_text":    full_text[:500],
+        "suggestions": suggestions,
     }
 
     logger.info(f"OCR result: {result}")
     return result
+
+
+def _build_suggestions(confidence: float, sanity: float, has_amount: bool) -> list:
+    """Tạo gợi ý cụ thể dựa trên nguyên nhân thất bại."""
+    tips = []
+    if confidence < 0.4:
+        tips.append("Ảnh quá mờ hoặc thiếu sáng — bật đèn flash và chụp lại")
+    if sanity < 0.4:
+        tips.append("Ảnh bị nhiễu nhiều — đặt hóa đơn phẳng trên nền sáng")
+    if not has_amount:
+        tips.append("Không tìm thấy số tiền — đảm bảo dòng 'Tổng cộng' nằm trong khung quét")
+    tips.append("Giữ điện thoại thẳng, cách hóa đơn 15–25 cm")
+    tips.append("Chức năng OCR hoạt động tốt nhất với hóa đơn in máy (không hỗ trợ chữ viết tay)")
+    return tips

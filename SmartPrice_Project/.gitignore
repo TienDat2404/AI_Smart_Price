@@ -1,4 +1,3 @@
-# Tránh đồng bộ rác OneDrive
 **/node_modules/
 **/build/
 **/.dart_tool/
@@ -7,3 +6,15 @@
 **/venv/
 **/__pycache__/
 .packages
+
+# Ảnh upload từ OCR — không commit
+backend_api/SmartPrice.Api/Uploads/
+
+# EasyOCR model cache
+ai_service/.EasyOCR/
+
+# Python log files
+ai_service/err.txt
+ai_service/out.txt
+ai_service/test_err.txt
+ai_service/test_out.txt

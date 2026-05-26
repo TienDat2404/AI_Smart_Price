@@ -48,7 +48,15 @@ Route<T> slideUpRoute<T>(Widget page) {
 // ── ConfirmInvoiceScreen ──────────────────────────────────────────────────────
 class ConfirmInvoiceScreen extends StatefulWidget {
   final OcrResult ocrResult;
-  const ConfirmInvoiceScreen({super.key, required this.ocrResult});
+  final bool lowConfidence;
+  final List<String> suggestions;
+
+  const ConfirmInvoiceScreen({
+    super.key,
+    required this.ocrResult,
+    this.lowConfidence = false,
+    this.suggestions = const [],
+  });
 
   @override
   State<ConfirmInvoiceScreen> createState() => _ConfirmInvoiceScreenState();
@@ -82,10 +90,11 @@ class _ConfirmInvoiceScreenState extends State<ConfirmInvoiceScreen>
     super.initState();
     _selectedCategory = widget.ocrResult.category.isNotEmpty
         ? widget.ocrResult.category
-        : 'Khac';
+        : 'Khác';
     _storeCtrl = TextEditingController(text: widget.ocrResult.store);
+    // Format số tiền có dấu chấm phân cách: 126000 → 126.000
     _totalCtrl = TextEditingController(
-        text: widget.ocrResult.total.toStringAsFixed(0));
+        text: _fmt(widget.ocrResult.total));
     _dateCtrl  = TextEditingController(text: widget.ocrResult.date);
 
     _fadeCtrl = AnimationController(
@@ -135,7 +144,7 @@ class _ConfirmInvoiceScreenState extends State<ConfirmInvoiceScreen>
 
   Future<void> _onSave() async {    setState(() => _isSaving = true);
     try {
-      final amount = double.tryParse(_totalCtrl.text.replaceAll('.', '')) ?? 0;
+      final amount = double.tryParse(_totalCtrl.text.replaceAll('.', '').replaceAll(',', '')) ?? 0;
 
       // Tạo Transaction từ dữ liệu đã xác nhận
       final tx = Transaction(
@@ -255,6 +264,40 @@ class _ConfirmInvoiceScreenState extends State<ConfirmInvoiceScreen>
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                     child: Column(children: [
+
+                      // ── Banner cảnh báo low confidence ────────────────
+                      if (widget.lowConfidence) ...[
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(14),
+                          margin: const EdgeInsets.only(bottom: 14),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFF8E1),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: const Color(0xFFFFE082)),
+                          ),
+                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                            const Row(children: [
+                              Icon(Icons.warning_amber_rounded, size: 16, color: Color(0xFFF9A825)),
+                              SizedBox(width: 6),
+                              Text('AI không chắc chắn — hãy kiểm tra lại',
+                                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFFF57F17))),
+                            ]),
+                            if (widget.suggestions.isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              ...widget.suggestions.map((tip) => Padding(
+                                padding: const EdgeInsets.only(bottom: 4),
+                                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                  const Text('• ', style: TextStyle(fontSize: 11, color: Color(0xFF795548))),
+                                  Expanded(child: Text(tip,
+                                      style: const TextStyle(fontSize: 11, color: Color(0xFF795548)))),
+                                ]),
+                              )),
+                            ],
+                          ]),
+                        ),
+                      ],
+
                       _InvoiceCard(
                         storeCtrl: _storeCtrl,
                         totalCtrl: _totalCtrl,
@@ -318,7 +361,21 @@ class _InvoiceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Theme(
+      // Ép card luôn dùng theme sáng — tránh bị override bởi theme tối của app
+      data: ThemeData.light().copyWith(
+        inputDecorationTheme: const InputDecorationTheme(
+          filled: true,
+          fillColor: Color(0xFFF4F6F8),
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(10)),
+            borderSide: BorderSide(color: Color(0xFF00897B), width: 1.5),
+          ),
+        ),
+      ),
+      child: Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -359,22 +416,41 @@ class _InvoiceCard extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
           child: Column(children: [
             const Text('TỔNG TIỀN', style: TextStyle(fontSize: 11, color: _textGrey, letterSpacing: 1.5, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 6),
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Expanded(
-                child: TextField(
-                  controller: totalCtrl,
-                  keyboardType: TextInputType.number,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w900, color: _red, letterSpacing: -1),
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    suffixText: ' d',
-                    suffixStyle: TextStyle(fontSize: 18, color: _textGrey, fontWeight: FontWeight.w600),
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF3F3),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: _red.withValues(alpha: 0.2)),
+              ),
+              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Expanded(
+                  child: TextField(
+                    controller: totalCtrl,
+                    keyboardType: TextInputType.number,
+                    textAlign: TextAlign.center,
+                    cursorColor: _red,
+                    style: const TextStyle(
+                      fontSize: 38, fontWeight: FontWeight.w900,
+                      color: _red, letterSpacing: -1,
+                    ),
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.transparent,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
+                      suffixText: ' đ',
+                      suffixStyle: const TextStyle(fontSize: 20, color: _red, fontWeight: FontWeight.w700),
+                    ),
                   ),
                 ),
-              ),
-            ]),
+              ]),
+            ),
           ]),
         ),
 
@@ -431,7 +507,8 @@ class _InvoiceCard extends StatelessWidget {
           ]),
         ),
       ]),
-    );
+    ), // end Container
+    ); // end Theme
   }
 }
 
@@ -444,20 +521,43 @@ class _EditableRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(children: [
+    return Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
       Container(
         width: 36, height: 36,
         decoration: BoxDecoration(color: _tealLight, borderRadius: BorderRadius.circular(10)),
         child: Icon(icon, size: 18, color: _teal),
       ),
       const SizedBox(width: 12),
-      SizedBox(width: 80, child: Text(label, style: const TextStyle(fontSize: 13, color: _textGrey))),
+      SizedBox(width: 72, child: Text(label, style: const TextStyle(fontSize: 13, color: _textGrey))),
+      const SizedBox(width: 8),
       Expanded(
         child: TextField(
           controller: controller,
           textAlign: TextAlign.right,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _textDark),
-          decoration: const InputDecoration(border: InputBorder.none, isDense: true),
+          cursorColor: _teal,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1A2340), // luôn tối trên nền sáng
+          ),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: const Color(0xFFF4F6F8),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: _teal, width: 1.5),
+            ),
+            isDense: true,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          ),
         ),
       ),
     ]);

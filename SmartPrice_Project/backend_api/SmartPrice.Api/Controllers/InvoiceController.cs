@@ -120,7 +120,18 @@ namespace SmartPrice.Api.Controllers
 
                 await using var fileStream = System.IO.File.OpenRead(filePath);
                 using var form = new MultipartFormDataContent();
-                form.Add(new StreamContent(fileStream), "image", Path.GetFileName(filePath));
+
+                // Xác định MIME type từ extension để Python không từ chối
+                var ext  = Path.GetExtension(filePath).TrimStart('.').ToLowerInvariant();
+                var mime = ext switch {
+                    "png"  => "image/png",
+                    "webp" => "image/webp",
+                    "bmp"  => "image/bmp",
+                    _      => "image/jpeg"
+                };
+                var streamContent = new StreamContent(fileStream);
+                streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(mime);
+                form.Add(streamContent, "image", Path.GetFileName(filePath));
 
                 _logger.LogInformation("Calling AI Engine: {Url}", AiEngineUrl);
                 var response = await client.PostAsync(AiEngineUrl, form);
@@ -140,22 +151,53 @@ namespace SmartPrice.Api.Controllers
                 // hoặc extended: { "store": "...", "total": 0, "date": "...", "category": "..." }
                 var doc = JsonSerializer.Deserialize<JsonElement>(json);
 
+                // Kiểm tra status từ Python — "failed" hoặc "low_confidence"
+                var status = GetString(doc, "status") ?? "success";
+
+                if (status == "failed")
+                {
+                    // Ảnh quá mờ, OCR không đọc được — trả về response với flag để Flutter hiển thị retake UI
+                    var suggestions = new List<string>();
+                    if (doc.TryGetProperty("suggestions", out var sugsEl) && sugsEl.ValueKind == JsonValueKind.Array)
+                        foreach (var s in sugsEl.EnumerateArray())
+                            if (s.ValueKind == JsonValueKind.String) suggestions.Add(s.GetString()!);
+
+                    return new InvoiceScanResponse
+                    {
+                        InvoiceId   = $"INV-{DateTime.Now:yyyyMMdd}-{new Random().Next(1000, 9999)}",
+                        StoreName   = "Không rõ",
+                        TotalAmount = 0,
+                        Date        = DateTime.Now.ToString("dd/MM/yyyy"),
+                        Category    = "Khác",
+                        Confidence  = GetDouble(doc, "confidence"),
+                        FileName    = fileName,
+                        Status      = "failed",
+                        Suggestions = suggestions,
+                        RawText     = GetString(doc, "raw_text") ?? "",
+                    };
+                }
+
                 return new InvoiceScanResponse
                 {
                     InvoiceId   = $"INV-{DateTime.Now:yyyyMMdd}-{new Random().Next(1000, 9999)}",
-                    StoreName   = GetString(doc, "store", "item") ?? "Không rõ",
+                    StoreName   = SanitizeStoreName(GetString(doc, "store", "item") ?? "Không rõ"),
                     TotalAmount = GetDouble(doc, "total", "price"),
                     Date        = GetString(doc, "date") ?? DateTime.Now.ToString("dd/MM/yyyy"),
                     Category    = GetString(doc, "category") ?? "Khác",
                     Confidence  = GetDouble(doc, "confidence"),
                     FileName    = fileName,
+                    Status      = status,
+                    Suggestions = new List<string>(),
+                    RawText     = "",
                 };
             }
             catch (HttpRequestException ex)
             {
-                // AI Engine chưa chạy — dùng stub để không block demo
-                _logger.LogWarning("AI Engine unreachable ({Message}), using stub response.", ex.Message);
-                return BuildStubResponse(fileName);
+                // AI Engine chưa chạy — báo lỗi rõ ràng thay vì trả dữ liệu giả
+                _logger.LogWarning("AI Engine unreachable ({Message}). Vui lòng chạy: uvicorn main:app --port 8000", ex.Message);
+                throw new InvalidOperationException(
+                    "AI Engine (Python) chưa chạy. Vui lòng khởi động: cd ai_service && uvicorn main:app --port 8000"
+                );
             }
         }
 
@@ -185,46 +227,23 @@ namespace SmartPrice.Api.Controllers
             return 0;
         }
 
-        /// <summary>Stub response khi AI Engine chưa sẵn sàng — dữ liệu đa dạng theo thời gian.</summary>
-        private static InvoiceScanResponse BuildStubResponse(string fileName)
+        /// <summary>Làm sạch tên cửa hàng — trả về "Không rõ" nếu trông như OCR noise.</summary>
+        private static string SanitizeStoreName(string name)
         {
-            // Dùng hash của fileName + timestamp để tạo kết quả đa dạng
-            var seed = Math.Abs(fileName.GetHashCode()) + DateTime.Now.Second;
-            var rng  = new Random(seed);
-
-            var stubs = new[]
-            {
-                ("WinMart Quận 1",   125000.0, "Mua sắm"),
-                ("Phở Thìn",          85000.0, "Ăn uống"),
-                ("Circle K",          45000.0, "Ăn uống"),
-                ("Grab Food",         65000.0, "Ăn uống"),
-                ("Shopee Express",   320000.0, "Mua sắm"),
-                ("CGV Cinemas",      200000.0, "Giải trí"),
-                ("Pharmacity",       180000.0, "Sức khỏe"),
-                ("Highlands Coffee",  75000.0, "Ăn uống"),
-                ("Bún bò Huế",        60000.0, "Ăn uống"),
-                ("Điện Máy Xanh",  1250000.0, "Mua sắm"),
-            };
-
-            var (store, baseTotal, category) = stubs[rng.Next(stubs.Length)];
-            // Thêm biến động nhỏ ±10%
-            var variation = baseTotal * (rng.NextDouble() * 0.2 - 0.1);
-            var total     = Math.Round((baseTotal + variation) / 1000) * 1000;
-
-            return new InvoiceScanResponse
-            {
-                InvoiceId   = $"INV-{DateTime.Now:yyyyMMdd}-{rng.Next(1000, 9999)}",
-                StoreName   = store,
-                TotalAmount = total,
-                Date        = DateTime.Now.ToString("dd/MM/yyyy"),
-                Category    = category,
-                Confidence  = Math.Round(0.70 + rng.NextDouble() * 0.20, 2),
-                FileName    = fileName,
-            };
+            if (string.IsNullOrWhiteSpace(name)) return "Không rõ";
+            // Bỏ qua nếu quá ngắn, toàn số, hoặc chứa ký tự lạ
+            var trimmed = name.Trim();
+            if (trimmed.Length < 3) return "Không rõ";
+            // Tỷ lệ chữ cái hợp lệ < 40% → noise
+            var letters = trimmed.Count(c => char.IsLetter(c));
+            if ((double)letters / trimmed.Length < 0.4) return "Không rõ";
+            // Kết thúc bằng dấu ":" thường là nhãn (Thu ngân:, Ngày:)
+            if (trimmed.EndsWith(":")) return "Không rõ";
+            return trimmed;
         }
-    }
 
-    // ── Response DTO ──────────────────────────────────────────────────────────
+        // ── Response DTO ──────────────────────────────────────────────────────────
+    }  // end InvoiceController
 
     public class InvoiceScanResponse
     {
@@ -235,5 +254,9 @@ namespace SmartPrice.Api.Controllers
         public string Category    { get; set; } = string.Empty;
         public double Confidence  { get; set; }
         public string FileName    { get; set; } = string.Empty;
+        /// <summary>"success" | "low_confidence" | "failed"</summary>
+        public string Status      { get; set; } = "success";
+        public List<string> Suggestions { get; set; } = new();
+        public string RawText     { get; set; } = string.Empty;
     }
 }

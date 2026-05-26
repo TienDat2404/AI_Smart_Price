@@ -32,7 +32,8 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddHttpClient("AiEngine", client =>
 {
     client.BaseAddress = new Uri("http://localhost:8000");
-    client.Timeout     = TimeSpan.FromSeconds(25); // AI Engine timeout
+    // Lần đầu EasyOCR cần tải model (~100MB) có thể mất 2-3 phút
+    client.Timeout     = TimeSpan.FromSeconds(180);
 });
 
 // ── 5. CORS — cho phép Flutter Web và Mobile gọi API ─────────────────────────

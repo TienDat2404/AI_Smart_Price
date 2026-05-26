@@ -1,6 +1,8 @@
 fastapi
 uvicorn
-underthesea
+python-multipart
 easyocr
 pandas
 scikit-learn
+numpy
+pillow

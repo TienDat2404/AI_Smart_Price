@@ -1,5 +1,4 @@
-﻿import 'dart:io';
-import 'dart:ui';
+﻿import 'dart:ui';
 
 import 'package:camera/camera.dart';
 import 'package:file_picker/file_picker.dart';
@@ -15,7 +14,6 @@ bool get _isWindowsDesktop => defaultTargetPlatform == TargetPlatform.windows;
 // ── Teal palette ──────────────────────────────────────────────────────────────
 const _teal      = Color(0xFF00897B);
 const _tealLight = Color(0xFFB2DFDB);
-const _tealDark  = Color(0xFF00695C);
 
 // ── OCR result model ──────────────────────────────────────────────────────────
 class OcrResult {
@@ -168,18 +166,38 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
       if (!mounted) return;
       setState(() => _isProcessing = false);
 
+      final status     = json['status'] as String? ?? 'success';
+      final confidence = (json['confidence'] as num? ?? 0).toDouble();
+      final suggestions = (json['suggestions'] as List?)
+          ?.map((e) => e.toString())
+          .toList() ?? [];
+
+      // ── Thất bại hoàn toàn: không đọc được → màn hình chụp lại ──────────
+      if (status == 'failed') {
+        _showRetakeScreen(
+          reason: json['fail_reason'] as String? ?? 'low_quality',
+          rawText: json['raw_text'] as String? ?? '',
+          suggestions: suggestions,
+        );
+        return;
+      }
+
       final result = OcrResult(
-        store:      json['storeName']   as String? ?? 'Không rõ',
-        total:      (json['totalAmount'] as num? ?? 0).toDouble(),
-        date:       json['date']        as String? ?? '',
-        category:   json['category']    as String? ?? 'Khác',
-        invoiceId:  json['invoiceId']   as String? ?? '',
-        confidence: (json['confidence'] as num? ?? 0).toDouble(),
+        store:      json['store']      as String? ?? json['storeName']   as String? ?? 'Không rõ',
+        total:      (json['total']     as num?    ?? json['totalAmount'] as num? ?? 0).toDouble(),
+        date:       json['date']       as String? ?? '',
+        category:   json['category']   as String? ?? 'Khác',
+        invoiceId:  json['invoice_id'] as String? ?? json['invoiceId']  as String? ?? '',
+        confidence: confidence,
       );
-      _showResult(result);
+
+      // ── Confidence thấp: hiển thị kết quả + banner cảnh báo ─────────────
+      if (status == 'low_confidence') {
+        _showResult(result, lowConfidence: true, suggestions: suggestions);
+      } else {
+        _showResult(result);
+      }
     } on Exception catch (e) {
-      // Nếu API chưa chạy (connection refused / timeout) → fallback mock thông minh
-      // Nếu lỗi thực sự (422 OCR fail, 5xx server) → hiện dialog lỗi
       final isConnectionError = e.toString().contains('SocketException') ||
           e.toString().contains('Connection refused') ||
           e.toString().contains('TimeoutException') ||
@@ -195,56 +213,65 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
     }
   }
 
-  /// Smart mock fallback — tạo kết quả đa dạng dựa trên tên file ảnh
-  /// Mỗi ảnh khác nhau sẽ cho kết quả khác nhau (không hardcoded 450k)
+  /// Smart mock fallback — chỉ dùng khi AI Engine (Python) chưa chạy
+  /// Hiển thị thông báo rõ ràng thay vì trả dữ liệu giả gây nhầm lẫn
   Future<void> _runSmartMockFallback(String imagePath) async {
-    if (!mounted) return;
-    setState(() => _isProcessing = true);
-    await Future.delayed(const Duration(milliseconds: 1800)); // giả lập xử lý AI
     if (!mounted) return;
     setState(() => _isProcessing = false);
 
-    // Tạo kết quả dựa trên hash của tên file → mỗi ảnh cho kết quả khác nhau
-    final fileName = imagePath.split(RegExp(r'[/\\]')).last.toLowerCase();
-    final hash = fileName.codeUnits.fold(0, (a, b) => a + b);
-
-    const _mockInvoices = [
-      (store: 'WinMart Quận 1',    total: 125000.0,  category: 'Mua sắm',   date: ''),
-      (store: 'Phở Thìn',          total: 85000.0,   category: 'Ăn uống',   date: ''),
-      (store: 'Circle K',          total: 45000.0,   category: 'Ăn uống',   date: ''),
-      (store: 'Grab Food',         total: 65000.0,   category: 'Ăn uống',   date: ''),
-      (store: 'Shopee Express',    total: 320000.0,  category: 'Mua sắm',   date: ''),
-      (store: 'CGV Cinemas',       total: 200000.0,  category: 'Giải trí',  date: ''),
-      (store: 'Pharmacity',        total: 180000.0,  category: 'Sức khỏe',  date: ''),
-      (store: 'Điện Máy Xanh',     total: 1250000.0, category: 'Mua sắm',   date: ''),
-      (store: 'Bún bò Huế',        total: 60000.0,   category: 'Ăn uống',   date: ''),
-      (store: 'Highlands Coffee',  total: 75000.0,   category: 'Ăn uống',   date: ''),
-      (store: 'Lazada',            total: 450000.0,  category: 'Mua sắm',   date: ''),
-      (store: 'Netflix',           total: 199000.0,  category: 'Giải trí',  date: ''),
-    ];
-
-    final idx     = hash % _mockInvoices.length;
-    final invoice = _mockInvoices[idx];
-    final now     = DateTime.now();
-    final dateStr = '${now.day.toString().padLeft(2,'0')}/${now.month.toString().padLeft(2,'0')}/${now.year}';
-
-    // Thêm biến động nhỏ vào giá để trông thực tế hơn
-    final variation = (hash % 10) * 1000.0;
-    final finalTotal = invoice.total + variation;
-
-    _showResult(OcrResult(
-      store:      invoice.store,
-      total:      finalTotal,
-      date:       dateStr,
-      category:   invoice.category,
-      invoiceId:  'INV-${now.millisecondsSinceEpoch.toString().substring(7)}',
-      confidence: 0.85 + (hash % 10) * 0.01,
-    ));
+    // Hiển thị dialog thông báo AI Engine chưa chạy
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(children: [
+          Icon(Icons.cloud_off_outlined, color: Color(0xFFE65100), size: 22),
+          SizedBox(width: 8),
+          Text('AI Engine chưa chạy', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+        ]),
+        content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text(
+            'Không thể kết nối đến Python AI Engine tại localhost:8000.',
+            style: TextStyle(fontSize: 14),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF5F5F5),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('Để dùng OCR thực tế, hãy chạy:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.black54)),
+              SizedBox(height: 6),
+              Text('cd ai_service', style: TextStyle(fontSize: 12, fontFamily: 'monospace', color: Color(0xFF00695C))),
+              Text('uvicorn main:app --port 8000', style: TextStyle(fontSize: 12, fontFamily: 'monospace', color: Color(0xFF00695C))),
+            ]),
+          ),
+        ]),
+        actions: [
+          TextButton(
+            onPressed: () => WidgetsBinding.instance.addPostFrameCallback((_) => Navigator.pop(context)),
+            child: const Text('Đóng', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                Navigator.pop(context);
+                _onPickImage(); // cho chọn lại ảnh khi engine đã chạy
+              });
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: _teal, foregroundColor: Colors.white),
+            child: const Text('Thử lại'),
+          ),
+        ],
+      ),
+    );
   }
 
-  /// Fallback cho Windows / không có camera — giả lập 2s rồi hiện kết quả demo
+  /// Fallback cho Windows / không có camera
   Future<void> _runOcrWithMockFallback() async {
-    await _runSmartMockFallback('demo_${DateTime.now().millisecondsSinceEpoch}.jpg');
+    await _runSmartMockFallback('demo');
   }
 
   void _handleError(Object e) {
@@ -317,13 +344,48 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
     );
   }
 
-  void _showResult(OcrResult result) {
+  void _showResult(OcrResult result, {bool lowConfidence = false, List<String> suggestions = const []}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       Navigator.of(context).push(
-        slideUpRoute(ConfirmInvoiceScreen(ocrResult: result)),
+        slideUpRoute(ConfirmInvoiceScreen(
+          ocrResult: result,
+          lowConfidence: lowConfidence,
+          suggestions: suggestions,
+        )),
       );
     });
+  }
+
+  /// Màn hình chụp lại — hiển thị khi OCR thất bại hoàn toàn
+  void _showRetakeScreen({
+    required String reason,
+    required String rawText,
+    required List<String> suggestions,
+  }) {
+    if (!mounted) return;
+    setState(() => _isProcessing = false);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => _RetakeSheet(
+        suggestions: suggestions,
+        rawText: rawText,
+        onRetake: () {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Navigator.of(context).pop(); // đóng sheet
+          });
+        },
+        onPickImage: () {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Navigator.of(context).pop();
+            _onPickImage();
+          });
+        },
+      ),
+    );
   }
 
   // ── Build ─────────────────────────────────────────────────────────────────
@@ -711,124 +773,125 @@ class _ControlBtn extends StatelessWidget {
   }
 }
 
-// ── Result Bottom Sheet ───────────────────────────────────────────────────────
-class _ResultBottomSheet extends StatelessWidget {
-  final OcrResult result;
-  const _ResultBottomSheet({required this.result});
+// ── Retake Sheet — hiển thị khi OCR thất bại ────────────────────────────────
+class _RetakeSheet extends StatelessWidget {
+  final List<String> suggestions;
+  final String rawText;
+  final VoidCallback onRetake;
+  final VoidCallback onPickImage;
+
+  const _RetakeSheet({
+    required this.suggestions,
+    required this.rawText,
+    required this.onRetake,
+    required this.onPickImage,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.only(topLeft: Radius.circular(28), topRight: Radius.circular(28)),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(28), topRight: Radius.circular(28),
+        ),
       ),
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+      padding: EdgeInsets.fromLTRB(
+        24, 16, 24,
+        MediaQuery.of(context).viewInsets.bottom + 32,
+      ),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         // Handle
-        Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
-        const SizedBox(height: 20),
-
-        // Header
-        Row(children: [
-          Container(
-            width: 48, height: 48,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: [_teal, Color(0xFF26A69A)]),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: const Icon(Icons.receipt_long, color: Colors.white, size: 24),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Kết quả nhận diện', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Color(0xFF1A2340))),
-              if (result.invoiceId.isNotEmpty)
-                Text(result.invoiceId, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-            ]),
-          ),
-          // Confidence badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: const Color(0xFFE0F2F1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Row(mainAxisSize: MainAxisSize.min, children: [
-              Icon(Icons.auto_awesome, size: 13, color: _teal),
-              SizedBox(width: 4),
-              Text('92%', style: TextStyle(fontSize: 13, color: _teal, fontWeight: FontWeight.w800)),
-            ]),
-          ),
-        ]),
-
-        const SizedBox(height: 20),
-
-        // Divider với label
-        Row(children: [
-          const Expanded(child: Divider()),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Text('Thông tin hóa đơn', style: TextStyle(fontSize: 11, color: Colors.grey[500])),
-          ),
-          const Expanded(child: Divider()),
-        ]),
-
-        const SizedBox(height: 16),
-
-        // Data fields — card style
         Container(
+          width: 40, height: 4,
+          decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
+        ),
+        const SizedBox(height: 20),
+
+        // Icon + tiêu đề
+        Container(
+          width: 64, height: 64,
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFF3E0),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.document_scanner_outlined, color: Color(0xFFE65100), size: 30),
+        ),
+        const SizedBox(height: 14),
+        const Text(
+          'Không đọc được hóa đơn',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF1A2340)),
+        ),
+        const SizedBox(height: 6),
+        const Text(
+          'Ảnh chưa đủ rõ để nhận diện. Hãy thử lại theo gợi ý bên dưới.',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 13, color: Colors.grey),
+        ),
+        const SizedBox(height: 20),
+
+        // Gợi ý cụ thể
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: const Color(0xFFF8FAFB),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey.withValues(alpha: 0.12)),
+            border: Border.all(color: Colors.grey.withValues(alpha: 0.15)),
           ),
-          child: Column(children: [
-            _DataRow(icon: Icons.store_outlined, label: 'Cửa hàng', value: result.store, isFirst: true),
-            const _RowDivider(),
-            _DataRow(
-              icon: Icons.attach_money,
-              label: 'Tổng tiền',
-              value: '${_fmt(result.total)} đ',
-              valueColor: const Color(0xFFE53935),
-              valueFontSize: 18,
-              valueFontWeight: FontWeight.w900,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Row(children: [
+                Icon(Icons.tips_and_updates_outlined, size: 16, color: _teal),
+                SizedBox(width: 6),
+                Text('Gợi ý để chụp tốt hơn:',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _teal)),
+              ]),
+              const SizedBox(height: 10),
+              ...suggestions.map((tip) => Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  const Text('• ', style: TextStyle(color: _teal, fontWeight: FontWeight.w700)),
+                  Expanded(child: Text(tip, style: const TextStyle(fontSize: 12, color: Color(0xFF455A64)))),
+                ]),
+              )),
+            ],
+          ),
+        ),
+
+        // Raw text (nếu có — để user tham khảo)
+        if (rawText.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF8E1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFFFE082)),
             ),
-            const _RowDivider(),
-            _DataRow(icon: Icons.calendar_today_outlined, label: 'Ngày', value: result.date),
-            const _RowDivider(),
-            _DataRow(icon: Icons.label_outline, label: 'Hạng mục', value: result.category, isLast: true),
-          ]),
-        ),
-
-        const SizedBox(height: 20),
-
-        // Note
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          decoration: BoxDecoration(
-            color: const Color(0xFFFFF8E1),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFFFE082)),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Text('AI đọc được (không chắc chắn):',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFFF57F17))),
+              const SizedBox(height: 4),
+              Text(
+                rawText.length > 120 ? '${rawText.substring(0, 120)}...' : rawText,
+                style: const TextStyle(fontSize: 11, color: Color(0xFF795548), fontStyle: FontStyle.italic),
+              ),
+            ]),
           ),
-          child: const Row(children: [
-            Icon(Icons.info_outline, size: 15, color: Color(0xFFF9A825)),
-            SizedBox(width: 8),
-            Expanded(child: Text('Kiểm tra lại thông tin trước khi lưu', style: TextStyle(fontSize: 12, color: Color(0xFF795548)))),
-          ]),
-        ),
+        ],
 
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
 
-        // Action buttons
+        // Nút hành động
         Row(children: [
           Expanded(
             child: OutlinedButton.icon(
-              onPressed: () => WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (context.mounted) Navigator.pop(context);
-              }),
-              icon: const Icon(Icons.edit_outlined, size: 16),
-              label: const Text('Chỉnh sửa'),
+              onPressed: () => WidgetsBinding.instance.addPostFrameCallback((_) => onPickImage()),
+              icon: const Icon(Icons.image_outlined, size: 16),
+              label: const Text('Chọn ảnh khác'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: _teal,
                 side: const BorderSide(color: _teal),
@@ -841,24 +904,9 @@ class _ResultBottomSheet extends StatelessWidget {
           Expanded(
             flex: 2,
             child: ElevatedButton.icon(
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Row(children: [
-                      const Icon(Icons.check_circle, color: Colors.white, size: 18),
-                      const SizedBox(width: 8),
-                      Text('Đã lưu: ${result.store} - ${_fmt(result.total)} đ'),
-                    ]),
-                    backgroundColor: _tealDark,
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.save_outlined, size: 18),
-              label: const Text('Lưu giao dịch', style: TextStyle(fontWeight: FontWeight.w700)),
+              onPressed: () => WidgetsBinding.instance.addPostFrameCallback((_) => onRetake()),
+              icon: const Icon(Icons.camera_alt_outlined, size: 18),
+              label: const Text('Chụp lại', style: TextStyle(fontWeight: FontWeight.w700)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: _teal,
                 foregroundColor: Colors.white,
@@ -872,55 +920,4 @@ class _ResultBottomSheet extends StatelessWidget {
       ]),
     );
   }
-
-  static String _fmt(double v) {
-    final parts = v.toStringAsFixed(0).split('');
-    final buf = StringBuffer();
-    for (int i = 0; i < parts.length; i++) { if (i > 0 && (parts.length - i) % 3 == 0) buf.write('.'); buf.write(parts[i]); }
-    return buf.toString();
-  }
-}
-
-class _DataRow extends StatelessWidget {
-  final IconData icon;
-  final String label, value;
-  final Color? valueColor;
-  final double valueFontSize;
-  final FontWeight valueFontWeight;
-  final bool isFirst, isLast;
-
-  const _DataRow({
-    required this.icon, required this.label, required this.value,
-    this.valueColor, this.valueFontSize = 15, this.valueFontWeight = FontWeight.w700,
-    this.isFirst = false, this.isLast = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(16, isFirst ? 14 : 10, 16, isLast ? 14 : 10),
-      child: Row(children: [
-        Container(
-          width: 34, height: 34,
-          decoration: BoxDecoration(color: _teal.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(10)),
-          child: Icon(icon, size: 17, color: _teal),
-        ),
-        const SizedBox(width: 12),
-        SizedBox(width: 80, child: Text(label, style: const TextStyle(fontSize: 13, color: Colors.grey))),
-        Expanded(
-          child: Text(
-            value,
-            style: TextStyle(fontSize: valueFontSize, fontWeight: valueFontWeight, color: valueColor ?? const Color(0xFF1A2340)),
-            textAlign: TextAlign.right,
-          ),
-        ),
-      ]),
-    );
-  }
-}
-
-class _RowDivider extends StatelessWidget {
-  const _RowDivider();
-  @override
-  Widget build(BuildContext context) => const Divider(height: 1, indent: 62, endIndent: 16);
 }

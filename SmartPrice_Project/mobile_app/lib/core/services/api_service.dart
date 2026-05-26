@@ -63,17 +63,17 @@ class TransactionStats {
   });
 
   factory TransactionStats.fromJson(Map<String, dynamic> json) {
-    double _toDouble(dynamic v) =>
+    double toDouble(dynamic v) =>
         v is String ? double.tryParse(v) ?? 0.0 : (v as num? ?? 0).toDouble();
 
     return TransactionStats(
       totalTransactions: (json['totalTransactions'] as num? ?? 0).toInt(),
-      totalExpense:  _toDouble(json['totalExpense']),
-      totalIncome:   _toDouble(json['totalIncome']),
-      balance:       _toDouble(json['balance']),
-      monthExpense:  _toDouble(json['monthExpense']),
-      monthIncome:   _toDouble(json['monthIncome']),
-      monthBalance:  _toDouble(json['monthBalance']),
+      totalExpense:  toDouble(json['totalExpense']),
+      totalIncome:   toDouble(json['totalIncome']),
+      balance:       toDouble(json['balance']),
+      monthExpense:  toDouble(json['monthExpense']),
+      monthIncome:   toDouble(json['monthIncome']),
+      monthBalance:  toDouble(json['monthBalance']),
     );
   }
 }
@@ -81,10 +81,10 @@ class TransactionStats {
 /// Service giao tiếp với ASP.NET Core Backend API.
 ///
 /// Cấu hình baseUrl theo môi trường:
-/// - Windows Desktop   : http://127.0.0.1:5261/api  ← 127.0.0.1 ổn định hơn localhost trên Windows
-/// - Android Emulator  : http://10.0.2.2:5261/api   ← 10.0.2.2 = localhost của máy host
+/// - Windows Desktop   : http://127.0.0.1:5261/api
+/// - Android Emulator  : http://10.0.2.2:5261/api
 /// - iOS Simulator     : http://127.0.0.1:5261/api
-/// - Thiết bị thật     : http://<IP_LAN_máy_tính>:5261/api
+/// - Thiết bị thật     : http://[IP_LAN]:5261/api
 class ApiService {
   // ✅ 127.0.0.1 thay vì localhost để tránh DNS resolution issue trên Windows
   static const String _baseUrl = 'http://127.0.0.1:5261/api';
@@ -181,7 +181,7 @@ class ApiService {
     required String email,
     required String password,
   }) async {
-    final data = await _post('/users/register', {
+    await _post('/users/register', {
       'fullName': name.trim(),   // backend nhận FullName
       'email': email.trim().toLowerCase(),
       'password': password,
@@ -347,8 +347,8 @@ class ApiService {
   Future<Map<String, dynamic>> scanInvoice(String imagePath) async {
     final uri = Uri.parse('$_baseUrl/invoice/scan');
 
-    // Timeout dài hơn cho OCR — AI Engine cần thời gian xử lý
-    const ocrTimeout = Duration(seconds: 30);
+    // Timeout dài hơn cho OCR — lần đầu EasyOCR tải model có thể mất 2-3 phút
+    const ocrTimeout = Duration(seconds: 180);
 
     final request = http.MultipartRequest('POST', uri)
       ..headers['Accept'] = 'application/json'
@@ -381,6 +381,10 @@ class ApiService {
           'invoiceId':   json['InvoiceId']   ?? json['invoiceId']   ?? '',
           'confidence':  (json['Confidence'] ?? json['confidence']  ?? 0).toDouble(),
           'fileName':    json['FileName']    ?? json['fileName']    ?? '',
+          // Status từ Python: "success" | "low_confidence" | "failed"
+          'status':      json['Status']      ?? json['status']      ?? 'success',
+          'suggestions': (json['Suggestions'] ?? json['suggestions'] ?? []) as List,
+          'raw_text':    json['RawText']     ?? json['rawText']     ?? json['raw_text'] ?? '',
         };
       }
 

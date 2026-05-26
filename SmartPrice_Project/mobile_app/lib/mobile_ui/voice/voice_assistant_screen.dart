@@ -3,6 +3,7 @@ import 'package:avatar_glow/avatar_glow.dart';
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
+import '../../core/services/ai_service.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/balance_notifier.dart';
 import '../../core/models/transaction.dart';
@@ -185,72 +186,108 @@ class _VoiceAssistantSheetState extends State<_VoiceAssistantSheet>
     }
   }
 
-  // ── processAndTranslate: giả lập AI dịch + bóc tách ─────────────────────
-  // Nhận text (tiếng Anh hoặc tiếng Việt vùng miền) → xử lý → hiển thị 3 thẻ
+  // ── processAndTranslate: gọi Python AI Engine (hỗ trợ tiếng Việt vùng miền)
+  // Fallback về xử lý local nếu AI Engine chưa chạy
   Future<void> _processAndTranslate(String inputText) async {
     setState(() {
-      _isProcessing   = true;
+      _isProcessing    = true;
       _processingLabel = 'AI đang lắng nghe...';
       _normalizedText  = null;
       _dialectDetected = false;
     });
 
-    // Giai đoạn 1: nhận diện
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 400));
     if (!mounted) return;
-
-    // Giai đoạn 2: chuẩn hóa vùng miền
     setState(() => _processingLabel = 'AI đang hiểu bạn...');
-    await Future.delayed(const Duration(milliseconds: 700));
-    if (!mounted) return;
 
+    try {
+      // ── Gọi Python AI Engine (hỗ trợ dialect đầy đủ) ──────────────────
+      final response = await AiService.instance.parseText(inputText);
+      if (!mounted) return;
+
+      final item = response.first;
+      // Phát hiện dialect: nếu category khác "Khác" và note khác input gốc
+      final dialectFound = item.note.toLowerCase() != inputText.toLowerCase() &&
+                           item.amount > 0;
+
+      setState(() {
+        _result = _ParsedResult(
+          category:  item.category,
+          amount:    item.amount,
+          timeLabel: _detectTimeLabel(inputText),
+          note:      item.note,
+        );
+        _normalizedText  = dialectFound ? item.note : null;
+        _dialectDetected = dialectFound;
+        _isProcessing    = false;
+        _hasData         = true;
+      });
+      _cardAnim.forward();
+    } catch (e) {
+      // ── Fallback: xử lý local nếu AI Engine lỗi ───────────────────────
+      debugPrint('[Voice] AI Engine lỗi, dùng local: $e');
+      if (!mounted) return;
+      _processLocal(inputText);
+    }
+  }
+
+  /// Xử lý local khi AI Engine không khả dụng
+  void _processLocal(String inputText) {
     final lower = inputText.toLowerCase();
 
-    // ── Chuẩn hóa từ địa phương (Bắc / Trung / Nam) ──────────────────────
+    // Thử extract số tiền từ text gốc TRƯỚC (trước khi normalize có thể làm mất context)
+    double amount = _extractAmountDialect(lower);
+
     final normalized = _normalizeDialect(lower);
     final dialectFound = normalized != lower;
 
-    // ── Tìm hạng mục ─────────────────────────────────────────────────────
+    // Nếu chưa tìm được từ text gốc, thử từ normalized
+    if (amount == 0) amount = _extractAmountDialect(normalized);
+
     String category = 'Khác';
-    // Kiểm tra cả text gốc lẫn normalized
     for (final entry in _enCategoryMap.entries) {
       if (lower.contains(entry.key) || normalized.contains(entry.key)) {
-        category = entry.value;
-        break;
+        category = entry.value; break;
       }
     }
-    // Kiểm tra thêm từ khóa tiếng Việt vùng miền
     for (final entry in _viCategoryMap.entries) {
       if (lower.contains(entry.key) || normalized.contains(entry.key)) {
-        category = entry.value;
-        break;
+        category = entry.value; break;
       }
     }
 
-    // ── Tìm số tiền (hỗ trợ số đếm vùng miền) ────────────────────────────
-    double amount = _extractAmountDialect(normalized.isNotEmpty ? normalized : lower);
-    if (amount == 0) amount = _extractAmountDialect(lower);
-
-    // ── Tìm thời gian ─────────────────────────────────────────────────────
-    String timeLabel = 'Hôm nay';
-    for (final entry in _enTimeMap.entries) {
-      if (lower.contains(entry.key) || normalized.contains(entry.key)) {
-        timeLabel = entry.value;
-        break;
-      }
-    }
-
-    // ── Tạo ghi chú ───────────────────────────────────────────────────────
-    final note = _buildVietnameseNote(normalized.isNotEmpty ? normalized : lower, category, amount);
+    final note = _buildVietnameseNote(normalized, category, amount);
 
     setState(() {
-      _result          = _ParsedResult(category: category, amount: amount, timeLabel: timeLabel, note: note);
+      _result = _ParsedResult(
+        category:  category,
+        amount:    amount,
+        timeLabel: _detectTimeLabel(inputText),
+        note:      note,
+      );
       _normalizedText  = dialectFound ? normalized : null;
       _dialectDetected = dialectFound;
       _isProcessing    = false;
       _hasData         = true;
     });
     _cardAnim.forward();
+  }
+
+  /// Phát hiện thời gian từ text
+  String _detectTimeLabel(String text) {
+    final lower = text.toLowerCase();
+    for (final entry in _enTimeMap.entries) {
+      if (lower.contains(entry.key)) return entry.value;
+    }
+    const viTime = {
+      'hôm nay': 'Hôm nay', 'hôm qua': 'Hôm qua',
+      'sáng nay': 'Sáng nay', 'trưa nay': 'Trưa nay',
+      'tối nay': 'Tối nay', 'chiều nay': 'Chiều nay',
+    };
+    for (final entry in viTime.entries) {
+      if (lower.contains(entry.key)) return entry.value;
+    }
+    return 'Hôm nay';
   }
 
   // ── Từ điển vùng miền → từ phổ thông ─────────────────────────────────────
@@ -313,51 +350,132 @@ class _VoiceAssistantSheetState extends State<_VoiceAssistantSheet>
     return result;
   }
 
-  /// Bóc tách số tiền hỗ trợ số đếm vùng miền
-  double _extractAmountDialect(String text) {
-    // Số đếm vùng miền → số thực
-    final dialectNumbers = <String, double>{
-      // Miền Nam
-      r'hăm\s*lăm':   25000,
-      r'hăm\s*mốt':   21000,
-      r'hăm\s*hai':   22000,
-      r'hăm\s*ba':    23000,
-      r'hăm\s*bốn':   24000,
-      r'hăm\s*sáu':   26000,
-      r'hăm\s*bảy':   27000,
-      r'hăm\s*tám':   28000,
-      r'hăm\s*chín':  29000,
-      r'hăm':         20000,
-      r'nhăm':        25000,
-      // Số chục
-      r'năm\s*chục':  50000,
-      r'bốn\s*chục':  40000,
-      r'ba\s*chục':   30000,
-      r'hai\s*chục':  20000,
-      r'một\s*chục':  10000,
-      r'sáu\s*chục':  60000,
-      r'bảy\s*chục':  70000,
-      r'tám\s*chục':  80000,
-      r'chín\s*chục': 90000,
-      // Số + nghìn/ngàn
-      r'mười\s*lăm\s*(?:nghìn|ngàn|k)': 15000,
-      r'hai\s*mươi\s*lăm\s*(?:nghìn|ngàn|k)': 25000,
-    };
+  /// Chuyển ký tự có dấu tiếng Việt sang ASCII không dấu
+  /// Dùng để so sánh chuỗi mà không cần regex Unicode
+  static String _removeAccents(String s) {
+    // Dùng replaceAll tuần tự thay vì Map để tránh duplicate key
+    var r = s;
+    // a-variants
+    r = r.replaceAll('\u00e0', 'a').replaceAll('\u00e1', 'a')
+         .replaceAll('\u1ea1', 'a').replaceAll('\u1ea3', 'a')
+         .replaceAll('\u00e3', 'a')
+         .replaceAll('\u0103', 'a') // a breve (a)
+         .replaceAll('\u1eb1', 'a').replaceAll('\u1eaf', 'a')
+         .replaceAll('\u1eb3', 'a').replaceAll('\u1eb5', 'a')
+         .replaceAll('\u1eab', 'a')
+         .replaceAll('\u00e2', 'a') // a circumflex (a)
+         .replaceAll('\u1ea7', 'a').replaceAll('\u1ea5', 'a')
+         .replaceAll('\u1ead', 'a').replaceAll('\u1ea9', 'a')
+         .replaceAll('\u1eab', 'a');
+    // e-variants
+    r = r.replaceAll('\u00e8', 'e').replaceAll('\u00e9', 'e')
+         .replaceAll('\u1eb9', 'e').replaceAll('\u1ebb', 'e')
+         .replaceAll('\u1ebd', 'e')
+         .replaceAll('\u00ea', 'e') // e circumflex
+         .replaceAll('\u1ec1', 'e').replaceAll('\u1ebf', 'e')
+         .replaceAll('\u1ec7', 'e').replaceAll('\u1ec3', 'e')
+         .replaceAll('\u1ec5', 'e');
+    // i-variants
+    r = r.replaceAll('\u00ec', 'i').replaceAll('\u00ed', 'i')
+         .replaceAll('\u1ecb', 'i').replaceAll('\u1ec9', 'i')
+         .replaceAll('\u0129', 'i');
+    // o-variants
+    r = r.replaceAll('\u00f2', 'o').replaceAll('\u00f3', 'o')
+         .replaceAll('\u1ecd', 'o').replaceAll('\u1ecf', 'o')
+         .replaceAll('\u00f5', 'o')
+         .replaceAll('\u00f4', 'o') // o circumflex
+         .replaceAll('\u1ed3', 'o').replaceAll('\u1ed1', 'o')
+         .replaceAll('\u1ed9', 'o').replaceAll('\u1ed5', 'o')
+         .replaceAll('\u1ed7', 'o')
+         .replaceAll('\u01a1', 'o') // o horn (o)
+         .replaceAll('\u1edd', 'o').replaceAll('\u1edb', 'o')
+         .replaceAll('\u1ee3', 'o').replaceAll('\u1edf', 'o')
+         .replaceAll('\u1ee1', 'o');
+    // u-variants
+    r = r.replaceAll('\u00f9', 'u').replaceAll('\u00fa', 'u')
+         .replaceAll('\u1ee5', 'u').replaceAll('\u1ee7', 'u')
+         .replaceAll('\u0169', 'u')
+         .replaceAll('\u01b0', 'u') // u horn (u)
+         .replaceAll('\u1eeb', 'u').replaceAll('\u1ee9', 'u')
+         .replaceAll('\u1ef1', 'u').replaceAll('\u1eed', 'u')
+         .replaceAll('\u1eef', 'u');
+    // y-variants
+    r = r.replaceAll('\u1ef3', 'y').replaceAll('\u00fd', 'y')
+         .replaceAll('\u1ef5', 'y').replaceAll('\u1ef7', 'y')
+         .replaceAll('\u1ef9', 'y');
+    // d
+    r = r.replaceAll('\u0111', 'd');
+    return r;
+  }
 
-    for (final entry in dialectNumbers.entries) {
-      final m = RegExp(entry.key, caseSensitive: false).firstMatch(text);
-      if (m != null) return entry.value;
+  /// Bóc tách số tiền hỗ trợ số đếm vùng miền
+  /// Dùng _removeAccents() để tránh regex Unicode trong character class
+  double _extractAmountDialect(String text) {
+    // Chuẩn hóa về ASCII không dấu để so sánh đơn giản
+    final t = _removeAccents(text.toLowerCase());
+
+    // ── Số đếm vùng miền ─────────────────────────────────────────────────
+    // "ham lam" = 25k (miền Nam: hăm lăm)
+    if (t.contains('ham lam') || t.contains('nham lam')) return 25000;
+    if (t.contains('ham mot'))  return 21000;
+    if (t.contains('ham hai'))  return 22000;
+    if (t.contains('ham ba'))   return 23000;
+    if (t.contains('ham bon'))  return 24000;
+    if (t.contains('ham sau'))  return 26000;
+    if (t.contains('ham bay'))  return 27000;
+    if (t.contains('ham tam'))  return 28000;
+    if (t.contains('ham chin')) return 29000;
+    // "ham" đứng một mình = 20k
+    if (RegExp(r'\bham\b').hasMatch(t)) return 20000;
+
+    // X chuc = X0k (hai chục = 20k, ba chục = 30k, ...)
+    if (t.contains('nam chuc'))  return 50000;
+    if (t.contains('bon chuc'))  return 40000;
+    if (t.contains('ba chuc'))   return 30000;
+    if (t.contains('hai chuc'))  return 20000;
+    if (t.contains('mot chuc'))  return 10000;
+    if (t.contains('sau chuc'))  return 60000;
+    if (t.contains('bay chuc'))  return 70000;
+    if (t.contains('tam chuc'))  return 80000;
+    if (t.contains('chin chuc')) return 90000;
+
+    // muoi/muoi lam/mot/... = 15k/11k/...
+    if (t.contains('muoi lam') || t.contains('muoi lam')) return 15000;
+    if (t.contains('muoi mot'))  return 11000;
+    if (t.contains('muoi hai'))  return 12000;
+    if (t.contains('muoi ba'))   return 13000;
+    if (t.contains('muoi bon'))  return 14000;
+    if (t.contains('muoi sau'))  return 16000;
+    if (t.contains('muoi bay'))  return 17000;
+    if (t.contains('muoi tam'))  return 18000;
+    if (t.contains('muoi chin')) return 19000;
+
+    // ── Fallback: số thông thường ─────────────────────────────────────────
+    // "50k"
+    final kMatch = RegExp(r'(\d+(?:[.,]\d+)?)\s*k\b', caseSensitive: false).firstMatch(t);
+    if (kMatch != null) {
+      return (double.tryParse(kMatch.group(1)!.replaceAll(',', '.')) ?? 0) * 1000;
     }
 
-    // Fallback: số thông thường
-    // "50k", "50 nghìn", "50 ngàn", "50000"
-    final kMatch = RegExp(r'(\d+(?:[.,]\d+)?)\s*k\b', caseSensitive: false).firstMatch(text);
-    if (kMatch != null) return (double.tryParse(kMatch.group(1)!.replaceAll(',', '.')) ?? 0) * 1000;
+    // "50 nghìn" / "50 ngàn" / "50 nghin" / "50 ngan"
+    final nghinhMatch = RegExp(r'(\d+)\s*(?:nghin|ngan|nghi|nga)\w*').firstMatch(t);
+    if (nghinhMatch != null) {
+      return (double.tryParse(nghinhMatch.group(1)!) ?? 0) * 1000;
+    }
 
-    final nghìnMatch = RegExp(r'(\d+)\s*(?:nghìn|ngàn|nghin|ngan)\b', caseSensitive: false).firstMatch(text);
-    if (nghìnMatch != null) return (double.tryParse(nghìnMatch.group(1)!) ?? 0) * 1000;
+    // "50.000" / "50,000"
+    final sepMatches = RegExp(r'\b(\d{1,3}(?:[.,]\d{3})+)\b').allMatches(t);
+    if (sepMatches.isNotEmpty) {
+      final amounts = sepMatches
+          .map((m) => double.tryParse(
+                m.group(1)!.replaceAll('.', '').replaceAll(',', '')) ?? 0)
+          .where((a) => a > 0)
+          .toList();
+      if (amounts.isNotEmpty) return amounts.reduce((a, b) => a > b ? a : b);
+    }
 
-    final plainMatch = RegExp(r'\b(\d{4,})\b').firstMatch(text);
+    // "50000"
+    final plainMatch = RegExp(r'\b(\d{4,})\b').firstMatch(t);
     if (plainMatch != null) return double.tryParse(plainMatch.group(1)!) ?? 0;
 
     return 0;
