@@ -220,9 +220,11 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
     setState(() => _isProcessing = false);
 
     // Hiển thị dialog thông báo AI Engine chưa chạy
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Row(children: [
           Icon(Icons.cloud_off_outlined, color: Color(0xFFE65100), size: 22),
@@ -258,7 +260,7 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
             onPressed: () {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 Navigator.pop(context);
-                _onPickImage(); // cho chọn lại ảnh khi engine đã chạy
+                _onPickImage();
               });
             },
             style: ElevatedButton.styleFrom(backgroundColor: _teal, foregroundColor: Colors.white),
@@ -266,7 +268,8 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
           ),
         ],
       ),
-    );
+    ); // end showDialog
+    }); // end addPostFrameCallback
   }
 
   /// Fallback cho Windows / không có camera
@@ -366,26 +369,29 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
     if (!mounted) return;
     setState(() => _isProcessing = false);
 
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => _RetakeSheet(
-        suggestions: suggestions,
-        rawText: rawText,
-        onRetake: () {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            Navigator.of(context).pop(); // đóng sheet
-          });
-        },
-        onPickImage: () {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            Navigator.of(context).pop();
-            _onPickImage();
-          });
-        },
-      ),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      showModalBottomSheet(
+        context: context,
+        backgroundColor: Colors.transparent,
+        isScrollControlled: true,
+        builder: (_) => _RetakeSheet(
+          suggestions: suggestions,
+          rawText: rawText,
+          onRetake: () {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Navigator.of(context).pop();
+            });
+          },
+          onPickImage: () {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Navigator.of(context).pop();
+              _onPickImage();
+            });
+          },
+        ),
+      );
+    });
   }
 
   // ── Build ─────────────────────────────────────────────────────────────────
@@ -800,7 +806,8 @@ class _RetakeSheet extends StatelessWidget {
         24, 16, 24,
         MediaQuery.of(context).viewInsets.bottom + 32,
       ),
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
+      child: SingleChildScrollView(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
         // Handle
         Container(
           width: 40, height: 4,
@@ -918,6 +925,7 @@ class _RetakeSheet extends StatelessWidget {
           ),
         ]),
       ]),
+      ), // end SingleChildScrollView
     );
   }
 }

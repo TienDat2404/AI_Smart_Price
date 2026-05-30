@@ -285,65 +285,47 @@ def extract_amount_vi(text: str) -> float:
 
 # ── Category keywords ─────────────────────────────────────────────────────────
 CATEGORY_KEYWORDS = {
-    "Ăn uống":   [
-        # Phổ thông
-        "phở", "cơm", "bún", "bánh", "ăn", "cafe", "trà", "nhậu", "lẩu",
-        "pizza", "burger", "sushi", "restaurant", "food", "drink", "coffee",
-        "bữa", "ăn sáng", "ăn trưa", "ăn tối", "uống",
-        # Thực phẩm / rau củ (hóa đơn chợ, siêu thị thực phẩm)
-        "rau", "thịt", "cá", "trứng", "gạo", "mì", "bột", "đường", "muối",
-        "dầu ăn", "nước mắm", "tương", "gia vị", "trái cây", "hoa quả",
-        "rau muống", "rau cải", "thịt heo", "thịt bò", "thịt gà",
-        # Miền Nam
-        "cà phê", "hủ tiếu", "bánh mì", "cơm tấm", "bún bò",
-        # Miền Trung / Nghệ Tĩnh
-        "mần",
-        "tô", "chén",
-        # Miền Bắc
-        "bát", "đĩa",
-    ],
-    "Di chuyển": [
-        "grab", "xe", "xăng", "bus", "taxi", "uber", "gojek", "transport",
-        "petrol", "fuel", "parking", "bãi xe",
-        # Vùng miền
-        "xe ôm",    # miền Nam/Bắc: xe ôm = xe máy ôm
-        "honda ôm", # miền Nam
-        "xích lô",
-        "xe lam",   # miền Nam
-        "xe đò",    # miền Nam: xe khách
-        "tàu",      # tàu hỏa, tàu điện
-        "máy bay",
-    ],
-    "Mua sắm":   [
-        "shopee", "lazada", "tiki", "quần", "áo", "giày", "mua", "shop",
-        "store", "market", "siêu thị", "vinmart", "coopmart", "bigc",
-        # Vùng miền
-        "chợ",      # đi chợ
-        "kiếm",     # miền Nam: "kiếm cái áo" = mua cái áo
-        "chộp",     # miền Nam: "chộp cái này"
-        "đồ",       # "mua đồ" = mua sắm
-        "hàng",     # "mua hàng"
-        "sắm",      # "đi sắm"
-    ],
-    "Giải trí":  [
-        "phim", "game", "netflix", "spotify", "cinema", "cgv", "lotte",
-        "entertainment", "concert", "karaoke",
-        "coi phim",  # miền Nam: coi = xem
-        "coi",
-    ],
-    "Sức khỏe":  [
-        "thuốc", "bác sĩ", "khám", "gym", "pharmacy", "hospital", "clinic",
-        "pharmacity", "guardian", "medicine",
-        "nhà thuốc", "tiệm thuốc",
-    ],
+    # ── Hóa đơn TRƯỚC — tránh bị override bởi keyword ngắn như "ăn", "điện" ──
     "Hóa đơn":   [
-        "điện", "nước", "internet", "wifi", "điện thoại", "electric",
-        "water", "bill", "invoice",
-        "tiền nhà", "tiền thuê",
+        "điện lực", "tiền điện", "tiền nước", "evn", "vnpt", "viettel",
+        "wifi", "internet", "điện thoại", "electric", "water bill",
+        "tiền nhà", "tiền thuê", "gia trị gia tăng", "giá trị gia tăng",
+        "hóa đơn điện", "hóa đơn nước",
     ],
     "Thu nhập":  [
         "lương", "thưởng", "freelance", "salary", "income", "bonus",
         "tiền công", "tiền làm",
+    ],
+    "Ăn uống":   [
+        # Dùng cụm từ dài hơn để tránh false positive
+        "phở", "cơm", "bún", "bánh mì", "cafe", "cà phê", "trà sữa",
+        "nhậu", "lẩu", "pizza", "burger", "sushi", "restaurant", "food",
+        "coffee", "bữa ăn", "ăn sáng", "ăn trưa", "ăn tối",
+        # Thực phẩm
+        "rau muống", "rau cải", "thịt heo", "thịt bò", "thịt gà",
+        "rau củ", "trái cây", "hoa quả", "nước mắm", "dầu ăn",
+        # Miền Nam
+        "hủ tiếu", "cơm tấm", "bún bò",
+        # Dialect
+        "mần",
+    ],
+    "Di chuyển": [
+        "grab", "xe ôm", "honda ôm", "xích lô", "xe lam", "xe đò",
+        "xăng dầu", "petrol", "fuel", "parking", "bãi xe",
+        "taxi", "uber", "gojek", "máy bay", "tàu hỏa",
+    ],
+    "Mua sắm":   [
+        "shopee", "lazada", "tiki", "siêu thị", "vinmart", "coopmart", "bigc",
+        "quần áo", "giày dép", "mua sắm",
+        "kiếm", "chộp",
+    ],
+    "Giải trí":  [
+        "phim", "game", "netflix", "spotify", "cinema", "cgv", "lotte",
+        "concert", "karaoke", "coi phim",
+    ],
+    "Sức khỏe":  [
+        "thuốc", "bác sĩ", "khám bệnh", "gym", "pharmacy", "hospital",
+        "pharmacity", "guardian", "nhà thuốc",
     ],
 }
 
@@ -372,6 +354,15 @@ def detect_category(text: str) -> str:
         for kw in keywords:
             if kw in lower:
                 return category
+
+    # Fallback: hóa đơn điện/nước/viễn thông
+    if re.search(r"(?:điện\s*lực|tiền\s*điện|tiền\s*nước|evn|vnpt|viettel|wifi|internet|gia\s*tri\s*gia\s*tang)", lower):
+        return "Hóa đơn"
+
+    # Fallback: hóa đơn bán lẻ/chợ
+    if re.search(r"bán\s*(?:lẻ|hàng)", lower):
+        return "Mua sắm"
+
     return "Khác"
 
 
@@ -389,6 +380,10 @@ def extract_amount(text: str) -> float:
         r"t[oổ]ng\s*(?:tt|thanh\s*to[aá]n|ti[eề]n|c[oộ]ng|s[lố])[:\s]*([0-9][0-9,.\s]+)",
         r"(?:th[aà]nh\s*ti[eề]n|t[oổ]ng\s*c[oộ]ng|thanh\s*to[aá]n)[:\s]*([0-9][0-9,.\s]+)",
         r"(?:total|grand\s*total)[:\s]*([0-9][0-9,.\s]+)",
+        # Hóa đơn điện/nước — "Số tiền thanh toán" (chấp nhận OCR noise trên dấu)
+        r"s[oôố]\s*ti[eêề]n\s*thanh\s*to[aá]n[:\s]*([0-9][0-9,.\s]+)",
+        r"ti[eêề]n\s*(?:đi[eêệ]n|n[uưừ][oơớ]c|thanh\s*to[aá]n)[:\s]*([0-9][0-9,.\s]+)",
+        r"(?:ph[aả]i\s*tr[aả]|c[aầ]n\s*thanh\s*to[aá]n)[:\s]*([0-9][0-9,.\s]+)",
         # Dòng kết thúc bằng số tiền sau nhãn
         r"t[oổ]ng[^0-9\n]{0,30}([0-9]{1,3}(?:[.,][0-9]{3})+)\s*[đd]?\s*$",
     ]
@@ -400,6 +395,38 @@ def extract_amount(text: str) -> float:
             if amount > 0:
                 logger.info(f"Tìm thấy tổng tiền (label): {amount} — pattern: {pat[:40]}")
                 return amount
+
+    # ── Bước 1b: Tìm số tiền trên dòng NGAY SAU nhãn tổng (OCR tách dòng) ───
+    lines = text.split("\n")
+    total_label_patterns = [
+        r"s[oôố]\s*ti[eêề]n\s*thanh\s*to[aá]n",
+        r"t[oổ]ng\s*(?:tt|ti[eêề]n|c[oộ]ng)",
+        r"th[aà]nh\s*ti[eêề]n",
+    ]
+    for i, line in enumerate(lines):
+        lower_line = line.lower()
+        if any(re.search(p, lower_line) for p in total_label_patterns):
+            # Tìm số tiền trên cùng dòng hoặc 2 dòng tiếp theo
+            for j in range(i, min(i+3, len(lines))):
+                search_line = lines[j]
+                # Bỏ qua dòng chứa số điện thoại (1900, 0xxx...)
+                if re.search(r"\b1900\b|\b0\d{9}\b", search_line):
+                    continue
+                # Tìm số có dấu phân cách: 1.611.643 hoặc 1611.643 (OCR mất dấu đầu)
+                nums = re.findall(r"\b(\d{1,4}[.,]\d{3}(?:[.,]\d{3})*)\b", search_line)
+                for n in nums:
+                    amt = _parse_number(n)
+                    if amt > 1000:
+                        logger.info(f"Tìm thấy tổng tiền (next-line): {amt}")
+                        return amt
+                # Fallback: số nguyên >= 5 chữ số trên dòng đó
+                plain = re.findall(r"\b(\d{5,})\b", search_line)
+                for n in plain:
+                    if not n.startswith("0") and not n.startswith("1900"):
+                        amt = float(n)
+                        if amt > 10000:
+                            logger.info(f"Tìm thấy tổng tiền (next-line plain): {amt}")
+                            return amt
 
     # ── Bước 2: Tìm số tiền dạng "45k" / "45K" ───────────────────────────────
     k_match = re.search(r"(\d+(?:[.,]\d+)?)\s*[kK]\b", text)
@@ -416,12 +443,14 @@ def extract_amount(text: str) -> float:
         return amount
 
     # ── Bước 4: Tìm số có dấu phân cách — lấy số xuất hiện CUỐI CÙNG ────────
-    # (dòng cuối hóa đơn thường là tổng, không phải giá từng món)
     sep_matches = list(re.finditer(r"\b(\d{1,3}(?:[.,]\d{3})+)\b", text))
     if sep_matches:
-        # Lọc bỏ số điện thoại (thường có dạng 0xxx/xxxxx hoặc đứng sau "ĐT:", "Tel:")
-        text_no_phone = re.sub(r"(?:đt|tel|phone|fax)[:\s]*[\d/\-\s]+", "", text, flags=re.IGNORECASE)
-        sep_matches_clean = list(re.finditer(r"\b(\d{1,3}(?:[.,]\d{3})+)\b", text_no_phone))
+        # Lọc bỏ số điện thoại và mã khách hàng
+        text_clean = re.sub(r"(?:đt|tel|phone|fax)[:\s]*[\d/\-\s]+", "", text, flags=re.IGNORECASE)
+        # Lọc bỏ mã số (thường có chữ lẫn số: pdo1oooo1o383, MST: 0100101114-001)
+        text_clean = re.sub(r"\b[a-zA-Z]+\d[\w]*\b", "", text_clean)
+        text_clean = re.sub(r"\bMST[:\s]*[\d\-]+", "", text_clean, flags=re.IGNORECASE)
+        sep_matches_clean = list(re.finditer(r"\b(\d{1,3}(?:[.,]\d{3})+)\b", text_clean))
         if sep_matches_clean:
             # Lấy số xuất hiện cuối cùng (thường là tổng tiền ở cuối hóa đơn)
             last_match = sep_matches_clean[-1]
@@ -444,7 +473,6 @@ def extract_amount(text: str) -> float:
 
 def _parse_number(raw: str) -> float:
     """Chuyển chuỗi số có dấu phân cách thành float."""
-    # Xác định dấu thập phân: nếu có cả , và . thì dấu cuối là thập phân
     raw = raw.strip()
     if "," in raw and "." in raw:
         # 450,000.50 → dấu . là thập phân
@@ -454,7 +482,6 @@ def _parse_number(raw: str) -> float:
             # 450.000,50 → dấu , là thập phân
             raw = raw.replace(".", "").replace(",", ".")
     elif "," in raw:
-        # 450,000 → dấu phân nghìn
         parts = raw.split(",")
         if len(parts) == 2 and len(parts[1]) == 3:
             raw = raw.replace(",", "")
@@ -462,8 +489,13 @@ def _parse_number(raw: str) -> float:
             raw = raw.replace(",", ".")
     elif "." in raw:
         parts = raw.split(".")
-        if len(parts) == 2 and len(parts[1]) == 3:
+        # Nhiều dấu chấm: 1.611.643 → 1611643
+        if len(parts) > 2:
             raw = raw.replace(".", "")
+        # 1 dấu chấm + 3 chữ số sau: 1611.643 hoặc 247.500 → phân nghìn
+        elif len(parts) == 2 and len(parts[1]) == 3:
+            raw = raw.replace(".", "")
+        # 1 dấu chấm + không phải 3 chữ số: 1611.64 → thập phân (giữ nguyên)
     try:
         return float(raw)
     except ValueError:
@@ -492,8 +524,10 @@ def extract_store_name(text: str) -> str:
         r"^mst",
         r"^www\.",
         r"^http",
-        r"hóa đơn",            # tiêu đề hóa đơn
+        r"hóa đơn",            # tiêu đề: HÓA ĐƠN BÁN HÀNG, HÓA ĐƠN BÁN LẺ...
         r"^invoice",
+        r"^receipt",
+        r"^bill",
         r"^ngày[:\s]",         # Ngày: 08/06/2018
         r"^date[:\s]",
         r"^số hd",             # Số HĐ:
@@ -502,17 +536,40 @@ def extract_store_name(text: str) -> str:
         r"^người mua",
         r"^khách hàng",
         r"^mã kh",
+        r"^thu ngân",          # Thu ngân:
+        r"^cashier",
+        r"^bán lẻ",
+        r"^bán hàng",
+        r"^cảm ơn",            # Cảm ơn quý khách
+        r"^thank",
+        r"^viết bằng chữ",     # Viết bằng chữ: Hai mươi...
     ]
 
-    for line in lines[:6]:  # chỉ xét 6 dòng đầu
+    # Ưu tiên: tìm tên cửa hàng ở TRƯỚC dòng "HÓA ĐƠN" (nếu có)
+    hoadon_idx = None
+    for i, line in enumerate(lines[:15]):
+        if re.search(r"hóa đơn", line.lower()):
+            hoadon_idx = i
+            break
+
+    # Nếu có dòng "HÓA ĐƠN", tìm tên cửa hàng trong các dòng trước đó
+    if hoadon_idx and hoadon_idx > 0:
+        for line in lines[:hoadon_idx]:
+            lower = line.lower()
+            if any(re.search(p, lower) for p in skip_patterns):
+                continue
+            if re.match(r'^[A-Z0-9]{4,}$', line.strip()):
+                continue
+            if re.search(r"[a-zA-ZÀ-ỹ]", line) and 3 <= len(line) <= 80:
+                return line[:60]
+
+    # Fallback: tìm trong 10 dòng đầu
+    for line in lines[:10]:
         lower = line.lower()
-        # Bỏ qua nếu khớp pattern xấu
         if any(re.search(p, lower) for p in skip_patterns):
             continue
-        # Bỏ qua chuỗi toàn chữ hoa + số (thường là mã hóa đơn: CNHP0000029)
         if re.match(r'^[A-Z0-9]{4,}$', line.strip()):
             continue
-        # Phải có chữ cái, độ dài hợp lý
         if re.search(r"[a-zA-ZÀ-ỹ]", line) and 3 <= len(line) <= 80:
             return line[:60]
 
@@ -522,30 +579,47 @@ def extract_store_name(text: str) -> str:
 def extract_date(text: str) -> str:
     """
     Bóc tách ngày từ văn bản OCR.
-    Ưu tiên dòng có nhãn 'Ngày mua', 'Ngày', 'Date' trước.
+    Ưu tiên: ngày lập hóa đơn / hạn thanh toán → ngày có nhãn → pattern chung.
     """
-    # Ưu tiên 1: dòng có nhãn ngày
+    # ── Ưu tiên 1: Hạn thanh toán (hóa đơn điện/nước) ───────────────────────
+    han_tt = re.search(
+        r"h[aạ][nṇ]\s*thanh\s*to[aá]n[:\s]+(\d{1,2}[/\-.]\d{1,2}[/\-.]\d{2,4})",
+        text, re.IGNORECASE
+    )
+    if han_tt:
+        raw = han_tt.group(1)
+        m = re.match(r"(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2,4})", raw)
+        if m:
+            d, mo, y = m.groups()
+            if len(y) == 2: y = "20" + y
+            return f"{d.zfill(2)}/{mo.zfill(2)}/{y}"
+
+    # ── Ưu tiên 2: Ngày lập / Ngày xuất hóa đơn ─────────────────────────────
     labeled = re.search(
-        r"(?:ng[aà]y\s*(?:mua|l[aậ]p|xu[aấ]t)?|date)[:\s]+(\d{1,2}[/\-.]\d{1,2}[/\-.]\d{2,4})",
+        r"(?:ng[aà]y\s*(?:mua|l[aậ]p|xu[aấ]t|h[oó]a\s*đ[oơ]n)?|date)[:\s]+(\d{1,2}[/\-.]\d{1,2}[/\-.]\d{2,4})",
         text, re.IGNORECASE
     )
     if labeled:
         raw = labeled.group(1)
-        # parse dd/mm/yyyy
         m = re.match(r"(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2,4})", raw)
         if m:
             d, mo, y = m.groups()
-            if len(y) == 2:
-                y = "20" + y
+            if len(y) == 2: y = "20" + y
             return f"{d.zfill(2)}/{mo.zfill(2)}/{y}"
 
-    # Ưu tiên 2: pattern ngày thông thường
-    patterns = [
+    # ── Ưu tiên 3: Kỳ hóa đơn dạng "tháng M/YYYY" ───────────────────────────
+    ky = re.search(r"k[yỳ]\s*h[oó]a\s*đ[oơ]n[:\s]+th[aá]ng\s*(\d{1,2})[/\-.](\d{4})", text, re.IGNORECASE)
+    if ky:
+        mo, y = ky.groups()
+        return f"01/{mo.zfill(2)}/{y}"
+
+    # ── Ưu tiên 4: pattern ngày thông thường ─────────────────────────────────
+    date_patterns = [
         r"(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{4})",   # dd/mm/yyyy
         r"(\d{4})[/\-.](\d{1,2})[/\-.](\d{1,2})",   # yyyy-mm-dd
         r"(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2})",   # dd/mm/yy
     ]
-    for pat in patterns:
+    for pat in date_patterns:
         m = re.search(pat, text)
         if m:
             groups = m.groups()
@@ -687,7 +761,36 @@ async def parse_image(image: UploadFile = File(...)):
 
     try:
         pil_image = Image.open(io.BytesIO(contents)).convert("RGB")
-        img_array = np.array(pil_image)
+
+        # ── Tiền xử lý ảnh để OCR chính xác hơn ─────────────────────────────
+        import cv2
+        img_cv = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
+
+        # 1. Upscale nếu ảnh quá nhỏ — dùng INTER_CUBIC (sắc nét hơn LANCZOS cho text)
+        h_orig, w_orig = img_cv.shape[:2]
+        MIN_WIDTH = 1000
+        if w_orig < MIN_WIDTH:
+            scale = MIN_WIDTH / w_orig
+            new_w = int(w_orig * scale)
+            new_h = int(h_orig * scale)
+            img_cv = cv2.resize(img_cv, (new_w, new_h), interpolation=cv2.INTER_CUBIC)
+            logger.info(f"Upscaled: {w_orig}×{h_orig} → {new_w}×{new_h}")
+
+        # 2. Chuyển grayscale
+        gray = cv2.cvtColor(img_cv, cv2.COLOR_BGR2GRAY)
+
+        # 3. Tăng độ tương phản (CLAHE)
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+        enhanced = clahe.apply(gray)
+
+        # 4. Sharpen để chữ sắc nét hơn
+        kernel = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])
+        sharpened = cv2.filter2D(enhanced, -1, kernel)
+
+        # 5. Chuyển lại RGB để EasyOCR xử lý
+        img_array = cv2.cvtColor(sharpened, cv2.COLOR_GRAY2RGB)
+        logger.info(f"Preprocessed image: {img_array.shape}")
+
     except Exception as e:
         logger.error(f"Không thể đọc ảnh: {e}")
         raise HTTPException(status_code=422, detail=f"Không thể đọc ảnh: {str(e)}")

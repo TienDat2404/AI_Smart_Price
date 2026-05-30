@@ -227,18 +227,29 @@ namespace SmartPrice.Api.Controllers
             return 0;
         }
 
-        /// <summary>Làm sạch tên cửa hàng — trả về "Không rõ" nếu trông như OCR noise.</summary>
+        /// <summary>Làm sạch tên cửa hàng — trả về "Không rõ" nếu trông như OCR noise hoặc tiêu đề hóa đơn.</summary>
         private static string SanitizeStoreName(string name)
         {
             if (string.IsNullOrWhiteSpace(name)) return "Không rõ";
-            // Bỏ qua nếu quá ngắn, toàn số, hoặc chứa ký tự lạ
             var trimmed = name.Trim();
             if (trimmed.Length < 3) return "Không rõ";
+
+            // Bỏ qua tiêu đề hóa đơn phổ biến
+            var lower = trimmed.ToLowerInvariant();
+            var invoiceTitles = new[] {
+                "hóa đơn", "hoa don", "invoice", "receipt", "bill",
+                "bán lẻ", "ban le", "bán hàng", "ban hang",
+                "không rõ", "khong ro"
+            };
+            if (invoiceTitles.Any(t => lower.Contains(t))) return "Không rõ";
+
             // Tỷ lệ chữ cái hợp lệ < 40% → noise
             var letters = trimmed.Count(c => char.IsLetter(c));
             if ((double)letters / trimmed.Length < 0.4) return "Không rõ";
+
             // Kết thúc bằng dấu ":" thường là nhãn (Thu ngân:, Ngày:)
             if (trimmed.EndsWith(":")) return "Không rõ";
+
             return trimmed;
         }
 
