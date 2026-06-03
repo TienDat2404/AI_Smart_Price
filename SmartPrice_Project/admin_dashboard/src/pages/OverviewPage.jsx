@@ -9,20 +9,6 @@ import { adminService } from '../api/adminService'
 import { walletService, formatVND, formatVNDShort } from '../api/walletService'
 import { useApi } from '../hooks/useApi'
 
-// ── Tier badge ────────────────────────────────────────────────────────────────
-function TierBadge({ tier }) {
-  const styles = {
-    'Hạng vàng':  'bg-amber-50  text-amber-600  dark:bg-amber-900/30  dark:text-amber-400',
-    'Hạng bạc':   'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400',
-    'Hạng đồng':  'bg-gray-100  text-gray-500   dark:bg-gray-800      dark:text-gray-400',
-  }
-  return (
-    <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${styles[tier] || styles['Hạng đồng']}`}>
-      {tier}
-    </span>
-  )
-}
-
 // ── Custom tooltip ────────────────────────────────────────────────────────────
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null
@@ -81,7 +67,6 @@ export default function OverviewPage() {
     name:   u.name   ?? u.FullName ?? '?',
     email:  u.email  ?? u.Email  ?? '',
     joined: u.joined ?? (u.CreatedAt ? new Date(u.CreatedAt).toLocaleDateString('vi-VN') : '—'),
-    tier:   u.tier   ?? u.Tier   ?? 'Hạng đồng',
     score:  u.score  ?? u.HealthScore ?? 0,
     active: u.active ?? u.IsActive ?? true,
   })
@@ -247,7 +232,7 @@ export default function OverviewPage() {
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50 dark:bg-gray-800/50">
-                {['Người dùng', 'Email', 'Ngày đăng ký', 'Tư cách', 'Điểm TC', 'Trạng thái', ''].map(h => (
+                {['Người dùng', 'Email', 'Ngày đăng ký', 'Điểm TC', 'Trạng thái', ''].map(h => (
                   <th key={h} className="px-6 py-3 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
                     {h}
                   </th>
@@ -267,7 +252,6 @@ export default function OverviewPage() {
                   </td>
                   <td className="px-6 py-3.5 text-sm text-gray-500 dark:text-gray-400">{user.email}</td>
                   <td className="px-6 py-3.5 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">{user.joined}</td>
-                  <td className="px-6 py-3.5"><TierBadge tier={user.tier} /></td>
                   <td className="px-6 py-3.5">
                     <span className="text-sm font-bold text-teal-600 dark:text-teal-400">{user.score}</span>
                   </td>

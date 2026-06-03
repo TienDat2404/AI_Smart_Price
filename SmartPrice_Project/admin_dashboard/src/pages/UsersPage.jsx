@@ -1,20 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Search, Filter, UserCheck, UserX, Eye, MoreHorizontal } from 'lucide-react'
+import { Search, UserCheck, UserX, Eye, MoreHorizontal } from 'lucide-react'
 import { recentUsers } from '../data/mockData'
 import { adminService } from '../api/adminService'
-
-function TierBadge({ tier }) {
-  const styles = {
-    'Hạng vàng':  'bg-amber-50  text-amber-600  dark:bg-amber-900/30  dark:text-amber-400',
-    'Hạng bạc':   'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400',
-    'Hạng đồng':  'bg-gray-100  text-gray-500   dark:bg-gray-800      dark:text-gray-400',
-  }
-  return (
-    <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${styles[tier] || styles['Hạng đồng']}`}>
-      {tier}
-    </span>
-  )
-}
 
 function ScoreBar({ score }) {
   const pct = Math.min(score / 1000 * 100, 100)
@@ -36,7 +23,6 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(false)
   const [total, setTotal]     = useState(recentUsers.length)
 
-  // Fetch từ API — fallback về mock nếu lỗi
   useEffect(() => {
     const params = { search: search || undefined, status: filter === 'all' ? undefined : filter, limit: 20 }
     setLoading(true)
@@ -55,13 +41,11 @@ export default function UsersPage() {
     }
   }
 
-  // Normalize field names (API PascalCase vs mock camelCase)
   const normalize = (u) => ({
     id:     u.id     ?? u.Id     ?? String(Math.random()),
     name:   u.name   ?? u.FullName ?? '?',
     email:  u.email  ?? u.Email  ?? '',
     joined: u.joined ?? (u.CreatedAt ? new Date(u.CreatedAt).toLocaleDateString('vi-VN') : '—'),
-    tier:   u.tier   ?? u.Tier   ?? 'Hạng đồng',
     score:  u.score  ?? u.HealthScore ?? 0,
     active: u.active ?? u.IsActive ?? true,
   })
@@ -71,13 +55,12 @@ export default function UsersPage() {
   return (
     <div className="space-y-6">
 
-      {/* Stats row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      {/* Stats row — bỏ ô Hạng vàng */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         {[
-          { label: 'Tổng thành viên', value: total,                                    color: 'text-teal-600' },
-          { label: 'Đang hoạt động',  value: filtered.filter(u => u.active).length,    color: 'text-emerald-600' },
-          { label: 'Bị khóa',         value: filtered.filter(u => !u.active).length,   color: 'text-red-500' },
-          { label: 'Hạng vàng',       value: filtered.filter(u => u.tier === 'Hạng vàng').length, color: 'text-amber-500' },
+          { label: 'Tổng thành viên', value: total,                                  color: 'text-teal-600' },
+          { label: 'Đang hoạt động',  value: filtered.filter(u => u.active).length,  color: 'text-emerald-600' },
+          { label: 'Bị khóa',         value: filtered.filter(u => !u.active).length, color: 'text-red-500' },
         ].map(s => (
           <div key={s.label} className="bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800">
             <p className={`text-2xl font-extrabold ${s.color}`}>{s.value}</p>
@@ -120,7 +103,7 @@ export default function UsersPage() {
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50 dark:bg-gray-800/50">
-                {['Người dùng', 'Email', 'Ngày đăng ký', 'Tư cách', 'Điểm sức khỏe TC', 'Trạng thái', 'Hành động'].map(h => (
+                {['Người dùng', 'Email', 'Ngày đăng ký', 'Điểm sức khỏe TC', 'Trạng thái', 'Hành động'].map(h => (
                   <th key={h} className="px-6 py-3 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
                     {h}
                   </th>
@@ -137,13 +120,12 @@ export default function UsersPage() {
                       </div>
                       <div>
                         <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 whitespace-nowrap">{user.name}</p>
-                        <p className="text-[10px] text-gray-400">ID: {String(user.id).padStart(6, '0')}</p>
+                        <p className="text-[10px] text-gray-400">ID: {String(user.id).slice(0, 12)}</p>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{user.email}</td>
                   <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">{user.joined}</td>
-                  <td className="px-6 py-4"><TierBadge tier={user.tier} /></td>
                   <td className="px-6 py-4 w-40"><ScoreBar score={user.score} /></td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${

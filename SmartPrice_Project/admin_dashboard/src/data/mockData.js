@@ -25,12 +25,12 @@ export const chartData12M = [
 
 // ── Users ─────────────────────────────────────────────────────────────────────
 export const recentUsers = [
-  { id: 1, name: 'Nguyễn Văn An',   email: 'an.nguyen@gmail.com',    joined: '12/12/2024', tier: 'Hạng vàng',  score: 850, active: true  },
-  { id: 2, name: 'Trần Thị Bình',   email: 'binh.tran@outlook.com',  joined: '10/12/2024', tier: 'Hạng bạc',   score: 720, active: true  },
-  { id: 3, name: 'Lê Minh Cường',   email: 'cuong.le@yahoo.com',     joined: '08/12/2024', tier: 'Hạng vàng',  score: 910, active: true  },
-  { id: 4, name: 'Phạm Thu Dung',   email: 'dung.pham@gmail.com',    joined: '05/12/2024', tier: 'Hạng bạc',   score: 680, active: false },
-  { id: 5, name: 'Hoàng Văn Em',    email: 'em.hoang@gmail.com',     joined: '01/12/2024', tier: 'Hạng đồng',  score: 540, active: true  },
-  { id: 6, name: 'Vũ Thị Phương',   email: 'phuong.vu@company.vn',   joined: '28/11/2024', tier: 'Hạng vàng',  score: 880, active: true  },
+  { id: 1, name: 'Nguyễn Văn An',   email: 'an.nguyen@gmail.com',    joined: '12/12/2024', score: 850, active: true  },
+  { id: 2, name: 'Trần Thị Bình',   email: 'binh.tran@outlook.com',  joined: '10/12/2024', score: 720, active: true  },
+  { id: 3, name: 'Lê Minh Cường',   email: 'cuong.le@yahoo.com',     joined: '08/12/2024', score: 910, active: true  },
+  { id: 4, name: 'Phạm Thu Dung',   email: 'dung.pham@gmail.com',    joined: '05/12/2024', score: 680, active: false },
+  { id: 5, name: 'Hoàng Văn Em',    email: 'em.hoang@gmail.com',     joined: '01/12/2024', score: 540, active: true  },
+  { id: 6, name: 'Vũ Thị Phương',   email: 'phuong.vu@company.vn',   joined: '28/11/2024', score: 880, active: true  },
 ]
 
 // ── OCR Logs ──────────────────────────────────────────────────────────────────

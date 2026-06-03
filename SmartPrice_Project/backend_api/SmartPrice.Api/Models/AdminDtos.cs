@@ -59,7 +59,6 @@ namespace SmartPrice.Api.Models
         string   Role,
         bool     IsActive,
         DateTime CreatedAt,
-        string   Tier,          // "Hạng vàng" | "Hạng bạc" | "Hạng đồng"
         int      HealthScore,   // 0–1000
         int      TransactionCount
     );

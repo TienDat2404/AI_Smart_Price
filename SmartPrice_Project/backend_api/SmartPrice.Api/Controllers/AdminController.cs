@@ -177,7 +177,6 @@ namespace SmartPrice.Api.Controllers
                 Role:             u.Role.ToString(),
                 IsActive:         u.IsActive,
                 CreatedAt:        u.CreatedAt,
-                Tier:             ComputeTier(txCounts.GetValueOrDefault(u.Id!, 0)),
                 HealthScore:      ComputeHealthScore(txCounts.GetValueOrDefault(u.Id!, 0)),
                 TransactionCount: txCounts.GetValueOrDefault(u.Id!, 0)
             )).ToList();
@@ -372,13 +371,6 @@ namespace SmartPrice.Api.Controllers
         }
 
         // ── Helpers ───────────────────────────────────────────────────────────
-
-        private static string ComputeTier(int txCount) => txCount switch
-        {
-            >= 50 => "Hạng vàng",
-            >= 20 => "Hạng bạc",
-            _     => "Hạng đồng",
-        };
 
         private static int ComputeHealthScore(int txCount) =>
             Math.Min(500 + txCount * 5, 1000);
