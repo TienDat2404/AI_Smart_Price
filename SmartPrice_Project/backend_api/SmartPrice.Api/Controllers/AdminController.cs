@@ -70,7 +70,7 @@ namespace SmartPrice.Api.Controllers
 
         // ── GET /api/admin/chart?months=6 ────────────────────────────────────
 
-        /// <summary>Dữ liệu biểu đồ Area Chart theo tháng.</summary>
+        /// <summary>Dữ liệu biểu đồ Area Chart theo tháng — luôn trả đủ N tháng.</summary>
         [HttpGet("chart")]
         [ProducesResponseType(typeof(List<MonthlyChartPointDto>), 200)]
         public async Task<IActionResult> GetChartData([FromQuery] int months = 6)
@@ -79,18 +79,36 @@ namespace SmartPrice.Api.Controllers
             var filter = Builders<Transaction>.Filter.Gte(t => t.Date, from);
             var all    = await _transactions.Find(filter).ToListAsync();
 
+            // Group theo tháng
             var grouped = all
                 .GroupBy(t => new { t.Date.Year, t.Date.Month })
-                .Select(g => new MonthlyChartPointDto(
-                    Month:        $"Th{g.Key.Month}",
-                    Income:       g.Where(t => !t.IsExpense).Sum(t => (double)t.Amount),
-                    Expense:      g.Where(t => t.IsExpense).Sum(t => (double)t.Amount),
-                    Transactions: g.Count()
-                ))
-                .OrderBy(x => x.Month)
+                .ToDictionary(
+                    g => (g.Key.Year, g.Key.Month),
+                    g => new
+                    {
+                        Income       = g.Where(t => !t.IsExpense).Sum(t => (double)t.Amount),
+                        Expense      = g.Where(t => t.IsExpense).Sum(t => (double)t.Amount),
+                        Transactions = g.Count()
+                    });
+
+            // Tạo đủ N tháng, tháng nào không có data thì điền 0
+            var now    = DateTime.UtcNow;
+            var result = Enumerable.Range(0, months)
+                .Select(i =>
+                {
+                    var dt  = now.AddMonths(-(months - 1 - i));
+                    var key = (dt.Year, dt.Month);
+                    var d   = grouped.GetValueOrDefault(key);
+                    return new MonthlyChartPointDto(
+                        Month:        $"Th{dt.Month}/{dt.Year % 100:D2}",
+                        Income:       d?.Income  ?? 0,
+                        Expense:      d?.Expense ?? 0,
+                        Transactions: d?.Transactions ?? 0
+                    );
+                })
                 .ToList();
 
-            return Ok(grouped);
+            return Ok(result);
         }
 
         // ── GET /api/admin/users ──────────────────────────────────────────────
