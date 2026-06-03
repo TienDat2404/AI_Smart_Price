@@ -342,7 +342,7 @@ def detect_category(text: str) -> str:
             vec  = model["vectorizer"].transform([text])
             pred = model["clf"].predict(vec)[0]
             prob = model["clf"].predict_proba(vec).max()
-            if prob >= 0.5:  # chỉ tin nếu độ tin cậy >= 50%
+            if prob >= 0.35:  # chỉ tin nếu độ tin cậy >= 35%
                 logger.info(f"ML category: '{pred}' ({prob*100:.0f}%)")
                 return pred
         except Exception as e:

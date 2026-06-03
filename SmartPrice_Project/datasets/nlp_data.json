@@ -1,169 +1,4366 @@
 {
   "metadata": {
-    "source": "nlp_train.txt",
-    "total_records": 15,
-    "intent": "add_transaction",
-    "description": "Training data for Vietnamese NLP expense parsing"
+    "total_records": 422,
+    "categories": [
+      "Ăn uống",
+      "Di chuyển",
+      "Mua sắm",
+      "Giải trí",
+      "Sức khỏe",
+      "Hóa đơn",
+      "Thu nhập"
+    ],
+    "description": "Auto-generated training data for SmartPrice NLP"
   },
   "data": [
     {
       "id": 1,
-      "raw_text": "Hôm nay ăn trà sữa hết 215000đ",
+      "raw_text": "nap game 75.000đ",
       "intent": "add_transaction",
       "entities": {
-        "item": "trà sữa",
-        "price": 215000,
-        "category": "Ăn uống"
+        "item": "nạp game",
+        "price": 75000,
+        "category": "Giải trí"
       }
     },
     {
       "id": 2,
-      "raw_text": "Hôm nay ăn sửa xe hết 28000đ",
+      "raw_text": "thanh toan mua kinh 100k",
       "intent": "add_transaction",
       "entities": {
-        "item": "sửa xe",
-        "price": 28000,
-        "category": "Di chuyển"
+        "item": "mua kính",
+        "price": 100000,
+        "category": "Sức khỏe"
       }
     },
     {
       "id": 3,
-      "raw_text": "Hôm nay ăn mua áo hết 213000đ",
+      "raw_text": "sua xe 80",
       "intent": "add_transaction",
       "entities": {
-        "item": "mua áo",
-        "price": 213000,
-        "category": "Mua sắm"
-      }
-    },
-    {
-      "id": 4,
-      "raw_text": "Hôm nay ăn đổ xăng hết 93000đ",
-      "intent": "add_transaction",
-      "entities": {
-        "item": "đổ xăng",
-        "price": 93000,
+        "item": "sửa xe",
+        "price": 80000,
         "category": "Di chuyển"
       }
     },
     {
-      "id": 5,
-      "raw_text": "Hôm nay ăn tiền điện hết 115000đ",
+      "id": 4,
+      "raw_text": "chi 75k cho mua đo an sang",
       "intent": "add_transaction",
       "entities": {
-        "item": "tiền điện",
-        "price": 115000,
-        "category": "Hóa đơn"
+        "item": "mua đồ ăn sáng",
+        "price": 75000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 5,
+      "raw_text": "mua đo lazada mat 45.000 đong",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua đồ lazada",
+        "price": 45000,
+        "category": "Mua sắm"
       }
     },
     {
       "id": 6,
-      "raw_text": "Hôm nay ăn cafe hết 109000đ",
+      "raw_text": "hôm qua order pizza hết 45k",
       "intent": "add_transaction",
       "entities": {
-        "item": "cafe",
-        "price": 109000,
+        "item": "order pizza",
+        "price": 45000,
         "category": "Ăn uống"
       }
     },
     {
       "id": 7,
-      "raw_text": "Hôm nay ăn sửa xe hết 210000đ",
+      "raw_text": "chieu nay chi 210k mua tai nghe",
       "intent": "add_transaction",
       "entities": {
-        "item": "sửa xe",
+        "item": "mua tai nghe",
         "price": 210000,
-        "category": "Di chuyển"
+        "category": "Mua sắm"
       }
     },
     {
       "id": 8,
-      "raw_text": "Hôm nay ăn mua áo hết 376000đ",
+      "raw_text": "thanh toán đóng bảo hiểm 1700k",
       "intent": "add_transaction",
       "entities": {
-        "item": "mua áo",
-        "price": 376000,
-        "category": "Mua sắm"
-      }
-    },
-    {
-      "id": 9,
-      "raw_text": "Hôm nay ăn cơm tấm hết 403000đ",
-      "intent": "add_transaction",
-      "entities": {
-        "item": "cơm tấm",
-        "price": 403000,
-        "category": "Ăn uống"
-      }
-    },
-    {
-      "id": 10,
-      "raw_text": "Hôm nay ăn cafe hết 360000đ",
-      "intent": "add_transaction",
-      "entities": {
-        "item": "cafe",
-        "price": 360000,
-        "category": "Ăn uống"
-      }
-    },
-    {
-      "id": 11,
-      "raw_text": "Hôm nay ăn trà sữa hết 474000đ",
-      "intent": "add_transaction",
-      "entities": {
-        "item": "trà sữa",
-        "price": 474000,
-        "category": "Ăn uống"
-      }
-    },
-    {
-      "id": 12,
-      "raw_text": "Hôm nay ăn tiền điện hết 397000đ",
-      "intent": "add_transaction",
-      "entities": {
-        "item": "tiền điện",
-        "price": 397000,
+        "item": "đóng bảo hiểm",
+        "price": 1700000,
         "category": "Hóa đơn"
       }
     },
     {
-      "id": 13,
-      "raw_text": "Hôm nay ăn đổ xăng hết 67000đ",
+      "id": 9,
+      "raw_text": "tra tien đien thoai 310",
       "intent": "add_transaction",
       "entities": {
-        "item": "đổ xăng",
-        "price": 67000,
-        "category": "Di chuyển"
+        "item": "trả tiền điện thoại",
+        "price": 310000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 10,
+      "raw_text": "đăng ký yoga mất 850.000 đồng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đăng ký yoga",
+        "price": 850000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 11,
+      "raw_text": "mua ve xem bong đa 370.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua vé xem bóng đá",
+        "price": 370000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 12,
+      "raw_text": "toi nay chi 20k đi choi escape room",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi chơi escape room",
+        "price": 20000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 13,
+      "raw_text": "tối nay mua thực phẩm chức năng 950k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua thực phẩm chức năng",
+        "price": 950000,
+        "category": "Sức khỏe"
       }
     },
     {
       "id": 14,
-      "raw_text": "Hôm nay ăn mua áo hết 437000đ",
+      "raw_text": "đong hoc phi 160",
       "intent": "add_transaction",
       "entities": {
-        "item": "mua áo",
-        "price": 437000,
-        "category": "Mua sắm"
+        "item": "đóng học phí",
+        "price": 160000,
+        "category": "Hóa đơn"
       }
     },
     {
       "id": 15,
-      "raw_text": "Hôm nay ăn cơm tấm hết 330000đ",
+      "raw_text": "uống cà phê vợt mất 30.000 đồng",
       "intent": "add_transaction",
       "entities": {
-        "item": "cơm tấm",
-        "price": 330000,
+        "item": "uống cà phê vợt",
+        "price": 30000,
         "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 16,
+      "raw_text": "chiều nay uống chè 1000k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "uống chè",
+        "price": 1000000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 17,
+      "raw_text": "đi grab ton 290k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi grab",
+        "price": 290000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 18,
+      "raw_text": "mua đồ lazada mất 45.000 đồng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua đồ lazada",
+        "price": 45000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 19,
+      "raw_text": "chi 200k cho uong nuoc mia",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "uống nước mía",
+        "price": 200000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 20,
+      "raw_text": "tuần này đi máy bay hết 25k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi máy bay",
+        "price": 25000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 21,
+      "raw_text": "vừa khám tổng quát hết 1800k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "khám tổng quát",
+        "price": 1800000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 22,
+      "raw_text": "vừa đi honda ôm hết 90k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi honda ôm",
+        "price": 90000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 23,
+      "raw_text": "an com het 1450k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "ăn cơm",
+        "price": 1450000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 24,
+      "raw_text": "mua sushi mất 350.000 đồng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua sushi",
+        "price": 350000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 25,
+      "raw_text": "mất 700k nhận tiền freelance",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận tiền freelance",
+        "price": 700000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 26,
+      "raw_text": "tối nay đặt be hết 1500k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đặt be",
+        "price": 1500000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 27,
+      "raw_text": "mua thit ca ton 1400k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua thịt cá",
+        "price": 1400000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 28,
+      "raw_text": "mất 800k mua điện thoại",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua điện thoại",
+        "price": 800000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 29,
+      "raw_text": "sáng nay mua laptop hết 1000k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua laptop",
+        "price": 1000000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 30,
+      "raw_text": "chuyển tiền vào tài khoản tốn 1300k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "chuyển tiền vào tài khoản",
+        "price": 1300000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 31,
+      "raw_text": "đi gojek 1650",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi gojek",
+        "price": 1650000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 32,
+      "raw_text": "đi du lich 270",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi du lịch",
+        "price": 270000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 33,
+      "raw_text": "đi spa 50.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi spa",
+        "price": 50000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 34,
+      "raw_text": "tuan nay đang ky netflix 40k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đăng ký netflix",
+        "price": 40000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 35,
+      "raw_text": "đi grab tốn 290k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi grab",
+        "price": 290000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 36,
+      "raw_text": "đi gym 1600.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi gym",
+        "price": 1600000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 37,
+      "raw_text": "chiều nay ăn phở hết 650k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "ăn phở",
+        "price": 650000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 38,
+      "raw_text": "sáng nay mua vé tàu 220k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua vé tàu",
+        "price": 220000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 39,
+      "raw_text": "hôm nay chi 470k mua sách truyện",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua sách truyện",
+        "price": 470000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 40,
+      "raw_text": "nhận thưởng tết mất 160.000 đồng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận thưởng tết",
+        "price": 160000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 41,
+      "raw_text": "trả tiền nước hết 450k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả tiền nước",
+        "price": 450000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 42,
+      "raw_text": "đăng ký yoga 50",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đăng ký yoga",
+        "price": 50000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 43,
+      "raw_text": "uống cafe mất 25.000 đồng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "uống cafe",
+        "price": 25000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 44,
+      "raw_text": "ăn bún bò 1600k hôm nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "ăn bún bò",
+        "price": 1600000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 45,
+      "raw_text": "đang ky yoga 50",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đăng ký yoga",
+        "price": 50000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 46,
+      "raw_text": "nhan hoa hong ban hang 75.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận hoa hồng bán hàng",
+        "price": 75000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 47,
+      "raw_text": "nhan luong thang 310",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận lương tháng",
+        "price": 310000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 48,
+      "raw_text": "tối nay trả tiền điện hết 170k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả tiền điện",
+        "price": 170000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 49,
+      "raw_text": "thay lop xe 130k tuan nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "thay lốp xe",
+        "price": 130000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 50,
+      "raw_text": "xem phim cgv 50",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "xem phim cgv",
+        "price": 50000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 51,
+      "raw_text": "vừa nhận thưởng tết hết 100k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận thưởng tết",
+        "price": 100000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 52,
+      "raw_text": "vua mua vitamin het 1200k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua vitamin",
+        "price": 1200000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 53,
+      "raw_text": "tối nay mua thẻ điện thoại 400k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua thẻ điện thoại",
+        "price": 400000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 54,
+      "raw_text": "mua sắm shopee 470k hôm nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua sắm shopee",
+        "price": 470000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 55,
+      "raw_text": "đi xich lo mat 230.000 đong",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi xích lô",
+        "price": 230000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 56,
+      "raw_text": "hôm nay đi spa 85k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi spa",
+        "price": 85000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 57,
+      "raw_text": "đi siêu thị 35",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi siêu thị",
+        "price": 35000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 58,
+      "raw_text": "thanh toan mua vitamin 370k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua vitamin",
+        "price": 370000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 59,
+      "raw_text": "nhận tiền freelance 1600k hôm nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận tiền freelance",
+        "price": 1600000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 60,
+      "raw_text": "vừa trả phí dịch vụ chung cư hết 1950k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả phí dịch vụ chung cư",
+        "price": 1950000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 61,
+      "raw_text": "sáng nay nhận hoa hồng bán hàng 1150k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận hoa hồng bán hàng",
+        "price": 1150000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 62,
+      "raw_text": "chieu nay an pho het 650k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "ăn phở",
+        "price": 650000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 63,
+      "raw_text": "mua quan ao 50k hom nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua quần áo",
+        "price": 50000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 64,
+      "raw_text": "choi bowling het 85k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "chơi bowling",
+        "price": 85000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 65,
+      "raw_text": "mua đồ gia dụng tốn 75k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua đồ gia dụng",
+        "price": 75000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 66,
+      "raw_text": "toi nay chi 70k tra tien gui xe thang",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả tiền gửi xe tháng",
+        "price": 70000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 67,
+      "raw_text": "chi 75k cho mua đồ ăn sáng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua đồ ăn sáng",
+        "price": 75000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 68,
+      "raw_text": "vua chuyen tien vao tai khoan het 550k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "chuyển tiền vào tài khoản",
+        "price": 550000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 69,
+      "raw_text": "vua mua kinh het 40k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua kính",
+        "price": 40000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 70,
+      "raw_text": "thue xe tu lai 60k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "thuê xe tự lái",
+        "price": 60000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 71,
+      "raw_text": "toi nay mua thuc pham chuc nang 950k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua thực phẩm chức năng",
+        "price": 950000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 72,
+      "raw_text": "mất 1400k kiếm cái ăn",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "kiếm cái ăn",
+        "price": 1400000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 73,
+      "raw_text": "vừa thuê xe lam hết 1600k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "thuê xe lam",
+        "price": 1600000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 74,
+      "raw_text": "chơi bowling hết 85k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "chơi bowling",
+        "price": 85000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 75,
+      "raw_text": "đặt grab bike tốn 1850k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đặt grab bike",
+        "price": 1850000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 76,
+      "raw_text": "thanh toán nạp game 390k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nạp game",
+        "price": 390000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 77,
+      "raw_text": "tuần này chi 310k trả tiền gas",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả tiền gas",
+        "price": 310000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 78,
+      "raw_text": "đi du lịch 270",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi du lịch",
+        "price": 270000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 79,
+      "raw_text": "đi spa 400.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi spa",
+        "price": 400000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 80,
+      "raw_text": "mat 650k mua my pham",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua mỹ phẩm",
+        "price": 650000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 81,
+      "raw_text": "tháng này bán hàng online 220k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "bán hàng online",
+        "price": 220000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 82,
+      "raw_text": "ăn cơm hết 1450k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "ăn cơm",
+        "price": 1450000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 83,
+      "raw_text": "mua thuoc cam cum 350",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua thuốc cảm cúm",
+        "price": 350000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 84,
+      "raw_text": "tuan nay mua dau goi het 35k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua dầu gội",
+        "price": 35000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 85,
+      "raw_text": "thanh toán nhận lương tháng 300k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận lương tháng",
+        "price": 300000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 86,
+      "raw_text": "mất 700k nhận tiền freelance",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận tiền freelance",
+        "price": 700000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 87,
+      "raw_text": "thanh toán đi siêu thị 35k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi siêu thị",
+        "price": 35000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 88,
+      "raw_text": "đi taxi 1700k trưa nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi taxi",
+        "price": 1700000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 89,
+      "raw_text": "thue xe tu lai ton 1250k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "thuê xe tự lái",
+        "price": 1250000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 90,
+      "raw_text": "mat 320k mua thuoc cam cum",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua thuốc cảm cúm",
+        "price": 320000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 91,
+      "raw_text": "nap internet 1650k sang nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nạp internet",
+        "price": 1650000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 92,
+      "raw_text": "thuê xe lam mất 950.000 đồng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "thuê xe lam",
+        "price": 950000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 93,
+      "raw_text": "hom qua đi xe om 45k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi xe ôm",
+        "price": 45000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 94,
+      "raw_text": "vừa đi xe đò hết 50k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi xe đò",
+        "price": 50000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 95,
+      "raw_text": "thanh toán mua vitamin 370k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua vitamin",
+        "price": 370000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 96,
+      "raw_text": "nhận hoa hồng bán hàng 1900",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận hoa hồng bán hàng",
+        "price": 1900000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 97,
+      "raw_text": "đo xang xe may ton 1450k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đổ xăng xe máy",
+        "price": 1450000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 98,
+      "raw_text": "đang ky netflix 30k toi nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đăng ký netflix",
+        "price": 30000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 99,
+      "raw_text": "tối nay chi 850k đặt be",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đặt be",
+        "price": 850000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 100,
+      "raw_text": "vừa mua đồ vinmart hết 250k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua đồ vinmart",
+        "price": 250000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 101,
+      "raw_text": "đóng bảo hiểm mất 240.000 đồng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đóng bảo hiểm",
+        "price": 240000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 102,
+      "raw_text": "mua vé tàu 1400.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua vé tàu",
+        "price": 1400000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 103,
+      "raw_text": "hôm qua chi 40k ăn burger",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "ăn burger",
+        "price": 40000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 104,
+      "raw_text": "chi 1150k cho mua tai nghe",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua tai nghe",
+        "price": 1150000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 105,
+      "raw_text": "nhan thuong tet mat 160.000 đong",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận thưởng tết",
+        "price": 160000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 106,
+      "raw_text": "chuyển tiền vào tài khoản 1350k hôm nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "chuyển tiền vào tài khoản",
+        "price": 1350000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 107,
+      "raw_text": "tối nay chi 20k đi chơi escape room",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi chơi escape room",
+        "price": 20000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 108,
+      "raw_text": "mua đồ gia dụng mất 30.000 đồng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua đồ gia dụng",
+        "price": 30000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 109,
+      "raw_text": "vừa trả hóa đơn điện lực hết 1250k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả hóa đơn điện lực",
+        "price": 1250000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 110,
+      "raw_text": "sang nay mua tui xach het 450k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua túi xách",
+        "price": 450000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 111,
+      "raw_text": "hom qua chi 40k an burger",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "ăn burger",
+        "price": 40000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 112,
+      "raw_text": "mat 1550k nhan thuong tet",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận thưởng tết",
+        "price": 1550000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 113,
+      "raw_text": "mua thuốc 50.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua thuốc",
+        "price": 50000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 114,
+      "raw_text": "hôm qua chi 1500k mua rau củ quả",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua rau củ quả",
+        "price": 1500000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 115,
+      "raw_text": "trưa nay mua băng cứu thương hết 20k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua băng cứu thương",
+        "price": 20000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 116,
+      "raw_text": "sang nay mua tra sua het 120k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua trà sữa",
+        "price": 120000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 117,
+      "raw_text": "vừa mua thẻ điện thoại hết 460k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua thẻ điện thoại",
+        "price": 460000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 118,
+      "raw_text": "toi nay mua the đien thoai 400k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua thẻ điện thoại",
+        "price": 400000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 119,
+      "raw_text": "vừa khám bác sĩ hết 310k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "khám bác sĩ",
+        "price": 310000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 120,
+      "raw_text": "xem phim rạp 330k sáng nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "xem phim rạp",
+        "price": 330000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 121,
+      "raw_text": "chi 45k cho đi honda ôm",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi honda ôm",
+        "price": 45000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 122,
+      "raw_text": "hôm qua chi 60k mua đồ dùng nhà bếp",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua đồ dùng nhà bếp",
+        "price": 60000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 123,
+      "raw_text": "chơi game 50.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "chơi game",
+        "price": 50000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 124,
+      "raw_text": "thanh toan đang ky yoga 950k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đăng ký yoga",
+        "price": 950000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 125,
+      "raw_text": "vua thue xe lam het 1600k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "thuê xe lam",
+        "price": 1600000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 126,
+      "raw_text": "chi 1500k cho mua quà tặng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua quà tặng",
+        "price": 1500000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 127,
+      "raw_text": "thanh toán mua băng cứu thương 290k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua băng cứu thương",
+        "price": 290000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 128,
+      "raw_text": "nhan tien tro cap 15.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận tiền trợ cấp",
+        "price": 15000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 129,
+      "raw_text": "xem phim cgv 1200k tháng này",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "xem phim cgv",
+        "price": 1200000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 130,
+      "raw_text": "trua nay nhan tien freelance 360k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận tiền freelance",
+        "price": 360000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 131,
+      "raw_text": "toi nay chi 1750k mua ve xem bong đa",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua vé xem bóng đá",
+        "price": 1750000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 132,
+      "raw_text": "tuần này mua dầu gội hết 35k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua dầu gội",
+        "price": 35000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 133,
+      "raw_text": "đi công viên 550",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi công viên",
+        "price": 550000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 134,
+      "raw_text": "mất 1550k nhận thưởng tết",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận thưởng tết",
+        "price": 1550000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 135,
+      "raw_text": "mua thẻ điện thoại 260.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua thẻ điện thoại",
+        "price": 260000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 136,
+      "raw_text": "mat 700k nhan tien freelance",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận tiền freelance",
+        "price": 700000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 137,
+      "raw_text": "khám tổng quát mất 75.000 đồng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "khám tổng quát",
+        "price": 75000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 138,
+      "raw_text": "hom qua ban hang online het 10k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "bán hàng online",
+        "price": 10000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 139,
+      "raw_text": "đi xe om 330.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi xe ôm",
+        "price": 330000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 140,
+      "raw_text": "đi grab 1000.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi grab",
+        "price": 1000000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 141,
+      "raw_text": "trả tiền điện 380",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả tiền điện",
+        "price": 380000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 142,
+      "raw_text": "tối nay chi 170k xem phim rạp",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "xem phim rạp",
+        "price": 170000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 143,
+      "raw_text": "chi 45k cho bán hàng online",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "bán hàng online",
+        "price": 45000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 144,
+      "raw_text": "thang nay ban hang online 220k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "bán hàng online",
+        "price": 220000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 145,
+      "raw_text": "hom nay chi 470k mua sach truyen",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua sách truyện",
+        "price": 470000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 146,
+      "raw_text": "mua đồ chơi cho con mất 75.000 đồng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua đồ chơi cho con",
+        "price": 75000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 147,
+      "raw_text": "sáng nay mua trà sữa hết 120k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua trà sữa",
+        "price": 120000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 148,
+      "raw_text": "nhận tiền làm thêm 900",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận tiền làm thêm",
+        "price": 900000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 149,
+      "raw_text": "hom nay đong hoc phi het 950k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đóng học phí",
+        "price": 950000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 150,
+      "raw_text": "nhận hoa hồng bán hàng 480k hôm nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận hoa hồng bán hàng",
+        "price": 480000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 151,
+      "raw_text": "tối nay khám bác sĩ 800k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "khám bác sĩ",
+        "price": 800000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 152,
+      "raw_text": "mua sach truyen 180.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua sách truyện",
+        "price": 180000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 153,
+      "raw_text": "mua sushi mat 350.000 đong",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua sushi",
+        "price": 350000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 154,
+      "raw_text": "nhận tiền làm thêm 380",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận tiền làm thêm",
+        "price": 380000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 155,
+      "raw_text": "đi xích lô mất 230.000 đồng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi xích lô",
+        "price": 230000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 156,
+      "raw_text": "thanh toan mua đo dung nha bep 1550k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua đồ dùng nhà bếp",
+        "price": 1550000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 157,
+      "raw_text": "mua vé concert 340",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua vé concert",
+        "price": 340000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 158,
+      "raw_text": "sáng nay trả phí dịch vụ chung cư hết 440k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả phí dịch vụ chung cư",
+        "price": 440000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 159,
+      "raw_text": "thanh toán nhận lương tháng 65k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận lương tháng",
+        "price": 65000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 160,
+      "raw_text": "thanh toán nhậu với bạn bè 45k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhậu với bạn bè",
+        "price": 45000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 161,
+      "raw_text": "mua vé metro 10.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua vé metro",
+        "price": 10000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 162,
+      "raw_text": "vừa mua kính hết 40k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua kính",
+        "price": 40000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 163,
+      "raw_text": "mất 440k trả phí dịch vụ chung cư",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả phí dịch vụ chung cư",
+        "price": 440000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 164,
+      "raw_text": "nạp wifi mất 1750.000 đồng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nạp wifi",
+        "price": 1750000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 165,
+      "raw_text": "mua quà tặng tốn 280k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua quà tặng",
+        "price": 280000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 166,
+      "raw_text": "mat 25k an bun rieu",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "ăn bún riêu",
+        "price": 25000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 167,
+      "raw_text": "tiêm vaccine tốn 20k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "tiêm vaccine",
+        "price": 20000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 168,
+      "raw_text": "mất 1550k mua vé lotte cinema",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua vé lotte cinema",
+        "price": 1550000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 169,
+      "raw_text": "đi chơi escape room 480",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi chơi escape room",
+        "price": 480000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 170,
+      "raw_text": "chộp đôi giày 1900k hôm nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "chộp đôi giày",
+        "price": 1900000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 171,
+      "raw_text": "thuê xe tự lái 60k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "thuê xe tự lái",
+        "price": 60000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 172,
+      "raw_text": "đăng ký spotify 1550",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đăng ký spotify",
+        "price": 1550000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 173,
+      "raw_text": "mua thuoc mat 1450.000 đong",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua thuốc",
+        "price": 1450000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 174,
+      "raw_text": "tối nay chi 1750k mua vé xem bóng đá",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua vé xem bóng đá",
+        "price": 1750000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 175,
+      "raw_text": "sáng nay chuyển tiền vào tài khoản 140k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "chuyển tiền vào tài khoản",
+        "price": 140000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 176,
+      "raw_text": "mua cà phê sữa đá 35.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua cà phê sữa đá",
+        "price": 35000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 177,
+      "raw_text": "mua vé xe khách tốn 190k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua vé xe khách",
+        "price": 190000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 178,
+      "raw_text": "mất 650k ăn lẩu",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "ăn lẩu",
+        "price": 650000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 179,
+      "raw_text": "mua ve xe khach ton 190k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua vé xe khách",
+        "price": 190000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 180,
+      "raw_text": "chơi bowling mất 240.000 đồng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "chơi bowling",
+        "price": 240000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 181,
+      "raw_text": "mua the đien thoai 260.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua thẻ điện thoại",
+        "price": 260000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 182,
+      "raw_text": "trua nay chi 60k nhan tien tro cap",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận tiền trợ cấp",
+        "price": 60000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 183,
+      "raw_text": "đi chợ mất 750.000 đồng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi chợ",
+        "price": 750000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 184,
+      "raw_text": "mua thuốc cảm cúm 350",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua thuốc cảm cúm",
+        "price": 350000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 185,
+      "raw_text": "mất 320k mua thuốc cảm cúm",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua thuốc cảm cúm",
+        "price": 320000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 186,
+      "raw_text": "mat 90k tra tien gui xe thang",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả tiền gửi xe tháng",
+        "price": 90000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 187,
+      "raw_text": "trả tiền gas mất 75.000 đồng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả tiền gas",
+        "price": 75000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 188,
+      "raw_text": "hôm qua bán hàng online hết 10k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "bán hàng online",
+        "price": 10000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 189,
+      "raw_text": "chi 470k đi xich lo",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi xích lô",
+        "price": 470000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 190,
+      "raw_text": "hôm nay chi 850k đặt grab bike",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đặt grab bike",
+        "price": 850000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 191,
+      "raw_text": "chuyển tiền vào tài khoản mất 320.000 đồng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "chuyển tiền vào tài khoản",
+        "price": 320000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 192,
+      "raw_text": "hom qua chi 1500k mua rau cu qua",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua rau củ quả",
+        "price": 1500000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 193,
+      "raw_text": "mat 800k mua đien thoai",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua điện thoại",
+        "price": 800000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 194,
+      "raw_text": "chi 50k cho mua laptop",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua laptop",
+        "price": 50000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 195,
+      "raw_text": "đi du lich ton 300k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi du lịch",
+        "price": 300000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 196,
+      "raw_text": "cắt tóc 380.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "cắt tóc",
+        "price": 380000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 197,
+      "raw_text": "nap wifi mat 1750.000 đong",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nạp wifi",
+        "price": 1750000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 198,
+      "raw_text": "toi nay đat be het 1500k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đặt be",
+        "price": 1500000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 199,
+      "raw_text": "mua dau goi 150k toi nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua dầu gội",
+        "price": 150000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 200,
+      "raw_text": "thanh toán ăn bát bún mọc 100k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "ăn bát bún mọc",
+        "price": 100000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 201,
+      "raw_text": "đi gym tốn 55k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi gym",
+        "price": 55000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 202,
+      "raw_text": "khám bác sĩ 300k tháng này",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "khám bác sĩ",
+        "price": 300000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 203,
+      "raw_text": "thanh toan nhan luong thang 65k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận lương tháng",
+        "price": 65000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 204,
+      "raw_text": "mất 340k đi karaoke",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi karaoke",
+        "price": 340000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 205,
+      "raw_text": "trả tiền điện thoại 1550.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả tiền điện thoại",
+        "price": 1550000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 206,
+      "raw_text": "tuần này chi 260k nhận thưởng tết",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận thưởng tết",
+        "price": 260000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 207,
+      "raw_text": "thanh toan nhan luong thang 300k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận lương tháng",
+        "price": 300000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 208,
+      "raw_text": "ban hang online 65k hom nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "bán hàng online",
+        "price": 65000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 209,
+      "raw_text": "sang nay tra phi dich vu chung cu het 440k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả phí dịch vụ chung cư",
+        "price": 440000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 210,
+      "raw_text": "tháng này mua đồ vinmart hết 70k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua đồ vinmart",
+        "price": 70000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 211,
+      "raw_text": "chi 55k cho mua sắm shopee",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua sắm shopee",
+        "price": 55000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 212,
+      "raw_text": "mất 90k trả tiền gửi xe tháng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả tiền gửi xe tháng",
+        "price": 90000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 213,
+      "raw_text": "đi gojek 260",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi gojek",
+        "price": 260000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 214,
+      "raw_text": "đổ xăng xe máy 95",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đổ xăng xe máy",
+        "price": 95000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 215,
+      "raw_text": "thanh toán trả tiền nước 85k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả tiền nước",
+        "price": 85000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 216,
+      "raw_text": "thanh toán mua sách 350k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua sách",
+        "price": 350000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 217,
+      "raw_text": "nap internet 360.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nạp internet",
+        "price": 360000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 218,
+      "raw_text": "khám răng tốn 750k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "khám răng",
+        "price": 750000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 219,
+      "raw_text": "nạp internet 360.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nạp internet",
+        "price": 360000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 220,
+      "raw_text": "nhận tiền freelance 55.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận tiền freelance",
+        "price": 55000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 221,
+      "raw_text": "vừa đặt khám online hết 60k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đặt khám online",
+        "price": 60000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 222,
+      "raw_text": "mua mỹ phẩm hết 1150k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua mỹ phẩm",
+        "price": 1150000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 223,
+      "raw_text": "nạp internet 1650k sáng nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nạp internet",
+        "price": 1650000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 224,
+      "raw_text": "khám răng 470",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "khám răng",
+        "price": 470000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 225,
+      "raw_text": "mua vé metro mất 180.000 đồng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua vé metro",
+        "price": 180000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 226,
+      "raw_text": "thanh toán mua kính 100k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua kính",
+        "price": 100000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 227,
+      "raw_text": "đi chợ 800k hôm nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi chợ",
+        "price": 800000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 228,
+      "raw_text": "thanh toán nhận tiền trợ cấp 85k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận tiền trợ cấp",
+        "price": 85000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 229,
+      "raw_text": "nap tien đien thoai mat 280.000 đong",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nạp tiền điện thoại",
+        "price": 280000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 230,
+      "raw_text": "coi phim với bạn mất 1300.000 đồng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "coi phim với bạn",
+        "price": 1300000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 231,
+      "raw_text": "vừa mua thuốc hết 1400k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua thuốc",
+        "price": 1400000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 232,
+      "raw_text": "trả tiền gas 160k hôm nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả tiền gas",
+        "price": 160000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 233,
+      "raw_text": "mất 25k ăn bún riêu",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "ăn bún riêu",
+        "price": 25000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 234,
+      "raw_text": "vừa nhận tiền làm thêm hết 500k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận tiền làm thêm",
+        "price": 500000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 235,
+      "raw_text": "chiều nay đóng bảo hiểm hết 1500k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đóng bảo hiểm",
+        "price": 1500000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 236,
+      "raw_text": "chi 470k đi xích lô",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi xích lô",
+        "price": 470000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 237,
+      "raw_text": "mua kính 15k hôm nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua kính",
+        "price": 15000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 238,
+      "raw_text": "trả tiền thuê nhà tốn 70k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả tiền thuê nhà",
+        "price": 70000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 239,
+      "raw_text": "mat 350k nhan hoa hong ban hang",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận hoa hồng bán hàng",
+        "price": 350000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 240,
+      "raw_text": "mua tui xach 1900k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua túi xách",
+        "price": 1900000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 241,
+      "raw_text": "vua nhan thuong tet het 100k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận thưởng tết",
+        "price": 100000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 242,
+      "raw_text": "mua bánh ngọt 45",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua bánh ngọt",
+        "price": 45000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 243,
+      "raw_text": "thang nay mua đo vinmart het 70k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua đồ vinmart",
+        "price": 70000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 244,
+      "raw_text": "vừa mua dầu gội hết 1250k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua dầu gội",
+        "price": 1250000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 245,
+      "raw_text": "nhận tiền trợ cấp 15.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận tiền trợ cấp",
+        "price": 15000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 246,
+      "raw_text": "chi 1500k cho mua qua tang",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua quà tặng",
+        "price": 1500000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 247,
+      "raw_text": "chi 55k cho đóng học phí",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đóng học phí",
+        "price": 55000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 248,
+      "raw_text": "trưa nay chi 60k nhận tiền trợ cấp",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận tiền trợ cấp",
+        "price": 60000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 249,
+      "raw_text": "sáng nay sửa xe hết 1350k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "sửa xe",
+        "price": 1350000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 250,
+      "raw_text": "cắt tóc 650",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "cắt tóc",
+        "price": 650000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 251,
+      "raw_text": "chi 35k cho mua thuốc cảm cúm",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua thuốc cảm cúm",
+        "price": 35000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 252,
+      "raw_text": "nhận tiền trợ cấp mất 490.000 đồng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận tiền trợ cấp",
+        "price": 490000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 253,
+      "raw_text": "chi 1450k cho uống sinh tố",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "uống sinh tố",
+        "price": 1450000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 254,
+      "raw_text": "ban hang online 40k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "bán hàng online",
+        "price": 40000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 255,
+      "raw_text": "thanh toán tiêm vaccine 75k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "tiêm vaccine",
+        "price": 75000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 256,
+      "raw_text": "mua thịt cá tốn 1400k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua thịt cá",
+        "price": 1400000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 257,
+      "raw_text": "kiếm cái áo mới 1300.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "kiếm cái áo mới",
+        "price": 1300000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 258,
+      "raw_text": "đi gym 450",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi gym",
+        "price": 450000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 259,
+      "raw_text": "chi 40k cho khám răng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "khám răng",
+        "price": 40000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 260,
+      "raw_text": "tối nay chi 480k mua thực phẩm chức năng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua thực phẩm chức năng",
+        "price": 480000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 261,
+      "raw_text": "đổ xăng ô tô 600k sáng nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đổ xăng ô tô",
+        "price": 600000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 262,
+      "raw_text": "tuần này ăn bánh xèo 480k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "ăn bánh xèo",
+        "price": 480000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 263,
+      "raw_text": "mất 35k thay lốp xe",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "thay lốp xe",
+        "price": 35000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 264,
+      "raw_text": "đổ xăng ô tô 1250k hôm nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đổ xăng ô tô",
+        "price": 1250000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 265,
+      "raw_text": "mua ve metro 10.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua vé metro",
+        "price": 10000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 266,
+      "raw_text": "vua mua đien thoai het 320k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua điện thoại",
+        "price": 320000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 267,
+      "raw_text": "gui xe 75k chieu nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "gửi xe",
+        "price": 75000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 268,
+      "raw_text": "tháng này đi taxi 600k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi taxi",
+        "price": 600000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 269,
+      "raw_text": "mua sam shopee 470k hom nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua sắm shopee",
+        "price": 470000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 270,
+      "raw_text": "sửa xe 80",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "sửa xe",
+        "price": 80000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 271,
+      "raw_text": "hôm qua nhận tiền làm thêm hết 30k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận tiền làm thêm",
+        "price": 30000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 272,
+      "raw_text": "mất 1200k mua vé concert",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua vé concert",
+        "price": 1200000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 273,
+      "raw_text": "mua ve metro mat 180.000 đong",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua vé metro",
+        "price": 180000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 274,
+      "raw_text": "khám tổng quát 85k hôm nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "khám tổng quát",
+        "price": 85000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 275,
+      "raw_text": "bán hàng online 80.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "bán hàng online",
+        "price": 80000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 276,
+      "raw_text": "mất 700k nạp internet",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nạp internet",
+        "price": 700000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 277,
+      "raw_text": "vua mua dau goi het 1250k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua dầu gội",
+        "price": 1250000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 278,
+      "raw_text": "trả tiền gửi xe tháng tốn 700k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả tiền gửi xe tháng",
+        "price": 700000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 279,
+      "raw_text": "hôm qua mua vé xe khách hết 95k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua vé xe khách",
+        "price": 95000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 280,
+      "raw_text": "xem phim cgv 1200k thang nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "xem phim cgv",
+        "price": 1200000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 281,
+      "raw_text": "chi 10k cho mua giày",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua giày",
+        "price": 10000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 282,
+      "raw_text": "nhận hoa hồng bán hàng 75.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận hoa hồng bán hàng",
+        "price": 75000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 283,
+      "raw_text": "trua nay nhan tien lam them het 60k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận tiền làm thêm",
+        "price": 60000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 284,
+      "raw_text": "nạp tiền điện thoại mất 260.000 đồng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nạp tiền điện thoại",
+        "price": 260000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 285,
+      "raw_text": "vừa mần cái bánh hết 430k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mần cái bánh",
+        "price": 430000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 286,
+      "raw_text": "chiều nay chi 1650k mua băng cứu thương",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua băng cứu thương",
+        "price": 1650000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 287,
+      "raw_text": "bán hàng online 40k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "bán hàng online",
+        "price": 40000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 288,
+      "raw_text": "nhận thưởng tết 1900k hôm nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận thưởng tết",
+        "price": 1900000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 289,
+      "raw_text": "mất 1900k mua đồ lazada",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua đồ lazada",
+        "price": 1900000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 290,
+      "raw_text": "vừa mua vé bus hết 750k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua vé bus",
+        "price": 750000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 291,
+      "raw_text": "tra tien thue nha ton 70k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả tiền thuê nhà",
+        "price": 70000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 292,
+      "raw_text": "chiều nay uống bia hơi 90k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "uống bia hơi",
+        "price": 90000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 293,
+      "raw_text": "mua vé xem bóng đá 370.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua vé xem bóng đá",
+        "price": 370000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 294,
+      "raw_text": "chi 390k cho trả tiền thuê nhà",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả tiền thuê nhà",
+        "price": 390000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 295,
+      "raw_text": "hom qua mua ve xe khach het 95k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua vé xe khách",
+        "price": 95000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 296,
+      "raw_text": "nhận thưởng tết mất 20.000 đồng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận thưởng tết",
+        "price": 20000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 297,
+      "raw_text": "ăn bánh mì 900",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "ăn bánh mì",
+        "price": 900000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 298,
+      "raw_text": "trả tiền điện thoại 310",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả tiền điện thoại",
+        "price": 310000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 299,
+      "raw_text": "thanh toán trả hóa đơn điện lực 1700k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả hóa đơn điện lực",
+        "price": 1700000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 300,
+      "raw_text": "hôm nay đóng học phí hết 950k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đóng học phí",
+        "price": 950000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 301,
+      "raw_text": "mua thẻ game 1050k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua thẻ game",
+        "price": 1050000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 302,
+      "raw_text": "hôm nay mua vé lotte cinema 55k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua vé lotte cinema",
+        "price": 55000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 303,
+      "raw_text": "chi 260k cho nhận hoa hồng bán hàng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận hoa hồng bán hàng",
+        "price": 260000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 304,
+      "raw_text": "mất 350k nhận hoa hồng bán hàng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận hoa hồng bán hàng",
+        "price": 350000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 305,
+      "raw_text": "trả tiền nước 25.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả tiền nước",
+        "price": 25000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 306,
+      "raw_text": "mua thit ca 45.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua thịt cá",
+        "price": 45000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 307,
+      "raw_text": "tuan nay an banh xeo 480k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "ăn bánh xèo",
+        "price": 480000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 308,
+      "raw_text": "vừa mua vitamin hết 1200k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua vitamin",
+        "price": 1200000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 309,
+      "raw_text": "an bun bo 1600k hom nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "ăn bún bò",
+        "price": 1600000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 310,
+      "raw_text": "mua thuốc mất 1450.000 đồng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua thuốc",
+        "price": 1450000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 311,
+      "raw_text": "chi 200k cho uống nước mía",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "uống nước mía",
+        "price": 200000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 312,
+      "raw_text": "trua nay chi 10k đi cong vien",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi công viên",
+        "price": 10000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 313,
+      "raw_text": "ăn cơm bình dân 90.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "ăn cơm bình dân",
+        "price": 90000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 314,
+      "raw_text": "đi karaoke 1100.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi karaoke",
+        "price": 1100000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 315,
+      "raw_text": "đat kham online het 420k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đặt khám online",
+        "price": 420000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 316,
+      "raw_text": "mua dầu gội 150k tối nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua dầu gội",
+        "price": 150000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 317,
+      "raw_text": "mua túi xách 1900k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua túi xách",
+        "price": 1900000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 318,
+      "raw_text": "tiem vaccine 1350.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "tiêm vaccine",
+        "price": 1350000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 319,
+      "raw_text": "đi du lịch tốn 300k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi du lịch",
+        "price": 300000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 320,
+      "raw_text": "thuê xe tự lái tốn 1250k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "thuê xe tự lái",
+        "price": 1250000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 321,
+      "raw_text": "đo xang o to 1250k hom nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đổ xăng ô tô",
+        "price": 1250000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 322,
+      "raw_text": "vua mua the đien thoai het 460k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua thẻ điện thoại",
+        "price": 460000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 323,
+      "raw_text": "hôm nay chi 290k cắt tóc",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "cắt tóc",
+        "price": 290000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 324,
+      "raw_text": "tối nay chi 70k trả tiền gửi xe tháng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả tiền gửi xe tháng",
+        "price": 70000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 325,
+      "raw_text": "toi nay chi 850k đat be",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đặt be",
+        "price": 850000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 326,
+      "raw_text": "chi 1450k cho chộp đôi giày",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "chộp đôi giày",
+        "price": 1450000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 327,
+      "raw_text": "mất 55k mua đồ chơi cho con",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua đồ chơi cho con",
+        "price": 55000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 328,
+      "raw_text": "vừa mua điện thoại hết 320k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua điện thoại",
+        "price": 320000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 329,
+      "raw_text": "mất 370k đi máy bay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi máy bay",
+        "price": 370000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 330,
+      "raw_text": "sáng nay đi xe đò 50k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi xe đò",
+        "price": 50000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 331,
+      "raw_text": "đi cho mat 750.000 đong",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi chợ",
+        "price": 750000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 332,
+      "raw_text": "chi 45k cho đi honda om",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi honda ôm",
+        "price": 45000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 333,
+      "raw_text": "nhận tiền làm thêm 75k hôm nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận tiền làm thêm",
+        "price": 75000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 334,
+      "raw_text": "hom qua order pizza het 45k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "order pizza",
+        "price": 45000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 335,
+      "raw_text": "chi 320k cho trả tiền thuê nhà",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả tiền thuê nhà",
+        "price": 320000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 336,
+      "raw_text": "trưa nay chi 10k đi công viên",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi công viên",
+        "price": 10000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 337,
+      "raw_text": "mua quần áo mất 20.000 đồng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua quần áo",
+        "price": 20000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 338,
+      "raw_text": "trưa nay chi 140k ăn hủ tiếu",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "ăn hủ tiếu",
+        "price": 140000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 339,
+      "raw_text": "mua rau củ quả tốn 55k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua rau củ quả",
+        "price": 55000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 340,
+      "raw_text": "chieu nay chi 1650k mua bang cuu thuong",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua băng cứu thương",
+        "price": 1650000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 341,
+      "raw_text": "hom nay mua thuc pham chuc nang 410k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua thực phẩm chức năng",
+        "price": 410000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 342,
+      "raw_text": "thanh toán trả tiền điện thoại 55k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả tiền điện thoại",
+        "price": 55000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 343,
+      "raw_text": "mua sách 55k hôm nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua sách",
+        "price": 55000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 344,
+      "raw_text": "đi xe ôm 330.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi xe ôm",
+        "price": 330000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 345,
+      "raw_text": "coi phim voi ban 1700.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "coi phim với bạn",
+        "price": 1700000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 346,
+      "raw_text": "tuần này đăng ký netflix 40k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đăng ký netflix",
+        "price": 40000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 347,
+      "raw_text": "chuyển tiền vào tài khoản 65",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "chuyển tiền vào tài khoản",
+        "price": 65000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 348,
+      "raw_text": "thanh toán đăng ký yoga 950k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đăng ký yoga",
+        "price": 950000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 349,
+      "raw_text": "vừa nhận tiền freelance hết 1150k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận tiền freelance",
+        "price": 1150000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 350,
+      "raw_text": "nhận lương tháng 310",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận lương tháng",
+        "price": 310000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 351,
+      "raw_text": "hôm qua mua thẻ game hết 1750k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua thẻ game",
+        "price": 1750000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 352,
+      "raw_text": "vừa nhận lương tháng hết 200k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận lương tháng",
+        "price": 200000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 353,
+      "raw_text": "thanh toán nạp wifi 1250k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nạp wifi",
+        "price": 1250000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 354,
+      "raw_text": "hôm nay mua thực phẩm chức năng 410k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua thực phẩm chức năng",
+        "price": 410000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 355,
+      "raw_text": "thanh toan nap game 390k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nạp game",
+        "price": 390000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 356,
+      "raw_text": "chiều nay chi 320k nạp tiền điện thoại",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nạp tiền điện thoại",
+        "price": 320000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 357,
+      "raw_text": "kham bac si 300k thang nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "khám bác sĩ",
+        "price": 300000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 358,
+      "raw_text": "nhận tiền trợ cấp 80k hôm nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận tiền trợ cấp",
+        "price": 80000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 359,
+      "raw_text": "ăn bún thịt nướng mất 25.000 đồng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "ăn bún thịt nướng",
+        "price": 25000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 360,
+      "raw_text": "nhan hoa hong ban hang 480k hom nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận hoa hồng bán hàng",
+        "price": 480000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 361,
+      "raw_text": "mua ca phe sua đa 35.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua cà phê sữa đá",
+        "price": 35000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 362,
+      "raw_text": "tra tien gas 160k hom nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả tiền gas",
+        "price": 160000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 363,
+      "raw_text": "nhan tien freelance 55.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận tiền freelance",
+        "price": 55000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 364,
+      "raw_text": "mat 35k thay lop xe",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "thay lốp xe",
+        "price": 35000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 365,
+      "raw_text": "ăn cơm tấm sườn 1600k hôm nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "ăn cơm tấm sườn",
+        "price": 1600000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 366,
+      "raw_text": "chieu nay uong che 1000k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "uống chè",
+        "price": 1000000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 367,
+      "raw_text": "tra tien đien thoai 1550.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả tiền điện thoại",
+        "price": 1550000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 368,
+      "raw_text": "vừa trả tiền điện hết 700k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả tiền điện",
+        "price": 700000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 369,
+      "raw_text": "kiếm cái áo mới 80k tháng này",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "kiếm cái áo mới",
+        "price": 80000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 370,
+      "raw_text": "trưa nay nhận tiền freelance 360k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận tiền freelance",
+        "price": 360000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 371,
+      "raw_text": "mua thịt cá 45.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua thịt cá",
+        "price": 45000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 372,
+      "raw_text": "chi 180k đang ky spotify",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đăng ký spotify",
+        "price": 180000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 373,
+      "raw_text": "thay lốp xe 130k tuần này",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "thay lốp xe",
+        "price": 130000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 374,
+      "raw_text": "đăng ký netflix 30k tối nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đăng ký netflix",
+        "price": 30000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 375,
+      "raw_text": "chi 470k cho mua vitamin",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua vitamin",
+        "price": 470000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 376,
+      "raw_text": "nạp game 75.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nạp game",
+        "price": 75000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 377,
+      "raw_text": "mua sách truyện 180.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua sách truyện",
+        "price": 180000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 378,
+      "raw_text": "mua quần áo 50k hôm nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua quần áo",
+        "price": 50000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 379,
+      "raw_text": "tiêm vaccine 1350.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "tiêm vaccine",
+        "price": 1350000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 380,
+      "raw_text": "đổ xăng xe máy tốn 1450k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đổ xăng xe máy",
+        "price": 1450000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 381,
+      "raw_text": "vừa order grab food hết 480k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "order grab food",
+        "price": 480000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 382,
+      "raw_text": "đóng học phí 160",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đóng học phí",
+        "price": 160000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 383,
+      "raw_text": "bán hàng online 65k hôm nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "bán hàng online",
+        "price": 65000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 384,
+      "raw_text": "gửi xe tốn 45k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "gửi xe",
+        "price": 45000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 385,
+      "raw_text": "mat 1400k kiem cai an",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "kiếm cái ăn",
+        "price": 1400000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 386,
+      "raw_text": "toi nay chi 170k xem phim rap",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "xem phim rạp",
+        "price": 170000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 387,
+      "raw_text": "thanh toan nhan tien tro cap 85k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận tiền trợ cấp",
+        "price": 85000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 388,
+      "raw_text": "tra tien đien 380",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả tiền điện",
+        "price": 380000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 389,
+      "raw_text": "gửi xe 75k chiều nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "gửi xe",
+        "price": 75000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 390,
+      "raw_text": "vừa nhận tiền trợ cấp hết 90k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận tiền trợ cấp",
+        "price": 90000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 391,
+      "raw_text": "uong cafe mat 25.000 đong",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "uống cafe",
+        "price": 25000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 392,
+      "raw_text": "vừa chuyển tiền vào tài khoản hết 550k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "chuyển tiền vào tài khoản",
+        "price": 550000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 393,
+      "raw_text": "chi 50k cho chơi game",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "chơi game",
+        "price": 50000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 394,
+      "raw_text": "mua rau cu qua ton 55k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua rau củ quả",
+        "price": 55000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 395,
+      "raw_text": "sang nay chuyen tien vao tai khoan 140k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "chuyển tiền vào tài khoản",
+        "price": 140000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 396,
+      "raw_text": "nhận lương tháng 30",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận lương tháng",
+        "price": 30000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 397,
+      "raw_text": "mất 650k mua mỹ phẩm",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua mỹ phẩm",
+        "price": 650000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 398,
+      "raw_text": "đat grab bike ton 1850k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đặt grab bike",
+        "price": 1850000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 399,
+      "raw_text": "tuan nay an toi voi gia đinh 160k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "ăn tối với gia đình",
+        "price": 160000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 400,
+      "raw_text": "chiều nay chi 210k mua tai nghe",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua tai nghe",
+        "price": 210000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 401,
+      "raw_text": "chi 95k cho nhận lương tháng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận lương tháng",
+        "price": 95000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 402,
+      "raw_text": "nạp tiền điện thoại mất 280.000 đồng",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nạp tiền điện thoại",
+        "price": 280000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 403,
+      "raw_text": "thanh toan nap wifi 1250k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nạp wifi",
+        "price": 1250000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 404,
+      "raw_text": "tuần này ăn tối với gia đình 160k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "ăn tối với gia đình",
+        "price": 160000,
+        "category": "Ăn uống"
+      }
+    },
+    {
+      "id": 405,
+      "raw_text": "đặt khám online hết 420k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đặt khám online",
+        "price": 420000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 406,
+      "raw_text": "chi 55k cho đong hoc phi",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đóng học phí",
+        "price": 55000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 407,
+      "raw_text": "vừa trả hóa đơn điện lực hết 1100k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả hóa đơn điện lực",
+        "price": 1100000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 408,
+      "raw_text": "nạp wifi 30k hôm nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nạp wifi",
+        "price": 30000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 409,
+      "raw_text": "tra tien gas mat 75.000 đong",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả tiền gas",
+        "price": 75000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 410,
+      "raw_text": "trưa nay nhận tiền làm thêm hết 60k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận tiền làm thêm",
+        "price": 60000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 411,
+      "raw_text": "đặt khám online 40k hôm nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đặt khám online",
+        "price": 40000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 412,
+      "raw_text": "coi phim với bạn 1700.000đ",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "coi phim với bạn",
+        "price": 1700000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 413,
+      "raw_text": "sáng nay mua túi xách hết 450k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua túi xách",
+        "price": 450000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 414,
+      "raw_text": "tra tien nuoc het 450k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "trả tiền nước",
+        "price": 450000,
+        "category": "Hóa đơn"
+      }
+    },
+    {
+      "id": 415,
+      "raw_text": "thanh toán mua đồ dùng nhà bếp 1550k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua đồ dùng nhà bếp",
+        "price": 1550000,
+        "category": "Mua sắm"
+      }
+    },
+    {
+      "id": 416,
+      "raw_text": "nhan tien lam them 900",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "nhận tiền làm thêm",
+        "price": 900000,
+        "category": "Thu nhập"
+      }
+    },
+    {
+      "id": 417,
+      "raw_text": "hôm qua đi xe ôm 45k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đi xe ôm",
+        "price": 45000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 418,
+      "raw_text": "chi 180k đăng ký spotify",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đăng ký spotify",
+        "price": 180000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 419,
+      "raw_text": "vua đat kham online het 60k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "đặt khám online",
+        "price": 60000,
+        "category": "Sức khỏe"
+      }
+    },
+    {
+      "id": 420,
+      "raw_text": "mat 1200k mua ve concert",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua vé concert",
+        "price": 1200000,
+        "category": "Giải trí"
+      }
+    },
+    {
+      "id": 421,
+      "raw_text": "mua vé bus 230k hôm nay",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua vé bus",
+        "price": 230000,
+        "category": "Di chuyển"
+      }
+    },
+    {
+      "id": 422,
+      "raw_text": "thanh toán mua giày 200k",
+      "intent": "add_transaction",
+      "entities": {
+        "item": "mua giày",
+        "price": 200000,
+        "category": "Mua sắm"
       }
     }
   ],
   "category_mapping": {
-    "trà sữa": "Ăn uống",
-    "cafe": "Ăn uống",
-    "cơm tấm": "Ăn uống",
+    "ăn phở": "Ăn uống",
+    "uống cafe": "Ăn uống",
+    "mua trà sữa": "Ăn uống",
+    "ăn cơm": "Ăn uống",
+    "ăn bún bò": "Ăn uống",
+    "ăn bánh mì": "Ăn uống",
+    "mua đồ ăn sáng": "Ăn uống",
+    "ăn tối với gia đình": "Ăn uống",
+    "order grab food": "Ăn uống",
+    "ăn lẩu": "Ăn uống",
+    "uống sinh tố": "Ăn uống",
+    "mua bánh ngọt": "Ăn uống",
+    "ăn bún riêu": "Ăn uống",
+    "uống nước mía": "Ăn uống",
+    "ăn hủ tiếu": "Ăn uống",
+    "mua cà phê sữa đá": "Ăn uống",
+    "ăn cơm tấm sườn": "Ăn uống",
+    "order pizza": "Ăn uống",
+    "ăn burger": "Ăn uống",
+    "mua sushi": "Ăn uống",
+    "nhậu với bạn bè": "Ăn uống",
+    "kiếm cái ăn": "Ăn uống",
+    "ăn cơm bình dân": "Ăn uống",
+    "uống cà phê vợt": "Ăn uống",
+    "ăn bánh xèo": "Ăn uống",
+    "mần cái bánh": "Ăn uống",
+    "ăn bún thịt nướng": "Ăn uống",
+    "uống chè": "Ăn uống",
+    "ăn bát bún mọc": "Ăn uống",
+    "uống bia hơi": "Ăn uống",
+    "đổ xăng xe máy": "Di chuyển",
+    "đi grab": "Di chuyển",
+    "đi taxi": "Di chuyển",
+    "mua vé bus": "Di chuyển",
+    "đi xe ôm": "Di chuyển",
+    "đặt be": "Di chuyển",
+    "thuê xe tự lái": "Di chuyển",
+    "mua vé tàu": "Di chuyển",
+    "đi máy bay": "Di chuyển",
+    "gửi xe": "Di chuyển",
     "sửa xe": "Di chuyển",
-    "đổ xăng": "Di chuyển",
-    "mua áo": "Mua sắm",
-    "tiền điện": "Hóa đơn"
+    "thay lốp xe": "Di chuyển",
+    "đi gojek": "Di chuyển",
+    "mua vé xe khách": "Di chuyển",
+    "đổ xăng ô tô": "Di chuyển",
+    "đặt grab bike": "Di chuyển",
+    "đi xích lô": "Di chuyển",
+    "mua vé metro": "Di chuyển",
+    "đi honda ôm": "Di chuyển",
+    "thuê xe lam": "Di chuyển",
+    "đi xe đò": "Di chuyển",
+    "mua quần áo": "Mua sắm",
+    "mua giày": "Mua sắm",
+    "mua túi xách": "Mua sắm",
+    "mua sắm shopee": "Mua sắm",
+    "mua đồ lazada": "Mua sắm",
+    "đi siêu thị": "Mua sắm",
+    "mua đồ vinmart": "Mua sắm",
+    "mua điện thoại": "Mua sắm",
+    "mua laptop": "Mua sắm",
+    "mua tai nghe": "Mua sắm",
+    "mua mỹ phẩm": "Mua sắm",
+    "mua đồ dùng nhà bếp": "Mua sắm",
+    "mua sách": "Mua sắm",
+    "mua đồ chơi cho con": "Mua sắm",
+    "mua quà tặng": "Mua sắm",
+    "đi chợ": "Mua sắm",
+    "mua rau củ quả": "Mua sắm",
+    "mua thịt cá": "Mua sắm",
+    "mua đồ gia dụng": "Mua sắm",
+    "kiếm cái áo mới": "Mua sắm",
+    "chộp đôi giày": "Mua sắm",
+    "xem phim cgv": "Giải trí",
+    "chơi game": "Giải trí",
+    "đăng ký netflix": "Giải trí",
+    "mua vé concert": "Giải trí",
+    "đi karaoke": "Giải trí",
+    "mua vé xem bóng đá": "Giải trí",
+    "đăng ký spotify": "Giải trí",
+    "mua sách truyện": "Giải trí",
+    "đi du lịch": "Giải trí",
+    "chơi bowling": "Giải trí",
+    "đi công viên": "Giải trí",
+    "xem phim rạp": "Giải trí",
+    "mua vé lotte cinema": "Giải trí",
+    "đi chơi escape room": "Giải trí",
+    "mua thẻ game": "Giải trí",
+    "nạp game": "Giải trí",
+    "coi phim với bạn": "Giải trí",
+    "mua thuốc": "Sức khỏe",
+    "khám bác sĩ": "Sức khỏe",
+    "đi gym": "Sức khỏe",
+    "mua vitamin": "Sức khỏe",
+    "khám răng": "Sức khỏe",
+    "mua kính": "Sức khỏe",
+    "đi spa": "Sức khỏe",
+    "mua thực phẩm chức năng": "Sức khỏe",
+    "cắt tóc": "Sức khỏe",
+    "mua dầu gội": "Sức khỏe",
+    "đăng ký yoga": "Sức khỏe",
+    "mua băng cứu thương": "Sức khỏe",
+    "tiêm vaccine": "Sức khỏe",
+    "khám tổng quát": "Sức khỏe",
+    "mua thuốc cảm cúm": "Sức khỏe",
+    "đặt khám online": "Sức khỏe",
+    "trả tiền điện": "Hóa đơn",
+    "trả tiền nước": "Hóa đơn",
+    "nạp internet": "Hóa đơn",
+    "trả tiền điện thoại": "Hóa đơn",
+    "trả tiền thuê nhà": "Hóa đơn",
+    "nạp wifi": "Hóa đơn",
+    "trả tiền gas": "Hóa đơn",
+    "trả phí dịch vụ chung cư": "Hóa đơn",
+    "đóng học phí": "Hóa đơn",
+    "trả tiền gửi xe tháng": "Hóa đơn",
+    "nạp tiền điện thoại": "Hóa đơn",
+    "mua thẻ điện thoại": "Hóa đơn",
+    "trả hóa đơn điện lực": "Hóa đơn",
+    "đóng bảo hiểm": "Hóa đơn",
+    "nhận lương tháng": "Thu nhập",
+    "nhận thưởng tết": "Thu nhập",
+    "nhận tiền freelance": "Thu nhập",
+    "bán hàng online": "Thu nhập",
+    "nhận tiền làm thêm": "Thu nhập",
+    "nhận tiền trợ cấp": "Thu nhập",
+    "nhận hoa hồng bán hàng": "Thu nhập",
+    "chuyển tiền vào tài khoản": "Thu nhập"
   }
 }
