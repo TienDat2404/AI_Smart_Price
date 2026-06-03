@@ -94,4 +94,12 @@ namespace SmartPrice.Api.Models
         int      ReachCount,
         DateTime SentAt
     );
+
+    // ── System Error ──────────────────────────────────────────────────────────
+
+    public record LogErrorRequest(
+        string? Source,
+        string? Message,
+        string? Level   // "error" | "warning" | "critical"
+    );
 }

@@ -10,15 +10,15 @@ namespace SmartPrice.Api.Controllers
     /// Nhận ảnh hóa đơn từ Flutter → lưu Uploads/ → gửi Python AI Engine → trả kết quả OCR.
     /// </summary>
     [ApiController]
-    [Route("api/invoice")]   // explicit route — không dùng [controller] để tránh nhầm
+    [Route("api/invoice")]
     public class InvoiceController : ControllerBase
     {
-        private readonly IMongoCollection<OcrSample> _ocrCollection;
+        private readonly IMongoCollection<OcrSample>   _ocrCollection;
+        private readonly IMongoCollection<SystemError> _errorCollection;
         private readonly IWebHostEnvironment _env;
         private readonly ILogger<InvoiceController> _logger;
         private readonly IHttpClientFactory _httpFactory;
 
-        // Python AI Engine endpoint
         private const string AiEngineUrl = "http://localhost:8000/parse/image";
 
         private string UploadsPath => Path.Combine(_env.ContentRootPath, "Uploads");
@@ -29,10 +29,11 @@ namespace SmartPrice.Api.Controllers
             ILogger<InvoiceController> logger,
             IHttpClientFactory httpFactory)
         {
-            _ocrCollection = db.GetCollection<OcrSample>("OcrSamples");
-            _env           = env;
-            _logger        = logger;
-            _httpFactory   = httpFactory;
+            _ocrCollection   = db.GetCollection<OcrSample>("OcrSamples");
+            _errorCollection = db.GetCollection<SystemError>("SystemErrors");
+            _env             = env;
+            _logger          = logger;
+            _httpFactory     = httpFactory;
         }
 
         // ── POST /api/invoice/scan ────────────────────────────────────────────
@@ -75,6 +76,17 @@ namespace SmartPrice.Api.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "OCR failed for {FileName}: {Message}", fileName, ex.Message);
+
+                // Log lỗi vào SystemErrors để admin theo dõi
+                await _errorCollection.InsertOneAsync(new SystemError
+                {
+                    Source     = "OCR",
+                    Message    = $"OCR thất bại: {ex.Message} | file: {fileName}",
+                    Level      = "error",
+                    IsResolved = false,
+                    OccurredAt = DateTime.UtcNow,
+                });
+
                 return UnprocessableEntity(new
                 {
                     message  = "Khong the nhan dien hoa don nay, vui long thu lai hoac nhap tay.",
@@ -85,11 +97,28 @@ namespace SmartPrice.Api.Controllers
             // ── Lưu kết quả vào MongoDB ───────────────────────────────────────
             await _ocrCollection.InsertOneAsync(new OcrSample
             {
-                InvoiceId = result.InvoiceId,
-                Store     = result.StoreName,
-                Total     = (long)result.TotalAmount,
-                Date      = result.Date,
+                InvoiceId  = result.InvoiceId,
+                Store      = result.StoreName,
+                Total      = (long)result.TotalAmount,
+                Date       = result.Date,
+                Confidence = result.Confidence,
+                IsSuccess  = result.Status != "failed" && result.TotalAmount > 0,
+                Status     = result.Status,
+                ScannedAt  = DateTime.UtcNow,
             });
+
+            // Nếu AI trả về status "failed" — log warning
+            if (result.Status == "failed")
+            {
+                await _errorCollection.InsertOneAsync(new SystemError
+                {
+                    Source     = "OCR",
+                    Message    = $"Ảnh chất lượng thấp (conf={result.Confidence:P0}): {result.StoreName ?? fileName}",
+                    Level      = "warning",
+                    IsResolved = false,
+                    OccurredAt = DateTime.UtcNow,
+                });
+            }
 
             return Ok(result);
         }

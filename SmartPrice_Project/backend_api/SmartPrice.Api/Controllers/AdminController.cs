@@ -17,6 +17,7 @@ namespace SmartPrice.Api.Controllers
         private readonly IMongoCollection<Transaction> _transactions;
         private readonly IMongoCollection<User>        _users;
         private readonly IMongoCollection<OcrSample>   _ocrSamples;
+        private readonly IMongoCollection<SystemError> _systemErrors;
 
         // In-memory notification history (thay bằng MongoDB collection khi cần)
         private static readonly List<NotificationHistoryDto> _notifHistory = new();
@@ -26,6 +27,7 @@ namespace SmartPrice.Api.Controllers
             _transactions = db.GetCollection<Transaction>("Transactions");
             _users        = db.GetCollection<User>("Users");
             _ocrSamples   = db.GetCollection<OcrSample>("OcrSamples");
+            _systemErrors = db.GetCollection<SystemError>("SystemErrors");
         }
 
         // ── GET /api/admin/overview ───────────────────────────────────────────
@@ -47,12 +49,31 @@ namespace SmartPrice.Api.Controllers
             var totalExpense = transactions.Where(t => t.IsExpense).Sum(t => (double)t.Amount);
 
             var ocrTotal   = ocrSamples.Count;
-            var ocrSuccess = ocrSamples.Count; // OcrSamples hiện tại đều là mẫu đúng
-            var ocrRate    = ocrTotal > 0 ? 98.5 : 98.5;
+            var ocrSuccess = ocrSamples.Count(o => o.IsSuccess);
+            var ocrRate    = ocrTotal > 0 ? Math.Round((double)ocrSuccess / ocrTotal * 100, 1) : 0.0;
 
-            // Growth giả lập — thay bằng so sánh tháng thực khi cần
-            var userGrowth    = 12.0;
-            var revenueGrowth = 8.3;
+            // Lỗi hệ thống trong 24h gần nhất
+            var since24h      = DateTime.UtcNow.AddHours(-24);
+            var errorFilter   = Builders<SystemError>.Filter.Gte(e => e.OccurredAt, since24h)
+                              & Builders<SystemError>.Filter.Eq(e => e.IsResolved, false);
+            var activeErrors  = (int)await _systemErrors.CountDocumentsAsync(errorFilter);
+
+            // Growth: so sánh tháng này vs tháng trước
+            var now       = DateTime.UtcNow;
+            var thisMonth = new DateTime(now.Year, now.Month, 1);
+            var lastMonth = thisMonth.AddMonths(-1);
+
+            var thisMonthUsers  = users.Count(u => u.CreatedAt >= thisMonth);
+            var lastMonthUsers  = users.Count(u => u.CreatedAt >= lastMonth && u.CreatedAt < thisMonth);
+            var userGrowth      = lastMonthUsers > 0
+                ? Math.Round((double)(thisMonthUsers - lastMonthUsers) / lastMonthUsers * 100, 1)
+                : (thisMonthUsers > 0 ? 100.0 : 0.0);
+
+            var thisMonthIncome = transactions.Where(t => !t.IsExpense && t.Date >= thisMonth).Sum(t => (double)t.Amount);
+            var lastMonthIncome = transactions.Where(t => !t.IsExpense && t.Date >= lastMonth && t.Date < thisMonth).Sum(t => (double)t.Amount);
+            var revenueGrowth   = lastMonthIncome > 0
+                ? Math.Round((thisMonthIncome - lastMonthIncome) / lastMonthIncome * 100, 1)
+                : (thisMonthIncome > 0 ? 100.0 : 0.0);
 
             return Ok(new AdminOverviewDto(
                 TotalUsers:          totalUsers,
@@ -62,7 +83,7 @@ namespace SmartPrice.Api.Controllers
                 TotalRevenue:        totalIncome,
                 TotalExpense:        totalExpense,
                 OcrSuccessRate:      ocrRate,
-                ActiveErrors:        24,
+                ActiveErrors:        activeErrors,
                 UserGrowthPercent:   userGrowth,
                 RevenueGrowthPercent: revenueGrowth
             ));
@@ -308,6 +329,47 @@ namespace SmartPrice.Api.Controllers
         [HttpGet("notifications")]
         [ProducesResponseType(typeof(List<NotificationHistoryDto>), 200)]
         public IActionResult GetNotificationHistory() => Ok(_notifHistory);
+
+        // ── POST /api/admin/errors ────────────────────────────────────────────
+
+        /// <summary>Log lỗi hệ thống vào MongoDB.</summary>
+        [HttpPost("errors")]
+        [ProducesResponseType(201)]
+        public async Task<IActionResult> LogError([FromBody] LogErrorRequest request)
+        {
+            var error = new SystemError
+            {
+                Source     = request.Source ?? "Unknown",
+                Message    = request.Message ?? "",
+                Level      = request.Level   ?? "error",
+                IsResolved = false,
+                OccurredAt = DateTime.UtcNow,
+            };
+            await _systemErrors.InsertOneAsync(error);
+            return StatusCode(201, new { id = error.Id });
+        }
+
+        /// <summary>Lấy danh sách lỗi chưa xử lý (24h gần nhất).</summary>
+        [HttpGet("errors")]
+        public async Task<IActionResult> GetErrors([FromQuery] int hours = 24)
+        {
+            var since  = DateTime.UtcNow.AddHours(-hours);
+            var filter = Builders<SystemError>.Filter.Gte(e => e.OccurredAt, since);
+            var errors = await _systemErrors.Find(filter)
+                .SortByDescending(e => e.OccurredAt)
+                .Limit(50)
+                .ToListAsync();
+            return Ok(errors);
+        }
+
+        /// <summary>Đánh dấu lỗi đã được xử lý.</summary>
+        [HttpPatch("errors/{id}/resolve")]
+        public async Task<IActionResult> ResolveError(string id)
+        {
+            var update = Builders<SystemError>.Update.Set(e => e.IsResolved, true);
+            var result = await _systemErrors.UpdateOneAsync(e => e.Id == id, update);
+            return result.ModifiedCount > 0 ? Ok(new { resolved = true }) : NotFound();
+        }
 
         // ── Helpers ───────────────────────────────────────────────────────────
 

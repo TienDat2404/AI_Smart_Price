@@ -5,9 +5,6 @@ namespace SmartPrice.Api.Models
 {
     /// <summary>
     /// Mẫu hóa đơn OCR — tên field khớp với document MongoDB.
-    ///
-    /// DataSeeder dùng [BsonElement("invoice_id")], "store", "total", "date"
-    /// nên các field trong DB là snake_case / lowercase.
     /// </summary>
     public class OcrSample
     {
@@ -27,5 +24,21 @@ namespace SmartPrice.Api.Models
         /// <summary>Ngày dạng "YYYY-MM-DD" — lưu dạng string.</summary>
         [BsonElement("date")]
         public string Date { get; set; } = null!;
+
+        /// <summary>Độ tin cậy OCR từ EasyOCR (0.0 – 1.0).</summary>
+        [BsonElement("confidence")]
+        public double Confidence { get; set; } = 0.0;
+
+        /// <summary>OCR thành công nếu tìm được số tiền và confidence đủ cao.</summary>
+        [BsonElement("is_success")]
+        public bool IsSuccess { get; set; } = true;
+
+        /// <summary>Status từ Python: "success" | "low_confidence" | "failed".</summary>
+        [BsonElement("status")]
+        public string Status { get; set; } = "success";
+
+        /// <summary>Thời điểm quét.</summary>
+        [BsonElement("scanned_at")]
+        public DateTime ScannedAt { get; set; } = DateTime.UtcNow;
     }
 }
