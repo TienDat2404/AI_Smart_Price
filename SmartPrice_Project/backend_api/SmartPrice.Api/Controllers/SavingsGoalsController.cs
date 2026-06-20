@@ -106,6 +106,36 @@ namespace SmartPrice.Api.Controllers
             return Ok(ToDto(goal));
         }
 
+        // ── PATCH /api/savings-goals/{id}/withdraw ───────────────────────────
+
+        [HttpPatch("{id}/withdraw")]
+        public async Task<IActionResult> Withdraw(string id, [FromBody] AddToGoalRequest req)
+        {
+            if (req.Amount <= 0)
+                return BadRequest(new { message = "Số tiền phải lớn hơn 0." });
+
+            var goal = await _goals.Find(g => g.Id == id).FirstOrDefaultAsync();
+            if (goal == null) return NotFound(new { message = "Không tìm thấy mục tiêu." });
+
+            if ((decimal)req.Amount > goal.CurrentAmount)
+                return BadRequest(new { message = "Số tiền rút vượt quá số dư trong quỹ." });
+
+            var newAmount   = goal.CurrentAmount - (decimal)req.Amount;
+            var isCompleted = newAmount >= goal.TargetAmount;
+
+            await _goals.UpdateOneAsync(
+                g => g.Id == id,
+                Builders<SavingsGoal>.Update
+                    .Set(g => g.CurrentAmount, newAmount)
+                    .Set(g => g.IsCompleted,   isCompleted)
+            );
+
+            goal.CurrentAmount = newAmount;
+            goal.IsCompleted   = isCompleted;
+
+            return Ok(ToDto(goal));
+        }
+
         // ── DELETE /api/savings-goals/{id} ──────────────────────────────────
 
         [HttpDelete("{id}")]

@@ -415,6 +415,15 @@ class ApiService {
     return data as Map<String, dynamic>;
   }
 
+  /// PATCH /api/savings-goals/{id}/withdraw
+  Future<Map<String, dynamic>> withdrawFromSavingsGoal({
+    required String goalId,
+    required double amount,
+  }) async {
+    final data = await _patch('/savings-goals/$goalId/withdraw', {'amount': amount});
+    return data as Map<String, dynamic>;
+  }
+
   /// DELETE /api/savings-goals/{id}
   Future<void> deleteSavingsGoal(String goalId) async {
     final uri = Uri.parse('$_baseUrl/savings-goals/$goalId');

@@ -516,6 +516,99 @@ class _GoalDetailScreenState extends State<GoalDetailScreen>
     }
   }
 
+  Future<void> _withdrawMoney() async {
+    final ctrl = TextEditingController();
+    final amount = await showDialog<double>(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Rút tiền từ quỹ',
+            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+        content: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text('Số dư trong quỹ: ${_fmt(_goal.currentAmount)}đ',
+              style: const TextStyle(color: Color(0xFF8A94A6), fontSize: 13)),
+          const SizedBox(height: 12),
+          TextField(
+            controller: ctrl,
+            keyboardType: TextInputType.number,
+            autofocus: true,
+            decoration: const InputDecoration(
+              hintText: 'Nhập số tiền rút (đ)',
+              prefixIcon: Icon(Icons.remove_circle_outline, color: Color(0xFFE53935)),
+              border: OutlineInputBorder(),
+            ),
+          ),
+        ]),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Hủy')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFE53935), foregroundColor: Colors.white),
+            onPressed: () {
+              final v = double.tryParse(ctrl.text.replaceAll('.', ''));
+              Navigator.pop(context, v);
+            },
+            child: const Text('Rút'),
+          ),
+        ],
+      ),
+    );
+
+    if (amount == null || amount <= 0 || !mounted) return;
+    if (amount > _goal.currentAmount) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Số tiền rút vượt quá số dư trong quỹ.'),
+        backgroundColor: Color(0xFFE53935),
+      ));
+      return;
+    }
+
+    try {
+      final result = await ApiService.instance.withdrawFromSavingsGoal(
+        goalId: _goal.id,
+        amount: amount,
+      );
+      final updated = Goal.fromJson(result);
+
+      // Tạo giao dịch thu nhập để cộng lại balance ví
+      await ApiService.instance.saveTransaction(
+        Transaction(
+          id: '',
+          userId: 'user_01',
+          itemName: 'Rút quỹ - ${_goal.title}',
+          amount: amount,
+          category: 'Thu nhập',
+          note: 'Rút tiền từ mục tiêu: ${_goal.title}',
+          date: DateTime.now(),
+          isExpense: false,
+        ),
+      );
+
+      _anim.reset();
+      _progressAnim = Tween<double>(begin: _goal.progress, end: updated.progress)
+          .animate(CurvedAnimation(parent: _anim, curve: Curves.easeOutCubic));
+      setState(() => _goal = updated);
+      _anim.forward();
+      widget.onAmountAdded?.call();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Đã rút ${_fmt(amount)}đ từ quỹ "${_goal.title}"!'),
+          backgroundColor: _tealDark,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Lỗi: $e'),
+          backgroundColor: const Color(0xFFE53935),
+        ));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final g = _goal;
@@ -617,19 +710,44 @@ class _GoalDetailScreenState extends State<GoalDetailScreen>
                   ),
                 const SizedBox(height: 20),
                 if (!g.isCompleted)
-                  SizedBox(
-                    width: double.infinity, height: 52,
-                    child: ElevatedButton.icon(
-                      onPressed: () => WidgetsBinding.instance.addPostFrameCallback((_) => _addMoney()),
-                      icon: const Icon(Icons.add, size: 18),
-                      label: const Text('Thêm tiền vào quỹ',
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _teal, foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  Row(children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 52,
+                        child: ElevatedButton.icon(
+                          onPressed: () => WidgetsBinding.instance.addPostFrameCallback(
+                              (_) => _addMoney()),
+                          icon: const Icon(Icons.add, size: 18),
+                          label: const Text('Nạp vào quỹ',
+                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _teal, foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          ),
+                        ),
                       ),
                     ),
-                  )
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: SizedBox(
+                        height: 52,
+                        child: OutlinedButton.icon(
+                          onPressed: _goal.currentAmount > 0
+                              ? () => WidgetsBinding.instance.addPostFrameCallback(
+                                  (_) => _withdrawMoney())
+                              : null,
+                          icon: const Icon(Icons.remove, size: 18),
+                          label: const Text('Rút tiền',
+                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFFE53935),
+                            side: const BorderSide(color: Color(0xFFE53935)),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ])
                 else
                   Container(
                     padding: const EdgeInsets.all(16),
