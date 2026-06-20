@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Model mục tiêu tiết kiệm.
+/// Model mục tiêu tiết kiệm — map từ API backend.
 class Goal {
   final String id;
   final String title;
@@ -10,6 +10,7 @@ class Goal {
   final IconData categoryIcon;
   final Color color;
   final String aiInsight;
+  bool isCompleted;
 
   Goal({
     required this.id,
@@ -20,6 +21,7 @@ class Goal {
     required this.categoryIcon,
     required this.color,
     this.aiInsight = '',
+    this.isCompleted = false,
   });
 
   double get progress => targetAmount > 0
@@ -28,51 +30,78 @@ class Goal {
 
   double get progressPercent => progress * 100;
 
-  double get remaining => (targetAmount - currentAmount).clamp(0, double.infinity);
+  double get remaining =>
+      (targetAmount - currentAmount).clamp(0, double.infinity);
 
-  int get daysLeft => deadline.difference(DateTime.now()).inDays.clamp(0, 9999);
+  int get daysLeft =>
+      deadline.difference(DateTime.now()).inDays.clamp(0, 9999);
+
+  // ── Serialization ────────────────────────────────────────────────────────
+
+  /// Map từ JSON trả về bởi backend (GoalDto)
+  factory Goal.fromJson(Map<String, dynamic> json) {
+    final iconName = json['categoryIcon'] as String? ?? 'star';
+    final colorHex = json['color'] as String? ?? '#1565C0';
+    final deadlineStr = json['deadline'] as String? ?? '';
+
+    return Goal(
+      id:            json['id'] as String? ?? '',
+      title:         json['title'] as String? ?? '',
+      targetAmount:  (json['targetAmount'] as num?)?.toDouble() ?? 0,
+      currentAmount: (json['currentAmount'] as num?)?.toDouble() ?? 0,
+      deadline:      DateTime.tryParse(deadlineStr) ?? DateTime.now().add(const Duration(days: 90)),
+      categoryIcon:  _iconFromName(iconName),
+      color:         _colorFromHex(colorHex),
+      aiInsight:     json['aiInsight'] as String? ?? '',
+      isCompleted:   json['isCompleted'] as bool? ?? false,
+    );
+  }
+
+  /// Map icon name string → Flutter IconData
+  static IconData _iconFromName(String name) {
+    switch (name) {
+      case 'flight':          return Icons.flight;
+      case 'home':            return Icons.home_outlined;
+      case 'two_wheeler':     return Icons.two_wheeler;
+      case 'school':          return Icons.school_outlined;
+      case 'phone_iphone':    return Icons.phone_iphone;
+      case 'favorite':        return Icons.favorite_border;
+      case 'shield':          return Icons.shield_outlined;
+      case 'directions_car':  return Icons.directions_car;
+      case 'beach_access':    return Icons.beach_access;
+      case 'restaurant':      return Icons.restaurant_outlined;
+      default:                return Icons.star_border;
+    }
+  }
+
+  /// Map icon → string name để lưu lên backend
+  static String iconToName(IconData icon) {
+    if (icon == Icons.flight)           return 'flight';
+    if (icon == Icons.home_outlined)    return 'home';
+    if (icon == Icons.two_wheeler)      return 'two_wheeler';
+    if (icon == Icons.school_outlined)  return 'school';
+    if (icon == Icons.phone_iphone)     return 'phone_iphone';
+    if (icon == Icons.favorite_border)  return 'favorite';
+    if (icon == Icons.shield_outlined)  return 'shield';
+    return 'star';
+  }
+
+  /// Parse hex color "#RRGGBB"
+  static Color _colorFromHex(String hex) {
+    final h = hex.replaceFirst('#', '');
+    if (h.length == 6) {
+      return Color(int.parse('FF$h', radix: 16));
+    }
+    return const Color(0xFF1565C0);
+  }
+
+  /// Chuyển Color → hex string "#RRGGBB"
+  static String colorToHex(Color c) {
+    return '#${c.r.toInt().toRadixString(16).padLeft(2, '0')}'
+           '${c.g.toInt().toRadixString(16).padLeft(2, '0')}'
+           '${c.b.toInt().toRadixString(16).padLeft(2, '0')}';
+  }
 }
 
-/// Mock goals data
-final List<Goal> mockGoals = [
-  Goal(
-    id: 'g1',
-    title: 'Mua iPhone 16 Pro',
-    targetAmount: 30000000,
-    currentAmount: 18500000,
-    deadline: DateTime.now().add(const Duration(days: 60)),
-    categoryIcon: Icons.phone_iphone,
-    color: const Color(0xFF1565C0),
-    aiInsight: 'Du kien hoan thanh trong 2 thang nua neu tiet kiem them 1.9M/thang.',
-  ),
-  Goal(
-    id: 'g2',
-    title: 'Du lich Nhat Ban',
-    targetAmount: 50000000,
-    currentAmount: 12000000,
-    deadline: DateTime.now().add(const Duration(days: 180)),
-    categoryIcon: Icons.flight,
-    color: const Color(0xFF00897B),
-    aiInsight: 'Can tiet kiem them 38M trong 6 thang.',
-  ),
-  Goal(
-    id: 'g3',
-    title: 'Mua xe may',
-    targetAmount: 45000000,
-    currentAmount: 30000000,
-    deadline: DateTime.now().add(const Duration(days: 90)),
-    categoryIcon: Icons.two_wheeler,
-    color: const Color(0xFFFF9800),
-    aiInsight: 'Da dat 67%, tiep tuc co gang!',
-  ),
-  Goal(
-    id: 'g4',
-    title: 'Quy khan cap',
-    targetAmount: 20000000,
-    currentAmount: 20000000,
-    deadline: DateTime.now().add(const Duration(days: 0)),
-    categoryIcon: Icons.shield_outlined,
-    color: const Color(0xFF43A047),
-    aiInsight: 'Da hoan thanh muc tieu!',
-  ),
-];
+/// Mock goals — chỉ dùng khi API không available
+final List<Goal> mockGoals = [];

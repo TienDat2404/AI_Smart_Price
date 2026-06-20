@@ -14,10 +14,12 @@ namespace SmartPrice.Api.Controllers
     public class WalletController : ControllerBase
     {
         private readonly IMongoCollection<Transaction> _transactions;
+        private readonly IMongoCollection<BankAccount> _bankAccounts;
 
         public WalletController(IMongoDatabase db)
         {
             _transactions = db.GetCollection<Transaction>("Transactions");
+            _bankAccounts = db.GetCollection<BankAccount>("BankAccounts");
         }
 
         // ── GET /api/wallet/balance?userId=user_01 ────────────────────────────
@@ -54,6 +56,40 @@ namespace SmartPrice.Api.Controllers
                 MonthBalance: monthIncome - monthExpense,
                 UpdatedAt:    DateTime.UtcNow
             ));
+        }
+
+        // ── GET /api/wallet/bank-balance?userId=user_01 ──────────────────────
+
+        /// <summary>
+        /// Lấy số dư thực từ BankAccounts (do SePay webhook cập nhật).
+        /// Trả về tổng số dư tất cả tài khoản ngân hàng đã liên kết.
+        /// Nếu chưa liên kết → fallback về tính từ Transactions.
+        /// </summary>
+        [HttpGet("bank-balance")]
+        public async Task<IActionResult> GetBankBalance([FromQuery] string userId = "user_01")
+        {
+            var accounts = await _bankAccounts
+                .Find(x => x.UserId == userId && x.Status == "active")
+                .ToListAsync();
+
+            if (accounts.Count == 0)
+                return Ok(new { hasBankLink = false, balance = 0.0, accounts = new object[] {} });
+
+            var totalBankBalance = accounts.Sum(a => (double)a.Balance);
+            var accountDetails   = accounts.Select(a => new {
+                id           = a.Id,
+                bankName     = a.BankName,
+                accountNumber= "**** " + (a.AccountNumber.Length >= 4
+                                  ? a.AccountNumber[^4..] : a.AccountNumber),
+                balance      = (double)a.Balance,
+                lastSyncAt   = a.LastSyncAt,
+            }).ToList();
+
+            return Ok(new {
+                hasBankLink = true,
+                balance     = totalBankBalance,
+                accounts    = accountDetails,
+            });
         }
 
         // ── POST /api/wallet/deposit ──────────────────────────────────────────

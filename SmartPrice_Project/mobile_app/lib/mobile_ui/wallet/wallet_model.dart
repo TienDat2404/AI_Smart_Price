@@ -19,24 +19,15 @@ class WalletModel {
   });
 }
 
-/// Danh sách ví mock — dùng chung toàn bộ wallet screens
+/// Danh sách ví — chỉ có MB Bank (liên kết thực qua SePay).
+/// Balance được cập nhật từ API khi WalletScreen khởi động.
 final List<WalletModel> mockWallets = [
   WalletModel(
-    name: 'Vietcombank', subtitle: '**** 4521',
-    balance: 84200000,
-    color: const Color(0xFF1565C0), textColor: Colors.white,
+    name: 'MB Bank',
+    subtitle: '**** 1004',
+    balance: 0, // sẽ được cập nhật từ API
+    color: const Color(0xFF6200EA),
+    textColor: Colors.white,
     icon: Icons.account_balance,
-  ),
-  WalletModel(
-    name: 'Tiền mặt', subtitle: 'Tiền mặt',
-    balance: 12500000,
-    color: const Color(0xFFE8F5E9), textColor: const Color(0xFF2E7D32),
-    icon: Icons.payments_outlined,
-  ),
-  WalletModel(
-    name: 'MoMo', subtitle: 'Ví điện tử',
-    balance: 29050000,
-    color: const Color(0xFFFCE4EC), textColor: const Color(0xFFC62828),
-    icon: Icons.phone_android,
   ),
 ];

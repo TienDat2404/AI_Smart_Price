@@ -73,16 +73,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<_HomeData> _load() async {
-    // Số dư = từ BalanceNotifier (đã được cập nhật real-time khi có giao dịch mới)
-    // Thử lấy từ API nếu có, fallback về mockWallets
+    // Ưu tiên 1: Số dư thực từ BankAccounts (SePay webhook cập nhật)
+    // Ưu tiên 2: Tổng giao dịch từ API
+    // Ưu tiên 3: mockWallets
     double walletBalance = BalanceNotifier.instance.totalBalance;
 
     try {
-      final apiBalance = await ApiService.instance.getWalletBalance('user_01');
-      // Chỉ dùng API balance nếu > 0 (có dữ liệu thực)
-      if (apiBalance > 0) walletBalance = apiBalance;
+      // Thử lấy số dư ngân hàng thực trước
+      final bankData = await ApiService.instance.getBankBalance('user_01');
+      final hasBankLink = bankData['hasBankLink'] as bool? ?? false;
+
+      if (hasBankLink) {
+        final bankBalance = (bankData['balance'] as num?)?.toDouble() ?? 0.0;
+        if (bankBalance > 0) {
+          walletBalance = bankBalance;
+        } else {
+          // BankAccount đã liên kết nhưng chưa có giao dịch nào → lấy từ transactions
+          final apiBalance = await ApiService.instance.getWalletBalance('user_01');
+          if (apiBalance > 0) walletBalance = apiBalance;
+        }
+      } else {
+        // Chưa liên kết ngân hàng → tính từ lịch sử giao dịch
+        final apiBalance = await ApiService.instance.getWalletBalance('user_01');
+        if (apiBalance > 0) walletBalance = apiBalance;
+      }
     } catch (_) {
-      // Giữ nguyên mockWallets balance
+      // Fallback về mockWallets
+      try {
+        final apiBalance = await ApiService.instance.getWalletBalance('user_01');
+        if (apiBalance > 0) walletBalance = apiBalance;
+      } catch (_) {}
     }
 
     try {

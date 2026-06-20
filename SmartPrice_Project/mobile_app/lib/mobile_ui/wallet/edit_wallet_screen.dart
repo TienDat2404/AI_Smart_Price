@@ -69,23 +69,42 @@ class _EditWalletScreenState extends State<EditWalletScreen> {
     setState(() => _isProcessing = true);
 
     try {
-      // Tạo giao dịch Adjustment để bù trừ chênh lệch
-      final adjustTx = Transaction(
-        id: '',
-        userId: 'user_01',
-        itemName: 'Điều chỉnh số dư - ${widget.wallet.name}',
-        amount: diff.abs(),
-        category: 'Điều chỉnh',
-        note: 'Điều chỉnh tự động: ${diff > 0 ? '+' : ''}${_fmt(diff)} đ',
-        date: DateTime.now(),
-        isExpense: diff < 0,
-      );
-      await ApiService.instance.saveTransaction(adjustTx);
+      // 1. Cập nhật BankAccounts.Balance trực tiếp qua set-initial-balance
+      //    (đây là cách đúng — không tạo giao dịch Điều chỉnh nữa)
+      final bankData = await ApiService.instance.getBankBalance('user_01');
+      final hasBankLink = bankData['hasBankLink'] as bool? ?? false;
+
+      if (hasBankLink) {
+        // Lấy accountId từ danh sách accounts
+        final accounts = bankData['accounts'] as List<dynamic>? ?? [];
+        if (accounts.isNotEmpty) {
+          final accountId = accounts[0]['id'] as String?;
+          if (accountId != null) {
+            await ApiService.instance.setInitialBankBalance(
+              accountId: accountId,
+              balance: newBalance,
+            );
+          }
+        }
+      } else {
+        // Chưa liên kết ngân hàng → tạo giao dịch Điều chỉnh như cũ
+        final adjustTx = Transaction(
+          id: '',
+          userId: 'user_01',
+          itemName: 'Điều chỉnh số dư - ${widget.wallet.name}',
+          amount: diff.abs(),
+          category: 'Điều chỉnh',
+          note: 'Điều chỉnh tự động: ${diff > 0 ? '+' : ''}${_fmt(diff)} đ',
+          date: DateTime.now(),
+          isExpense: diff < 0,
+        );
+        await ApiService.instance.saveTransaction(adjustTx);
+      }
     } catch (_) {
-      // Không block nếu API lỗi — vẫn cập nhật local
+      // Không block nếu API lỗi
     }
 
-    // ✅ Cập nhật trực tiếp mockWallets theo tên ví
+    // Cập nhật mockWallets local
     final idx = mockWallets.indexWhere((w) => w.name == widget.wallet.name);
     if (idx != -1) {
       mockWallets[idx].balance = newBalance;
@@ -107,7 +126,6 @@ class _EditWalletScreenState extends State<EditWalletScreen> {
       ),
     );
 
-    // Pop và trả về số dư mới để caller có thể rebuild nếu cần
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) Navigator.of(context).pop(newBalance);
     });

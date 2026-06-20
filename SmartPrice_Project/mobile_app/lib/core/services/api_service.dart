@@ -319,6 +319,109 @@ class ApiService {
     return data as Map<String, dynamic>;
   }
 
+  // ── Bank Accounts (SePay) ────────────────────────────────────────────────
+
+  /// GET /api/wallet/bank-balance?userId={userId}
+  /// Trả về số dư thực từ BankAccounts (SePay webhook).
+  /// Nếu chưa liên kết → hasBankLink = false.
+  Future<Map<String, dynamic>> getBankBalance(String userId) async {
+    final data = await _get('/wallet/bank-balance', query: {'userId': userId});
+    return data as Map<String, dynamic>;
+  }
+
+  /// PATCH /api/bank-accounts/{id}/set-initial-balance
+  /// Cập nhật số dư ban đầu của tài khoản ngân hàng (dùng trong EditWalletScreen).
+  Future<void> setInitialBankBalance({
+    required String accountId,
+    required double balance,
+  }) async {
+    await _patch('/bank-accounts/$accountId/set-initial-balance', {'balance': balance});
+  }
+
+  /// GET /api/bank-accounts?userId={userId}
+  Future<List<Map<String, dynamic>>> getBankAccounts(String userId) async {
+    final data = await _get('/bank-accounts', query: {'userId': userId});
+    return (data as List).cast<Map<String, dynamic>>();
+  }
+
+  /// GET /api/bank-accounts/supported-banks
+  Future<List<Map<String, dynamic>>> getSupportedBanks() async {
+    final data = await _get('/bank-accounts/supported-banks');
+    return (data as List).cast<Map<String, dynamic>>();
+  }
+
+  /// POST /api/bank-accounts/link
+  Future<Map<String, dynamic>> linkBankAccount({
+    required String userId,
+    required String bankName,
+    required String accountNumber,
+    required String accountHolder,
+    required String sePayToken,
+  }) async {
+    final data = await _post('/bank-accounts/link', {
+      'userId':        userId,
+      'bankName':      bankName,
+      'accountNumber': accountNumber,
+      'accountHolder': accountHolder,
+      'sePayToken':    sePayToken,
+    });
+    return data as Map<String, dynamic>;
+  }
+
+  /// DELETE /api/bank-accounts/{id}
+  Future<void> unlinkBankAccount(String accountId) async {
+    final uri = Uri.parse('$_baseUrl/bank-accounts/$accountId');
+    debugPrint('[API] DELETE $uri');
+    final response = await http.delete(uri, headers: _headers()).timeout(_timeout);
+    _parseResponse(response);
+  }
+
+  // ── Savings Goals ─────────────────────────────────────────────────────────
+
+  /// GET /api/savings-goals?userId={userId}
+  Future<List<Map<String, dynamic>>> getSavingsGoals(String userId) async {
+    final data = await _get('/savings-goals', query: {'userId': userId});
+    return (data as List).cast<Map<String, dynamic>>();
+  }
+
+  /// POST /api/savings-goals
+  Future<Map<String, dynamic>> createSavingsGoal({
+    required String userId,
+    required String title,
+    required double targetAmount,
+    required String deadline,
+    required String categoryIcon,
+    required String color,
+    String? aiInsight,
+  }) async {
+    final data = await _post('/savings-goals', {
+      'userId':       userId,
+      'title':        title,
+      'targetAmount': targetAmount,
+      'deadline':     deadline,
+      'categoryIcon': categoryIcon,
+      'color':        color,
+      if (aiInsight != null) 'aiInsight': aiInsight,
+    });
+    return data as Map<String, dynamic>;
+  }
+
+  /// PATCH /api/savings-goals/{id}/add
+  Future<Map<String, dynamic>> addToSavingsGoal({
+    required String goalId,
+    required double amount,
+  }) async {
+    final data = await _patch('/savings-goals/$goalId/add', {'amount': amount});
+    return data as Map<String, dynamic>;
+  }
+
+  /// DELETE /api/savings-goals/{id}
+  Future<void> deleteSavingsGoal(String goalId) async {
+    final uri = Uri.parse('$_baseUrl/savings-goals/$goalId');
+    final response = await http.delete(uri, headers: _headers()).timeout(_timeout);
+    _parseResponse(response);
+  }
+
   // ── Analytics ─────────────────────────────────────────────────────────────
 
   /// GET /api/analytics/category-summary?userId={userId}

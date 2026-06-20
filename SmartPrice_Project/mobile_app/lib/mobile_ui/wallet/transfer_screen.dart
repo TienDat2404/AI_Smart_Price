@@ -20,9 +20,9 @@ class _TransferScreenState extends State<TransferScreen> {
   String _amount = '0';
   bool _isProcessing = false;
 
-  // Dùng trực tiếp mockWallets — thay đổi sẽ phản ánh lên WalletScreen
+  // Dùng trực tiếp mockWallets — chỉ còn 1 ví (MB Bank)
   int _fromIdx = 0;
-  int _toIdx   = 1;
+  // _toIdx không còn dùng vì chỉ có 1 ví — chuyển nội bộ không khả dụng
 
   double get _amountValue => double.tryParse(_amount) ?? 0;
 
@@ -37,7 +37,6 @@ class _TransferScreenState extends State<TransferScreen> {
       } else {
         _amount = _amount == '0' ? key : _amount + key;
       }
-      // Giới hạn 12 chữ số
       if (_amount.length > 12) _amount = _amount.substring(0, 12);
     });
   }
@@ -45,6 +44,17 @@ class _TransferScreenState extends State<TransferScreen> {
   // ── Transfer logic ────────────────────────────────────────────────────────
 
   Future<void> _onTransfer() async {
+    // Chỉ có 1 ví — không thể chuyển nội bộ
+    if (mockWallets.length < 2) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Cần ít nhất 2 ví để chuyển tiền nội bộ.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
     final amount = _amountValue;
     if (amount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -63,11 +73,7 @@ class _TransferScreenState extends State<TransferScreen> {
     }
 
     setState(() => _isProcessing = true);
-    await Future.delayed(const Duration(milliseconds: 800)); // giả lập API
-
-    // ✅ Cập nhật trực tiếp mockWallets — WalletScreen sẽ thấy thay đổi
-    mockWallets[_fromIdx].balance -= amount;
-    mockWallets[_toIdx].balance   += amount;
+    await Future.delayed(const Duration(milliseconds: 800));
 
     setState(() => _isProcessing = false);
 
@@ -84,7 +90,7 @@ class _TransferScreenState extends State<TransferScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
-    Navigator.of(context).pop(); // quay về WalletScreen
+    Navigator.of(context).pop();
   }
 
   // ── Build ─────────────────────────────────────────────────────────────────
@@ -92,7 +98,9 @@ class _TransferScreenState extends State<TransferScreen> {
   @override
   Widget build(BuildContext context) {
     final from = mockWallets[_fromIdx];
-    final to   = mockWallets[_toIdx];
+    // Khi chỉ có 1 ví, "to" cũng là ví đó (chỉ để hiển thị)
+    final to = mockWallets.length > 1 ? mockWallets[1] : null;
+    final hasSingleWallet = mockWallets.length < 2;
 
     return Scaffold(
       backgroundColor: _bg,
@@ -122,117 +130,146 @@ class _TransferScreenState extends State<TransferScreen> {
               ]),
             ),
 
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(children: [
-                  // ── Amount card ───────────────────────────────────────────
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 16, offset: const Offset(0, 4))],
-                    ),
-                    child: Column(children: [
-                      Text(
-                        '${_fmt(_amountValue)} d',
-                        style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w900, color: _textDark, letterSpacing: -1),
-                      ),
-                      const SizedBox(height: 12),
-                      // Flow chip
+            // ── Thông báo khi chỉ có 1 ví ────────────────────────────────────
+            if (hasSingleWallet)
+              Expanded(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(mainAxisSize: MainAxisSize.min, children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE0F2F1),
-                          borderRadius: BorderRadius.circular(20),
+                        width: 72, height: 72,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFE0F2F1), shape: BoxShape.circle),
+                        child: const Icon(Icons.swap_horiz_rounded, color: _teal, size: 36),
+                      ),
+                      const SizedBox(height: 20),
+                      const Text('Chưa thể chuyển tiền nội bộ',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: _textDark),
+                          textAlign: TextAlign.center),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Tính năng này cần ít nhất 2 ví. Hiện tại bạn chỉ liên kết với MB Bank.\n\nĐể chuyển tiền ra ngoài, vui lòng dùng app MB Bank trực tiếp.',
+                        style: TextStyle(fontSize: 13, color: _textGrey, height: 1.6),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _teal,
+                          foregroundColor: Colors.white,
+                          shape: const StadiumBorder(),
+                          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
                         ),
-                        child: Row(mainAxisSize: MainAxisSize.min, children: [
-                          Icon(from.icon, size: 14, color: _teal),
-                          const SizedBox(width: 6),
-                          Text(from.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _teal)),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 8),
-                            child: Icon(Icons.arrow_forward, size: 14, color: _teal),
-                          ),
-                          Icon(to.icon, size: 14, color: _teal),
-                          const SizedBox(width: 6),
-                          Text(to.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _teal)),
-                        ]),
+                        onPressed: () => WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (context.mounted) Navigator.of(context).pop();
+                        }),
+                        child: const Text('Quay lại', style: TextStyle(fontWeight: FontWeight.w700)),
                       ),
                     ]),
                   ),
-
-                  const SizedBox(height: 16),
-
-                  // ── From / To boxes ───────────────────────────────────────
-                  Row(children: [
-                    Expanded(child: _WalletBox(label: 'TỪ', wallet: from, isSource: true)),
-                    const SizedBox(width: 12),
-                    Expanded(child: _WalletBox(label: 'ĐẾN', wallet: to, isSource: false)),
+                ),
+              )
+            else
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(children: [
+                    // ── Amount card ─────────────────────────────────────────
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 16, offset: const Offset(0, 4))],
+                      ),
+                      child: Column(children: [
+                        Text(
+                          '${_fmt(_amountValue)} d',
+                          style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w900, color: _textDark, letterSpacing: -1),
+                        ),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE0F2F1),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(mainAxisSize: MainAxisSize.min, children: [
+                            Icon(from.icon, size: 14, color: _teal),
+                            const SizedBox(width: 6),
+                            Text(from.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _teal)),
+                            const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 8),
+                              child: Icon(Icons.arrow_forward, size: 14, color: _teal),
+                            ),
+                            Icon(to!.icon, size: 14, color: _teal),
+                            const SizedBox(width: 6),
+                            Text(to.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _teal)),
+                          ]),
+                        ),
+                      ]),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(children: [
+                      Expanded(child: _WalletBox(label: 'TỪ', wallet: from, isSource: true)),
+                      const SizedBox(width: 12),
+                      Expanded(child: _WalletBox(label: 'ĐẾN', wallet: to, isSource: false)),
+                    ]),
+                    const SizedBox(height: 20),
+                    _Numpad(onKey: _onKey),
+                    const SizedBox(height: 20),
                   ]),
+                ),
+              ),
 
-                  const SizedBox(height: 20),
-
-                  // ── Custom numpad ─────────────────────────────────────────
-                  _Numpad(onKey: _onKey),
-
-                  const SizedBox(height: 20),
+            // ── Bottom actions (chỉ hiện khi có nhiều ví) ────────────────────
+            if (!hasSingleWallet)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                child: Row(children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (context.mounted) Navigator.of(context).pop();
+                      }),
+                      child: Container(
+                        height: 52,
+                        decoration: BoxDecoration(color: const Color(0xFFEEEEEE), borderRadius: BorderRadius.circular(16)),
+                        child: const Center(
+                          child: Text('Quay lại', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: _textGrey)),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: GestureDetector(
+                      onTap: _isProcessing ? null : () => WidgetsBinding.instance.addPostFrameCallback((_) => _onTransfer()),
+                      child: Container(
+                        height: 52,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF00BCD4), Color(0xFF00897B)],
+                            begin: Alignment.centerLeft, end: Alignment.centerRight,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [BoxShadow(color: _teal.withValues(alpha: 0.35), blurRadius: 12, offset: const Offset(0, 4))],
+                        ),
+                        child: _isProcessing
+                            ? const Center(child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5)))
+                            : const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                                Text('Tiếp tục', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white)),
+                                SizedBox(width: 8),
+                                Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
+                              ]),
+                      ),
+                    ),
+                  ),
                 ]),
               ),
-            ),
-
-            // ── Bottom actions ────────────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-              child: Row(children: [
-                // Quay lai
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (context.mounted) Navigator.of(context).pop();
-                    }),
-                    child: Container(
-                      height: 52,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEEEEEE),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: const Center(
-                        child: Text('Quay lại', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: _textGrey)),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                // Tiep tuc
-                Expanded(
-                  flex: 2,
-                  child: GestureDetector(
-                    onTap: _isProcessing ? null : () => WidgetsBinding.instance.addPostFrameCallback((_) => _onTransfer()),
-                    child: Container(
-                      height: 52,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF00BCD4), Color(0xFF00897B)],
-                          begin: Alignment.centerLeft, end: Alignment.centerRight,
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [BoxShadow(color: _teal.withValues(alpha: 0.35), blurRadius: 12, offset: const Offset(0, 4))],
-                      ),
-                      child: _isProcessing
-                          ? const Center(child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5)))
-                          : const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                              Text('Tiếp tục', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white)),
-                              SizedBox(width: 8),
-                              Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
-                            ]),
-                    ),
-                  ),
-                ),
-              ]),
-            ),
           ]),
         ),
       ),

@@ -8,11 +8,13 @@ namespace SmartPrice.Api.Controllers
     [Route("api/[controller]")]
     public class TransactionsController : ControllerBase
     {
-        private readonly IMongoCollection<Transaction> _collection;
+        private readonly IMongoCollection<Transaction>  _collection;
+        private readonly IMongoCollection<BankAccount> _bankAccounts;
 
         public TransactionsController(IMongoDatabase db)
         {
-            _collection = db.GetCollection<Transaction>("Transactions");
+            _collection   = db.GetCollection<Transaction>("Transactions");
+            _bankAccounts = db.GetCollection<BankAccount>("BankAccounts");
         }
 
         // GET api/transactions
@@ -69,6 +71,35 @@ namespace SmartPrice.Api.Controllers
 
             await _collection.InsertOneAsync(transaction);
 
+            // ── Cập nhật BankAccounts.Balance (Hướng B) ──────────────────────
+            // Mọi giao dịch (thủ công / OCR / Voice / SePay) đều ảnh hưởng số dư ví.
+            // Tìm tài khoản ngân hàng đã liên kết của user → cộng/trừ balance.
+            var bankAccount = await _bankAccounts
+                .Find(b => b.UserId == transaction.UserId && b.Status == "active")
+                .FirstOrDefaultAsync();
+
+            if (bankAccount != null)
+            {
+                // Bỏ qua giao dịch "Điều chỉnh" (từ EditWalletScreen) và giao dịch từ SePay
+                // vì SePay đã tự cập nhật balance trong webhook riêng
+                var isAdjustment = transaction.Category is "Điều chỉnh" or "Dieu chinh";
+                var isSePayTx    = transaction.Note?.StartsWith("[SePay]") == true;
+
+                if (!isAdjustment && !isSePayTx)
+                {
+                    var delta = transaction.IsExpense
+                        ? -(decimal)transaction.Amount
+                        :  (decimal)transaction.Amount;
+
+                    await _bankAccounts.UpdateOneAsync(
+                        b => b.Id == bankAccount.Id,
+                        Builders<BankAccount>.Update
+                            .Inc(b => b.Balance, delta)
+                            .Set(b => b.LastSyncAt, DateTime.UtcNow)
+                    );
+                }
+            }
+
             // Tính lại số dư sau khi lưu — trả về cùng response để client cập nhật UI ngay
             var filter       = Builders<Transaction>.Filter.Eq(t => t.UserId, transaction.UserId);
             var all          = await _collection.Find(filter).ToListAsync();
@@ -76,10 +107,16 @@ namespace SmartPrice.Api.Controllers
             var totalExpense = all.Where(t => t.IsExpense).Sum(t => (double)t.Amount);
             var newBalance   = totalIncome - totalExpense;
 
+            // Lấy bank balance mới nhất để trả về client
+            var updatedBank = await _bankAccounts
+                .Find(b => b.UserId == transaction.UserId && b.Status == "active")
+                .FirstOrDefaultAsync();
+            var bankBalance = updatedBank != null ? (double)updatedBank.Balance : newBalance;
+
             return CreatedAtAction(nameof(GetById), new { id = transaction.Id }, new
             {
                 transaction,
-                newBalance,
+                newBalance   = bankBalance,   // ← trả bank balance thực
                 totalIncome,
                 totalExpense,
             });

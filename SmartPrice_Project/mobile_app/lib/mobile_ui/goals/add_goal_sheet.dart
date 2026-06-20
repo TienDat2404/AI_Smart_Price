@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/models/goal.dart';
+import '../../core/services/api_service.dart';
 import '../wallet/wallet_model.dart';
 
 // ── Palette ───────────────────────────────────────────────────────────────────
@@ -84,7 +85,7 @@ class _AddGoalSheetState extends State<_AddGoalSheet> {
     if (picked != null) setState(() => _deadline = picked);
   }
 
-  void _onSave() {
+  void _onSave() async {
     if (_titleCtrl.text.trim().isEmpty || _amount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Vui lòng nhập tên và số tiền mục tiêu.'), backgroundColor: Colors.red),
@@ -94,20 +95,36 @@ class _AddGoalSheetState extends State<_AddGoalSheet> {
     setState(() => _isSaving = true);
 
     final preset = _presets[_selectedPreset];
-    final newGoal = Goal(
-      id: 'g_${DateTime.now().millisecondsSinceEpoch}',
-      title: _titleCtrl.text.trim(),
-      targetAmount: _amount,
-      currentAmount: 0,
-      deadline: _deadline,
-      categoryIcon: preset.icon,
-      color: preset.color,
-      aiInsight: 'Cần tiết kiệm ${_fmtD(_monthlySaving)} đ/tháng để đạt mục tiêu đúng hạn.',
-    );
+    final deadlineStr =
+        '${_deadline.year}-${_deadline.month.toString().padLeft(2, '0')}-${_deadline.day.toString().padLeft(2, '0')}';
 
-    Future.delayed(const Duration(milliseconds: 600), () {
+    try {
+      // Lưu lên backend
+      final result = await ApiService.instance.createSavingsGoal(
+        userId:       'user_01',
+        title:        _titleCtrl.text.trim(),
+        targetAmount: _amount,
+        deadline:     deadlineStr,
+        categoryIcon: Goal.iconToName(preset.icon),
+        color:        Goal.colorToHex(preset.color),
+        aiInsight:    'Cần tiết kiệm ${_fmtD(_monthlySaving)}đ/tháng để đạt mục tiêu đúng hạn.',
+      );
+      final newGoal = Goal.fromJson(result);
       if (mounted) Navigator.of(context).pop(newGoal);
-    });
+    } catch (_) {
+      // Fallback: tạo local nếu API lỗi
+      final newGoal = Goal(
+        id: 'g_${DateTime.now().millisecondsSinceEpoch}',
+        title: _titleCtrl.text.trim(),
+        targetAmount: _amount,
+        currentAmount: 0,
+        deadline: _deadline,
+        categoryIcon: preset.icon,
+        color: preset.color,
+        aiInsight: 'Cần tiết kiệm ${_fmtD(_monthlySaving)}đ/tháng để đạt mục tiêu đúng hạn.',
+      );
+      if (mounted) Navigator.of(context).pop(newGoal);
+    }
   }
 
   @override
@@ -185,10 +202,13 @@ class _AddGoalSheetState extends State<_AddGoalSheet> {
           _InputBox(
             child: TextField(
               controller: _titleCtrl,
-              style: const TextStyle(fontSize: 15, color: _textDark),
-              decoration: const InputDecoration(
+              style: TextStyle(
+                fontSize: 15,
+                color: Theme.of(context).textTheme.bodyLarge?.color ?? const Color(0xFF1A2340),
+              ),
+              decoration: InputDecoration(
                 hintText: 'Ví dụ: Mua Laptop mới',
-                hintStyle: TextStyle(color: _textGrey),
+                hintStyle: const TextStyle(color: _textGrey),
                 border: InputBorder.none, isDense: true,
               ),
             ),
@@ -207,7 +227,10 @@ class _AddGoalSheetState extends State<_AddGoalSheet> {
                   controller: _amountCtrl,
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: _textDark),
+                  style: TextStyle(
+                    fontSize: 22, fontWeight: FontWeight.w900,
+                    color: Theme.of(context).textTheme.bodyLarge?.color ?? const Color(0xFF1A2340),
+                  ),
                   decoration: const InputDecoration(border: InputBorder.none, isDense: true),
                   onChanged: (_) => setState(() {}),
                 ),
@@ -344,12 +367,17 @@ class _InputBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E2A3A) : Colors.white,
         borderRadius: BorderRadius.circular(14),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))],
+        border: Border.all(
+          color: isDark ? Colors.white12 : Colors.grey.withValues(alpha: 0.2)),
+        boxShadow: [BoxShadow(
+          color: Colors.black.withValues(alpha: 0.05),
+          blurRadius: 8, offset: const Offset(0, 2))],
       ),
       child: child,
     );
