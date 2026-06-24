@@ -1,0 +1,90 @@
+@startuml SmartPrice_UseCase_TongQuat
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+
+skinparam usecase {
+    BackgroundColor #FFFFFF
+    BorderColor #000000
+    FontSize 12
+    FontColor #000000
+}
+skinparam actor {
+    BackgroundColor #FFFFFF
+    BorderColor #000000
+    FontSize 13
+    FontColor #000000
+    FontStyle bold
+}
+skinparam ArrowColor #000000
+skinparam rectangleBorderColor #000000
+skinparam rectangleBackgroundColor #FFFFFF
+
+title Hệ thống SmartPrice - Biểu đồ Use Case Tổng Quát
+
+' ── Actors ────────────────────────────────────────────────────────────
+actor "Người dùng" as User #White
+actor "Quản trị viên\n(Admin)" as Admin #White
+actor "SePay\n<<system>>" as SePay #White
+
+' ── System boundary ───────────────────────────────────────────────────
+rectangle "Hệ thống SmartPrice" {
+
+    usecase "Đăng nhập" as UC_LOGIN
+    usecase "Đăng ký tài khoản" as UC_REGISTER
+    usecase "Quên mật khẩu" as UC_FORGOT
+
+    usecase "Quản lý\ngiao dịch" as UC_TX
+    usecase "Quét hóa đơn\nOCR" as UC_OCR
+    usecase "Nhập liệu\ngiọng nói" as UC_VOICE
+    usecase "Đồng bộ giao dịch\nngân hàng" as UC_BANK_SYNC
+
+    usecase "Quản lý ví &\nliên kết ngân hàng" as UC_WALLET
+    usecase "Mục tiêu\ntiết kiệm" as UC_GOAL
+    usecase "Thống kê &\nbáo cáo" as UC_STATS
+
+    usecase "Quản lý người dùng\n& hệ thống" as UC_ADMIN
+    usecase "Xem log OCR &\nlỗi hệ thống" as UC_LOG
+    usecase "Gửi thông báo" as UC_NOTIFY
+    usecase "Cấu hình\nAI Engine" as UC_AI_CONFIG
+}
+
+' ── Người dùng ────────────────────────────────────────────────────────
+User --> UC_LOGIN
+User --> UC_REGISTER
+User --> UC_FORGOT
+User --> UC_TX
+User --> UC_OCR
+User --> UC_VOICE
+User --> UC_BANK_SYNC
+User --> UC_WALLET
+User --> UC_GOAL
+User --> UC_STATS
+
+' ── Admin ─────────────────────────────────────────────────────────────
+Admin --> UC_LOGIN
+Admin --> UC_ADMIN
+Admin --> UC_LOG
+Admin --> UC_NOTIFY
+Admin --> UC_AI_CONFIG
+
+' ── SePay ─────────────────────────────────────────────────────────────
+SePay --> UC_BANK_SYNC
+
+' ── <<include>> ───────────────────────────────────────────────────────
+UC_TX    .> UC_LOGIN        : <<include>>
+UC_OCR   .> UC_LOGIN        : <<include>>
+UC_VOICE .> UC_LOGIN        : <<include>>
+UC_WALLET .> UC_LOGIN       : <<include>>
+UC_GOAL  .> UC_LOGIN        : <<include>>
+UC_STATS .> UC_LOGIN        : <<include>>
+
+UC_BANK_SYNC .> UC_WALLET   : <<include>>
+
+' ── <<extend>> ────────────────────────────────────────────────────────
+UC_OCR <. UC_TX             : <<extend>>
+UC_VOICE <. UC_TX           : <<extend>>
+UC_BANK_SYNC <. UC_TX       : <<extend>>
+
+@enduml

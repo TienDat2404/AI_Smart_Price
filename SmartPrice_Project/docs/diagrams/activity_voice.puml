@@ -1,0 +1,82 @@
+@startuml Activity_Voice
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam activity {
+    BackgroundColor #E3F2FD
+    BorderColor #1565C0
+    FontSize 12
+}
+skinparam ArrowColor #333333
+skinparam ConditionStyle diamond
+
+title Biểu đồ hoạt động — Nhập liệu bằng giọng nói
+
+|Người dùng|
+start
+:Mở màn hình Voice Assistant;
+:Hệ thống hiển thị giao diện ghi âm\nvới sóng âm và câu ví dụ gợi ý;
+:Nhấn giữ nút microphone\nvà nói câu mô tả giao dịch;
+note right: Ví dụ:\n"ăn phở hết bốn mươi nghìn"\n"đổ xăng một trăm nghìn đồng"
+
+:Speech-to-Text chuyển\ngiọng nói thành văn bản;
+
+if (Văn bản rỗng hoặc quá ngắn?) then (Có)
+    :Hiển thị thông báo\n"Vui lòng nói lại rõ hơn";
+    stop
+else (Không)
+endif
+
+:Gửi văn bản đến\nPOST /parse/text (Python AI Engine);
+
+|Python AI Engine|
+if (AI Engine phản hồi?) then (Không)
+    :Timeout — fallback về\nmock NLP cục bộ trong AiService;
+else (Có)
+endif
+
+:Chuẩn hóa phương ngữ địa phương\n(hăm lăm → 25.000, hai chục → 20.000...);
+:Tách câu ghép theo separator\n("và", "với", "còn", dấu phẩy...);
+
+repeat
+    :Phân tích từng đoạn câu;
+    :Trích xuất số tiền;
+    :Phân loại danh mục theo keyword;
+    :Tạo AiParseResult (amount, category, note);
+repeat while (Còn đoạn câu?) is (Có)
+-> (Không);
+
+:Trả về AiParseResponse\n(danh sách các giao dịch);
+
+|Người dùng|
+if (Tìm thấy số tiền?) then (Không)
+    :Hiển thị thông báo\n"Không tìm thấy số tiền,\nvui lòng nói lại";
+    stop
+else (Có)
+endif
+
+if (Nhiều hơn 1 giao dịch?) then (Có)
+    :Hiển thị danh sách card\ncho từng giao dịch;
+    :Người dùng xác nhận/bỏ chọn\ntừng item;
+else (Không)
+    :Hiển thị card xác nhận\ncho 1 giao dịch;
+endif
+
+:Người dùng kiểm tra và\nchỉnh sửa nếu cần;
+:Nhấn "Lưu tất cả";
+
+|Backend (.NET)|
+repeat
+    :Nhận POST /api/transactions\ncho từng giao dịch;
+    :Lưu Transaction vào MongoDB;
+    :Cập nhật BankAccounts.Balance;
+repeat while (Còn giao dịch cần lưu?) is (Có)
+-> (Không);
+
+:Trả về kết quả lưu thành công;
+
+|Người dùng|
+:Hiển thị thông báo\n"Đã lưu X giao dịch thành công";
+:Cập nhật màn hình Dashboard\nvà Lịch sử giao dịch;
+stop
+
+@enduml

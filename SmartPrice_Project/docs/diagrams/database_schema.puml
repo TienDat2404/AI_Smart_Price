@@ -1,0 +1,105 @@
+@startuml SmartPrice_Database_Schema
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam class {
+    BackgroundColor #DDEEFF
+    BorderColor #1565C0
+    HeaderBackgroundColor #1565C0
+    HeaderFontColor #FFFFFF
+    FontSize 11
+    AttributeIconSize 0
+}
+skinparam ArrowColor #1565C0
+skinparam linetype ortho
+
+title Lược đồ cơ sở dữ liệu — SmartPrice (MongoDB)
+
+' ── Users ─────────────────────────────────────────────────────────────
+entity "**users**" as Users {
+    * _id : ObjectId <<PK>>
+    --
+    * Email : string <<unique>>
+    * PasswordHash : string
+    * FullName : string
+    * Role : int
+    ~ IsActive : bool
+    ~ CreatedAt : datetime
+}
+
+' ── Transactions ──────────────────────────────────────────────────────
+entity "**transactions**" as Transactions {
+    * _id : ObjectId <<PK>>
+    --
+    * UserId : string <<FK→users>>
+    * ItemName : string
+    * Amount : Decimal128
+    * Date : datetime
+    * Category : string
+    * IsExpense : bool
+    ~ Note : string
+}
+
+' ── BankAccounts ──────────────────────────────────────────────────────
+entity "**bank_accounts**" as BankAccounts {
+    * _id : ObjectId <<PK>>
+    --
+    * UserId : string <<FK→users>>
+    * BankName : string
+    * AccountNumber : string
+    * AccountHolder : string
+    ~ SePayToken : string
+    ~ Balance : Decimal128
+    ~ Status : string
+    ~ CreatedAt : datetime
+    ~ LastSyncAt : datetime
+}
+
+' ── SavingsGoals ──────────────────────────────────────────────────────
+entity "**savings_goals**" as SavingsGoals {
+    * _id : ObjectId <<PK>>
+    --
+    * UserId : string <<FK→users>>
+    * Title : string
+    * TargetAmount : Decimal128
+    * CurrentAmount : Decimal128
+    * Deadline : datetime
+    ~ CategoryIcon : string
+    ~ Color : string
+    ~ AiInsight : string
+    ~ IsCompleted : bool
+    ~ CreatedAt : datetime
+}
+
+' ── OcrSamples ────────────────────────────────────────────────────────
+entity "**ocr_samples**" as OcrSamples {
+    * _id : ObjectId <<PK>>
+    --
+    * invoice_id : string
+    * store : string
+    * total : int64
+    ~ date : string
+    ~ confidence : double
+    ~ is_success : bool
+    ~ status : string
+    ~ scanned_at : datetime
+}
+
+' ── SystemErrors ──────────────────────────────────────────────────────
+entity "**system_errors**" as SystemErrors {
+    * _id : ObjectId <<PK>>
+    --
+    * Source : string
+    * Message : string
+    * Level : string
+    ~ IsResolved : bool
+    ~ OccurredAt : datetime
+}
+
+' ── Relationships ─────────────────────────────────────────────────────
+Users ||--o{ Transactions    : "1 người dùng\ncó nhiều GD"
+Users ||--o{ BankAccounts    : "1 người dùng\ncó nhiều TK NH"
+Users ||--o{ SavingsGoals    : "1 người dùng\ncó nhiều MT TK"
+
+BankAccounts }o..o{ Transactions : "SePay webhook\ntạo GD tự động"
+
+@enduml

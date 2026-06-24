@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
 using SmartPrice.Api.Models;
 
@@ -20,15 +21,18 @@ namespace SmartPrice.Api.Controllers
         private readonly IMongoCollection<Transaction> _transactions;
         private readonly IMongoCollection<SystemError> _errors;
         private readonly ILogger<BankAccountController> _logger;
+        private readonly string? _sePayApiKey;
 
         public BankAccountController(
             IMongoDatabase db,
-            ILogger<BankAccountController> logger)
+            ILogger<BankAccountController> logger,
+            IConfiguration configuration)
         {
             _bankAccounts = db.GetCollection<BankAccount>("BankAccounts");
             _transactions = db.GetCollection<Transaction>("Transactions");
             _errors       = db.GetCollection<SystemError>("SystemErrors");
             _logger       = logger;
+            _sePayApiKey  = configuration["SePay:ApiKey"];
         }
 
         // ── GET /api/bank-accounts?userId=... ────────────────────────────────
@@ -118,6 +122,25 @@ namespace SmartPrice.Api.Controllers
         [HttpPost("webhook/sepay")]
         public async Task<IActionResult> SePayWebhook([FromBody] SePayWebhookPayload payload)
         {
+            // ── Xác thực token từ SePay ─────────────────────────────────────
+            // SePay gửi header: Authorization: Apikey <token>
+            // Nếu ApiKey được cấu hình trong appsettings thì bắt buộc phải khớp.
+            if (!string.IsNullOrWhiteSpace(_sePayApiKey))
+            {
+                var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+                var expectedHeader = $"Apikey {_sePayApiKey}";
+
+                if (authHeader == null ||
+                    !authHeader.Equals(expectedHeader, StringComparison.OrdinalIgnoreCase))
+                {
+                    _logger.LogWarning(
+                        "SePay webhook rejected: invalid Authorization header from {RemoteIp}",
+                        HttpContext.Connection.RemoteIpAddress);
+                    // Trả 200 để SePay không retry liên tục, nhưng không xử lý
+                    return Ok(new { success = false, message = "Unauthorized" });
+                }
+            }
+
             _logger.LogInformation("SePay webhook: {Gateway} {AccountNumber} {Type} {Amount}",
                 payload.Gateway, payload.AccountNumber, payload.TransferType, payload.TransferAmount);
 

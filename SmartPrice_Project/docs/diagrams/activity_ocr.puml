@@ -1,0 +1,89 @@
+@startuml Activity_OCR
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam activity {
+    BackgroundColor #E8F5E9
+    BorderColor #2E7D32
+    FontSize 12
+}
+skinparam ArrowColor #333333
+skinparam ConditionStyle diamond
+
+title Biểu đồ hoạt động — Quét hóa đơn OCR
+
+|Người dùng|
+start
+:Mở màn hình Quét hóa đơn;
+:Camera khởi động, hiển thị viewfinder;
+:Căn chỉnh hóa đơn vào khung hướng dẫn;
+
+fork
+    :Chụp ảnh trực tiếp;
+fork again
+    :Chọn ảnh từ thư viện;
+end fork
+
+:Ứng dụng kiểm tra kích thước và định dạng file;
+
+if (File hợp lệ?) then (Không)
+    :Hiển thị thông báo lỗi\n"Chỉ chấp nhận JPG, PNG, WEBP\ntối đa 10MB";
+    stop
+else (Có)
+endif
+
+|Người dùng|
+:Gửi ảnh POST /api/invoice/scan\n(multipart/form-data);
+
+|Backend (.NET)|
+:Nhận ảnh, lưu vào thư mục Uploads/\nvới tên file UUID ngẫu nhiên;
+:Gọi Python AI Engine\nPOST /parse/image;
+
+|Python AI Engine|
+:Tiền xử lý ảnh:\n1. Upscale (Lanczos x2)\n2. CLAHE tăng tương phản\n3. Unsharp Mask làm nét;
+:EasyOCR nhận diện văn bản;
+:Trích xuất số tiền, tên cửa hàng, ngày tháng, danh mục;
+
+if (Confidence >= ngưỡng?) then (Không)
+    :Trả về status = "failed"\nvới danh sách suggestions;
+else (Có)
+    :Trả về InvoiceScanResponse\nvới đầy đủ thông tin;
+endif
+
+|Backend (.NET)|
+:Lưu kết quả vào OcrSamples collection;
+
+if (status = "failed"?) then (Có)
+    :Lưu warning vào SystemErrors;
+else (Không)
+endif
+
+:Trả kết quả về Flutter app;
+
+|Người dùng|
+if (OCR thất bại?) then (Có)
+    :Hiển thị thông báo\n"Ảnh không rõ, chụp lại?";
+    if (Chụp lại?) then (Có)
+        :Quay lại camera;
+        stop
+    else (Không)
+        :Chuyển sang nhập tay;
+        stop
+    endif
+else (Không)
+    :Hiển thị màn hình Xác nhận hóa đơn\nvới kết quả OCR + confidence badge;
+    :Người dùng kiểm tra và chỉnh sửa\nnếu kết quả chưa chính xác;
+    :Nhấn "Lưu giao dịch";
+endif
+
+|Backend (.NET)|
+:Nhận POST /api/transactions;
+:Lưu Transaction vào MongoDB;
+:Cập nhật BankAccounts.Balance;
+:Trả về giao dịch đã lưu + số dư mới;
+
+|Người dùng|
+:Hiển thị thông báo "Đã lưu thành công";
+:Cập nhật màn hình Lịch sử giao dịch;
+stop
+
+@enduml
