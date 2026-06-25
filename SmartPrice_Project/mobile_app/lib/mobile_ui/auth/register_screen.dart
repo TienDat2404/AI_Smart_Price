@@ -87,12 +87,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _goToLogin() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-      );
-    });
+    if (!mounted) return;
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+    );
   }
 
   @override
@@ -109,9 +107,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new, size: 18),
                 padding: EdgeInsets.zero,
-                onPressed: () => WidgetsBinding.instance.addPostFrameCallback((_) {
+                onPressed: () {
                   if (context.mounted) Navigator.of(context).maybePop();
-                }),
+                },
               ),
               const SizedBox(height: 16),
 
@@ -243,7 +241,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
                     ),
                     GestureDetector(
-                      onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) => _goToLogin()),
+                      onTap: _goToLogin,
                       child: const Text(
                         'Dang nhap',
                         style: TextStyle(
@@ -274,7 +272,7 @@ class _TermsCheckbox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) => onChanged(!value)),
+      onTap: () => onChanged(!value),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/current_user.dart';
@@ -54,12 +53,9 @@ class _LoginScreenState extends State<LoginScreen> {
       // Load CurrentUser cache ngay sau khi lưu thông tin
       await CurrentUser.load();
       if (!mounted) return;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const DashboardScreen()),
-        );
-      });
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const DashboardScreen()),
+      );
     } on ApiException catch (e) {
       setState(() {
         _errorMessage = switch (e.statusCode) {
@@ -83,21 +79,17 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _goToRegister() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const RegisterScreen()),
-      );
-    });
+    if (!mounted) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const RegisterScreen()),
+    );
   }
 
   void _goToForgotPassword() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
-      );
-    });
+    if (!mounted) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
+    );
   }
 
   @override
@@ -231,7 +223,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     GestureDetector(
-                      onTap: _isLoading ? null : () => WidgetsBinding.instance.addPostFrameCallback((_) => _goToRegister()),
+                      onTap: _isLoading ? null : _goToRegister,
                       child: const Text(
                         'Đăng ký ngay',
                         style: TextStyle(
