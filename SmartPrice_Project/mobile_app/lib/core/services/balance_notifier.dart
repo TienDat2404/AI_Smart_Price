@@ -31,11 +31,11 @@ class BalanceNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Reset về giá trị ban đầu (dùng khi logout)
+  /// Reset về 0 khi đăng xuất hoặc đăng nhập tài khoản mới
   void reset() {
-    mockWallets[0].balance = 84200000;
-    mockWallets[1].balance = 12500000;
-    mockWallets[2].balance = 29050000;
+    for (final w in mockWallets) {
+      w.balance = 0;
+    }
     notifyListeners();
   }
 }

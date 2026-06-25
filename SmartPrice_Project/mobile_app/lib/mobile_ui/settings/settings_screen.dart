@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import '../../core/services/auth_service.dart';
+import '../../core/services/balance_notifier.dart';
+import '../../core/services/current_user.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/theme_provider.dart';
 import '../../core/widgets/mobile_layout.dart';
+import '../auth/login_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -80,8 +84,20 @@ class SettingsScreen extends StatelessWidget {
               label: 'Đăng xuất',
               labelColor: AppColors.neonRed,
               iconColor: AppColors.neonRed,
-              onTap: () {
-                // TODO: AuthService.logout() + navigate to LoginScreen
+              onTap: () async {
+                // 1. Xóa token + thông tin user
+                await AuthService.instance.logout();
+                // 2. Reset CurrentUser cache
+                CurrentUser.clear();
+                // 3. Reset balance về 0
+                BalanceNotifier.instance.reset();
+                // 4. Về màn hình đăng nhập, xóa toàn bộ navigation stack
+                if (context.mounted) {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    (route) => false,
+                  );
+                }
               },
             ),
 
