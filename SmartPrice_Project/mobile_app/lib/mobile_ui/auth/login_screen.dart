@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/auth_service.dart';
+import '../../core/services/current_user.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/mobile_layout.dart';
 import '../dashboard/dashboard_screen.dart';
@@ -50,6 +51,8 @@ class _LoginScreenState extends State<LoginScreen> {
           isAdmin: response.isAdmin,
         ),
       ]);
+      // Load CurrentUser cache ngay sau khi lưu thông tin
+      await CurrentUser.load();
       if (!mounted) return;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;

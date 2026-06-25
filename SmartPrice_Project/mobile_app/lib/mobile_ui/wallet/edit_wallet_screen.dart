@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/services/api_service.dart';
+import '../../core/services/current_user.dart';
 import '../../core/models/transaction.dart';
 import 'wallet_model.dart';
 
@@ -71,7 +72,8 @@ class _EditWalletScreenState extends State<EditWalletScreen> {
     try {
       // 1. Cập nhật BankAccounts.Balance trực tiếp qua set-initial-balance
       //    (đây là cách đúng — không tạo giao dịch Điều chỉnh nữa)
-      final bankData = await ApiService.instance.getBankBalance('user_01');
+      final uid = await CurrentUser.id;
+      final bankData = await ApiService.instance.getBankBalance(uid);
       final hasBankLink = bankData['hasBankLink'] as bool? ?? false;
 
       if (hasBankLink) {
@@ -90,7 +92,7 @@ class _EditWalletScreenState extends State<EditWalletScreen> {
         // Chưa liên kết ngân hàng → tạo giao dịch Điều chỉnh như cũ
         final adjustTx = Transaction(
           id: '',
-          userId: 'user_01',
+          userId: uid,
           itemName: 'Điều chỉnh số dư - ${widget.wallet.name}',
           amount: diff.abs(),
           category: 'Điều chỉnh',

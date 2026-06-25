@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'core/services/auth_service.dart';
+import 'core/services/current_user.dart';
 import 'core/services/notification_service.dart';
 import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
@@ -77,6 +78,8 @@ class _SplashGateState extends State<_SplashGate> {
 
   Future<void> _checkSession() async {
     final isLoggedIn = await AuthService.instance.isLoggedIn();
+    // Load CurrentUser cache nếu đã đăng nhập từ trước
+    if (isLoggedIn) await CurrentUser.load();
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(

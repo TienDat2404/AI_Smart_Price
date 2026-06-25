@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/models/transaction.dart';
 import '../../core/services/api_service.dart';
+import '../../core/services/current_user.dart';
 import '../../core/services/balance_notifier.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/widgets/mobile_layout.dart';
@@ -120,8 +121,8 @@ class _ConfirmInvoiceScreenState extends State<ConfirmInvoiceScreen>
   /// Nếu vượt 80% → gửi local notification.
   Future<void> _checkBudgetAndNotify(double newAmount) async {
     try {
-      // Lấy tổng chi tiêu tháng này từ API
-      final stats = await ApiService.instance.getTransactionStats('user_01');
+      final uid = await CurrentUser.id;
+      final stats = await ApiService.instance.getTransactionStats(uid);
       final totalThisMonth = stats.totalExpense + newAmount;
 
       // Hạn mức mặc định 5.000.000đ — TODO: lấy từ Budget API
@@ -142,14 +143,15 @@ class _ConfirmInvoiceScreenState extends State<ConfirmInvoiceScreen>
     }
   }
 
-  Future<void> _onSave() async {    setState(() => _isSaving = true);
+  Future<void> _onSave() async {
+    setState(() => _isSaving = true);
     try {
+      final uid = await CurrentUser.id;
       final amount = double.tryParse(_totalCtrl.text.replaceAll('.', '').replaceAll(',', '')) ?? 0;
 
-      // Tạo Transaction từ dữ liệu đã xác nhận
       final tx = Transaction(
         id: '',
-        userId: 'user_01',
+        userId: uid,
         itemName: _storeCtrl.text.trim(),
         amount: amount,
         category: _selectedCategory,
@@ -158,17 +160,13 @@ class _ConfirmInvoiceScreenState extends State<ConfirmInvoiceScreen>
         isExpense: true,
       );
 
-      // Gọi API lưu vào MongoDB
       await ApiService.instance.saveTransaction(tx);
 
-      // ✅ Cập nhật số dư real-time — trừ/cộng vào mockWallets ngay lập tức
-      // Dashboard sẽ nhận được thông báo qua BalanceNotifier và rebuild
       BalanceNotifier.instance.applyTransaction(
         amount:    amount,
         isExpense: tx.isExpense,
       );
 
-      // ── Kiểm tra ngân sách và gửi notification nếu cần ──────────────────
       await _checkBudgetAndNotify(amount);
 
       if (!mounted) return;
@@ -221,9 +219,9 @@ class _ConfirmInvoiceScreenState extends State<ConfirmInvoiceScreen>
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   child: Row(children: [
                     GestureDetector(
-                      onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) {
+                      onTap: () {
                         if (context.mounted) Navigator.of(context).pop();
-                      }),
+                      },
                       child: Container(
                         width: 38, height: 38,
                         decoration: BoxDecoration(
@@ -314,9 +312,9 @@ class _ConfirmInvoiceScreenState extends State<ConfirmInvoiceScreen>
                         _AiSuggestionCard(
                           original: _selectedCategory,
                           suggestion: _aiSuggestion!,
-                          onAccept: () => WidgetsBinding.instance.addPostFrameCallback((_) {
+                          onAccept: () {
                             if (mounted) setState(() => _selectedCategory = _aiSuggestion!);
-                          }),
+                          },
                         ),
 
                       const SizedBox(height: 24),
@@ -325,9 +323,9 @@ class _ConfirmInvoiceScreenState extends State<ConfirmInvoiceScreen>
                       _ActionButtons(
                         isSaving: _isSaving,
                         onSave: _onSave,
-                        onCancel: () => WidgetsBinding.instance.addPostFrameCallback((_) {
+                        onCancel: () {
                           if (context.mounted) Navigator.of(context).pop();
-                        }),
+                        },
                       ),
 
                       const SizedBox(height: 16),
@@ -605,7 +603,7 @@ class _AiSuggestionCard extends StatelessWidget {
         ])),
         const SizedBox(width: 8),
         GestureDetector(
-          onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) => onAccept()),
+          onTap: onAccept,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
@@ -635,7 +633,7 @@ class _ActionButtons extends StatelessWidget {
         width: double.infinity,
         height: 54,
         child: ElevatedButton.icon(
-          onPressed: isSaving ? null : () => WidgetsBinding.instance.addPostFrameCallback((_) => onSave()),
+        onPressed: isSaving ? null : onSave,
           icon: isSaving
               ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
               : const Icon(Icons.save_outlined, size: 20),
@@ -654,7 +652,7 @@ class _ActionButtons extends StatelessWidget {
         width: double.infinity,
         height: 50,
         child: OutlinedButton.icon(
-          onPressed: () => WidgetsBinding.instance.addPostFrameCallback((_) => onCancel()),
+          onPressed: onCancel,
           icon: const Icon(Icons.arrow_back, size: 18),
           label: const Text('Hủy bỏ', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
           style: OutlinedButton.styleFrom(

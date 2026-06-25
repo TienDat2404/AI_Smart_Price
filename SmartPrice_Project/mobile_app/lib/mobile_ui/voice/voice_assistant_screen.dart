@@ -6,6 +6,7 @@ import 'package:speech_to_text/speech_to_text.dart';
 import '../../core/services/ai_service.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/balance_notifier.dart';
+import '../../core/services/current_user.dart';
 import '../../core/models/transaction.dart';
 
 // ── Palette ───────────────────────────────────────────────────────────────────
@@ -123,10 +124,16 @@ class _VoiceAssistantSheetState extends State<_VoiceAssistantSheet>
 
   // ── Init STT ──────────────────────────────────────────────────────────────
   Future<void> _initSpeech() async {
-    _speechAvailable = await _speech.initialize(
-      onError: (e) => debugPrint('[STT] Error: $e'),
-      onStatus: (s) => debugPrint('[STT] Status: $s'),
-    );
+    try {
+      _speechAvailable = await _speech.initialize(
+        onError: (e) => debugPrint('[STT] Error: $e'),
+        onStatus: (s) => debugPrint('[STT] Status: $s'),
+      );
+    } catch (e) {
+      // speech_to_text không hỗ trợ Windows Desktop — không crash, fallback về manual input
+      debugPrint('[STT] Init failed (platform not supported): $e');
+      _speechAvailable = false;
+    }
     if (mounted) setState(() {});
   }
 
@@ -164,8 +171,6 @@ class _VoiceAssistantSheetState extends State<_VoiceAssistantSheet>
       pauseFor: const Duration(seconds: 4),
       partialResults: true,
       cancelOnError: false,
-      // onDevice: false → ưu tiên xử lý qua cloud (Google/Apple) để tăng độ chính xác
-      // Đặc biệt quan trọng cho tiếng Việt vùng miền
     );
 
     // Auto-fallback nếu không nhận được gì sau 20s
@@ -510,9 +515,10 @@ class _VoiceAssistantSheetState extends State<_VoiceAssistantSheet>
   Future<void> _onSave() async {
     if (_result == null || _result!.amount <= 0) return;
     try {
+      final uid = await CurrentUser.id;
       final tx = Transaction(
         id:        '',
-        userId:    'user_01',
+        userId:    uid,
         itemName:  _result!.note,
         amount:    _result!.amount,
         category:  _result!.category,
@@ -756,7 +762,7 @@ class _VoiceAssistantSheetState extends State<_VoiceAssistantSheet>
         glowColor: _teal,
         glowRadiusFactor: 0.35,
         child: GestureDetector(
-          onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) => _toggleListening()),
+          onTap: _toggleListening,
           child: Container(
             width: 88, height: 88,
             decoration: BoxDecoration(

@@ -100,9 +100,10 @@ class _ScanReceiptScreenState extends State<ScanReceiptScreen>
   Future<void> _onCapture() async {
     if (_isProcessing) return;
 
-    // Trên Windows không có camera thật — dùng ảnh giả lập
+    // Trên Windows không có camera thật → tự động mở file picker
+    // để người dùng chọn ảnh từ máy và test pipeline OCR đầy đủ
     if (_isWindowsDesktop || !_cameraReady || _cameraCtrl == null) {
-      await _runOcrWithMockFallback();
+      await _onPickImage();
       return;
     }
 

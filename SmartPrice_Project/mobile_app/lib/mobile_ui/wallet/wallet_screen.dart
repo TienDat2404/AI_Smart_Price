@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import '../../core/models/transaction.dart';
 import '../../core/services/api_service.dart';
+import '../../core/services/current_user.dart';
 import '../../core/theme/theme_ext.dart';
 import '../../core/widgets/mobile_layout.dart';
 import 'edit_wallet_screen.dart';
@@ -47,7 +48,8 @@ class _WalletScreenState extends State<WalletScreen> {
   /// Load số dư thực từ API → cập nhật mockWallets[0] (MB Bank)
   Future<void> _loadBankBalance() async {
     try {
-      final data = await ApiService.instance.getBankBalance('user_01');
+      final uid = await CurrentUser.id;
+      final data = await ApiService.instance.getBankBalance(uid);
       final hasBankLink = data['hasBankLink'] as bool? ?? false;
       if (hasBankLink && mounted) {
         final balance = (data['balance'] as num?)?.toDouble() ?? 0.0;
@@ -61,7 +63,8 @@ class _WalletScreenState extends State<WalletScreen> {
   /// Load giao dịch thực từ API
   Future<void> _loadTransactions() async {
     try {
-      final txs = await ApiService.instance.getTransactions('user_01');
+      final uid = await CurrentUser.id;
+      final txs = await ApiService.instance.getTransactions(uid);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) setState(() { _transactions = txs; _loadingTx = false; });
       });
@@ -289,12 +292,14 @@ class _QuickActions extends StatelessWidget {
           icon: Icons.account_balance,
           label: 'Ngân hàng',
           color: const Color(0xFF00897B),
-          onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) {
+          onTap: () async {
+            final uid = await CurrentUser.id;
+            if (!context.mounted) return;
             Navigator.push(
               context,
               PageRouteBuilder(
                 pageBuilder: (_, __, ___) =>
-                    const LinkedBanksScreen(userId: 'user_01'),
+                    LinkedBanksScreen(userId: uid),
                 transitionDuration: const Duration(milliseconds: 320),
                 transitionsBuilder: (_, anim, __, child) => SlideTransition(
                   position: Tween<Offset>(
@@ -305,70 +310,76 @@ class _QuickActions extends StatelessWidget {
                 ),
               ),
             ).then((_) => onReturn());
-          }),
+          },
         ),
         _ActionBtn(
           icon: Icons.swap_horiz_rounded,
           label: 'Chuyển tiền',
           color: _teal,
-          onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) {
-            Navigator.push(
-              context,
-              PageRouteBuilder(
-                pageBuilder: (_, __, ___) => const TransferScreen(),
-                transitionDuration: const Duration(milliseconds: 320),
-                transitionsBuilder: (_, anim, __, child) => SlideTransition(
-                  position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
-                      .animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
-                  child: child,
+          onTap: () async {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Navigator.push(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (_, __, ___) => const TransferScreen(),
+                  transitionDuration: const Duration(milliseconds: 320),
+                  transitionsBuilder: (_, anim, __, child) => SlideTransition(
+                    position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
+                        .animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
+                    child: child,
+                  ),
                 ),
-              ),
-            ).then((_) => onReturn()); // ✅ Rebuild sau khi pop
-          }),
+              ).then((_) => onReturn());
+            });
+          },
         ),
         _ActionBtn(
           icon: Icons.edit_outlined,
           label: 'Chỉnh sửa',
           color: const Color(0xFF7C4DFF),
-          onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) {
-            Navigator.push(
-              context,
-              PageRouteBuilder(
-                pageBuilder: (_, __, ___) => EditWalletScreen(
-                  wallet: WalletData(
-                    name:    mockWallets[0].name,
-                    balance: mockWallets[0].balance, // luôn đọc balance mới nhất
-                    icon:    mockWallets[0].icon,
+          onTap: () async {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Navigator.push(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (_, __, ___) => EditWalletScreen(
+                    wallet: WalletData(
+                      name:    mockWallets[0].name,
+                      balance: mockWallets[0].balance,
+                      icon:    mockWallets[0].icon,
+                    ),
+                  ),
+                  transitionDuration: const Duration(milliseconds: 320),
+                  transitionsBuilder: (_, anim, __, child) => SlideTransition(
+                    position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
+                        .animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
+                    child: child,
                   ),
                 ),
-                transitionDuration: const Duration(milliseconds: 320),
-                transitionsBuilder: (_, anim, __, child) => SlideTransition(
-                  position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
-                      .animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
-                  child: child,
-                ),
-              ),
-            ).then((_) => onReturn()); // ✅ Rebuild sau khi pop
-          }),
+              ).then((_) => onReturn());
+            });
+          },
         ),
         _ActionBtn(
           icon: Icons.bar_chart_rounded,
           label: 'Báo cáo',
           color: const Color(0xFFFF9800),
-          onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) {
-            Navigator.push(
-              context,
-              PageRouteBuilder(
-                pageBuilder: (_, __, ___) => WalletReportScreen(wallet: mockWallets[0]),
-                transitionDuration: const Duration(milliseconds: 320),
-                transitionsBuilder: (_, anim, __, child) => SlideTransition(
-                  position: Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero)
-                      .animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
-                  child: child,
+          onTap: () async {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Navigator.push(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (_, __, ___) => WalletReportScreen(wallet: mockWallets[0]),
+                  transitionDuration: const Duration(milliseconds: 320),
+                  transitionsBuilder: (_, anim, __, child) => SlideTransition(
+                    position: Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero)
+                        .animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
+                    child: child,
+                  ),
                 ),
-              ),
-            );
-          }),
+              );
+            });
+          },
         ),
       ]),
     );
@@ -379,7 +390,7 @@ class _ActionBtn extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color color;
-  final VoidCallback onTap;
+  final Future<void> Function() onTap;
   const _ActionBtn({
     required this.icon, required this.label,
     required this.color, required this.onTap,
@@ -388,7 +399,7 @@ class _ActionBtn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => WidgetsBinding.instance.addPostFrameCallback((_) => onTap()),
+      onTap: onTap,
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         Container(
           width: 52, height: 52,

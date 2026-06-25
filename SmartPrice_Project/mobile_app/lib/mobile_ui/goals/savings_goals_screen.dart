@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/models/goal.dart';
 import '../../core/models/transaction.dart';
 import '../../core/services/api_service.dart';
+import '../../core/services/current_user.dart';
 import '../../core/theme/theme_ext.dart';
 import '../../core/widgets/mobile_layout.dart';
 import 'add_goal_sheet.dart';
@@ -31,7 +32,8 @@ class _SavingsGoalsScreenState extends State<SavingsGoalsScreen> {
 
   Future<void> _load() async {
     try {
-      final data = await ApiService.instance.getSavingsGoals('user_01');
+      final uid = await CurrentUser.id;
+      final data = await ApiService.instance.getSavingsGoals(uid);
       final goals = data.map(Goal.fromJson).toList();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) setState(() { _goals = goals; _loading = false; });
@@ -479,10 +481,11 @@ class _GoalDetailScreenState extends State<GoalDetailScreen>
 
       // 2. Tạo giao dịch chi tiêu "Tiết kiệm" → trừ balance tự động
       //    (TransactionsController sẽ trừ BankAccounts.Balance)
+      final uid = await CurrentUser.id;
       await ApiService.instance.saveTransaction(
         Transaction(
           id: '',
-          userId: 'user_01',
+          userId: uid,
           itemName: 'Tiết kiệm - ${_goal.title}',
           amount: amount,
           category: 'Tiết kiệm',
@@ -571,10 +574,11 @@ class _GoalDetailScreenState extends State<GoalDetailScreen>
       final updated = Goal.fromJson(result);
 
       // Tạo giao dịch thu nhập để cộng lại balance ví
+      final uid = await CurrentUser.id;
       await ApiService.instance.saveTransaction(
         Transaction(
           id: '',
-          userId: 'user_01',
+          userId: uid,
           itemName: 'Rút quỹ - ${_goal.title}',
           amount: amount,
           category: 'Thu nhập',

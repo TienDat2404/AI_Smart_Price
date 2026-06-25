@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/models/transaction.dart';
 import '../../core/services/api_service.dart';
+import '../../core/services/current_user.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/mobile_layout.dart';
 
@@ -30,13 +31,16 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   @override
   void initState() {
     super.initState();
-    _future = ApiService.instance.getTransactions('user_01');
+    _loadTransactions();
+  }
+
+  Future<void> _loadTransactions() async {
+    final uid = await CurrentUser.id;
+    if (mounted) setState(() { _future = ApiService.instance.getTransactions(uid); });
   }
 
   void _refresh() {
-    setState(() {
-      _future = ApiService.instance.getTransactions('user_01');
-    });
+    _loadTransactions();
   }
 
   List<Transaction> _applyFilter(List<Transaction> all) {

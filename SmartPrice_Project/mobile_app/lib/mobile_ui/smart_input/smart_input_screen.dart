@@ -3,6 +3,7 @@ import '../../core/models/transaction.dart';
 import '../../core/services/ai_service.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/balance_notifier.dart';
+import '../../core/services/current_user.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/mobile_layout.dart';
 import 'widgets/ai_preview_card.dart';
@@ -112,12 +113,13 @@ class _SmartInputScreenState extends State<SmartInputScreen> {
 
     int savedCount = 0;
     final errors = <String>[];
+    final uid = await CurrentUser.id;
 
     for (final item in response.items) {
       try {
         final tx = Transaction(
           id:        '',
-          userId:    'user_01',
+          userId:    uid,
           itemName:  item.note.isNotEmpty ? item.note : item.category,
           amount:    item.amount,
           category:  item.category,

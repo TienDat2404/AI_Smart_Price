@@ -1,4 +1,20 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Camera — cho chức năng quét hóa đơn OCR -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <!-- Microphone — cho chức năng nhập liệu bằng giọng nói -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <!-- Internet — gọi backend API và AI Engine -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Đọc ảnh từ thư viện (Android 13+) -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+    <!-- Đọc storage (Android < 13) -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32"/>
+
+    <!-- Khai báo feature để Google Play lọc đúng thiết bị -->
+    <uses-feature android:name="android.hardware.camera" android:required="false"/>
+    <uses-feature android:name="android.hardware.microphone" android:required="false"/>
     <application
         android:label="mobile_app"
         android:name="${applicationName}"

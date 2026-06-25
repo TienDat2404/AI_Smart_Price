@@ -17,6 +17,7 @@ import '../transactions/transaction_history_screen.dart';
 import '../wallet/wallet_model.dart';
 import '../wallet/wallet_screen.dart';
 import '../../core/services/balance_notifier.dart';
+import '../../core/services/current_user.dart';
 import '../voice/voice_assistant_screen.dart';
 
 // ── Teal color palette ────────────────────────────────────────────────────────
@@ -73,14 +74,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<_HomeData> _load() async {
-    // Ưu tiên 1: Số dư thực từ BankAccounts (SePay webhook cập nhật)
-    // Ưu tiên 2: Tổng giao dịch từ API
-    // Ưu tiên 3: mockWallets
+    final uid = await CurrentUser.id;
     double walletBalance = BalanceNotifier.instance.totalBalance;
 
     try {
-      // Thử lấy số dư ngân hàng thực trước
-      final bankData = await ApiService.instance.getBankBalance('user_01');
+      final bankData = await ApiService.instance.getBankBalance(uid);
       final hasBankLink = bankData['hasBankLink'] as bool? ?? false;
 
       if (hasBankLink) {
@@ -88,26 +86,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
         if (bankBalance > 0) {
           walletBalance = bankBalance;
         } else {
-          // BankAccount đã liên kết nhưng chưa có giao dịch nào → lấy từ transactions
-          final apiBalance = await ApiService.instance.getWalletBalance('user_01');
+          final apiBalance = await ApiService.instance.getWalletBalance(uid);
           if (apiBalance > 0) walletBalance = apiBalance;
         }
       } else {
-        // Chưa liên kết ngân hàng → tính từ lịch sử giao dịch
-        final apiBalance = await ApiService.instance.getWalletBalance('user_01');
+        final apiBalance = await ApiService.instance.getWalletBalance(uid);
         if (apiBalance > 0) walletBalance = apiBalance;
       }
     } catch (_) {
-      // Fallback về mockWallets
       try {
-        final apiBalance = await ApiService.instance.getWalletBalance('user_01');
+        final uid2 = await CurrentUser.id;
+        final apiBalance = await ApiService.instance.getWalletBalance(uid2);
         if (apiBalance > 0) walletBalance = apiBalance;
       } catch (_) {}
     }
 
     try {
       final results = await Future.wait([
-        ApiService.instance.getTransactions('user_01'),
+        ApiService.instance.getTransactions(uid),
         MockData.fetchBudgets(),
       ]);
       final txs     = results[0] as List<Transaction>;
@@ -250,12 +246,14 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
+    final name = CurrentUser.cachedName;
+    final initial = name.isNotEmpty ? name[0].toUpperCase() : 'U';
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('Xin chào,', style: TextStyle(fontSize: 13, color: c.textSecondary)),
-          Text('Nguyễn Văn A',
+          Text(name,
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: c.textPrimary)),
         ]),
         Row(children: [
@@ -267,7 +265,7 @@ class _Header extends StatelessWidget {
           CircleAvatar(
             radius: 20,
             backgroundColor: c.tealLight,
-            child: Text('A', style: TextStyle(color: c.teal, fontWeight: FontWeight.bold)),
+            child: Text(initial, style: TextStyle(color: c.teal, fontWeight: FontWeight.bold)),
           ),
         ]),
       ],

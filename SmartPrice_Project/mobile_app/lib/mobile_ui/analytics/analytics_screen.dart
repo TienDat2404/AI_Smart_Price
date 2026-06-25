@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import '../../core/services/api_service.dart';
+import '../../core/services/current_user.dart';
 import '../../core/widgets/mobile_layout.dart';
 
 // ── Palette ───────────────────────────────────────────────────────────────────
@@ -89,11 +90,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   }
 
   Future<({List<_CategoryStat> stats, _AiAdvice advice})> _load() async {
+    final uid = await CurrentUser.id;
     List<_CategoryStat> stats;
     _AiAdvice advice;
 
     try {
-      final json = await ApiService.instance.getCategorySummary('user_01');
+      final json = await ApiService.instance.getCategorySummary(uid);
       final cats = (json['categories'] as List?) ?? [];
       stats = cats.map((c) => _CategoryStat(
         category:   c['category'] as String? ?? 'Khac',
@@ -105,7 +107,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     }
 
     try {
-      final json = await ApiService.instance.getAiAdvice('user_01');
+      final json = await ApiService.instance.getAiAdvice(uid);
       advice = _AiAdvice(
         advice: json['advice'] as String? ?? '',
         type:   json['adviceType'] as String? ?? 'default',

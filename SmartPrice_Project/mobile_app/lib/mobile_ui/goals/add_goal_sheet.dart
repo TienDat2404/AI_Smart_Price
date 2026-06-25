@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/models/goal.dart';
 import '../../core/services/api_service.dart';
+import '../../core/services/current_user.dart';
 import '../wallet/wallet_model.dart';
 
 // ── Palette ───────────────────────────────────────────────────────────────────
@@ -100,8 +101,9 @@ class _AddGoalSheetState extends State<_AddGoalSheet> {
 
     try {
       // Lưu lên backend
+      final uid = await CurrentUser.id;
       final result = await ApiService.instance.createSavingsGoal(
-        userId:       'user_01',
+        userId:       uid,
         title:        _titleCtrl.text.trim(),
         targetAmount: _amount,
         deadline:     deadlineStr,
