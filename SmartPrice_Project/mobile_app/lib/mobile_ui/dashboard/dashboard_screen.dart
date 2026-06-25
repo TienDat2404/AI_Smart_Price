@@ -110,9 +110,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final budgets = results[1] as List<Budget>;
       return _HomeData(transactions: txs, budgets: budgets, balance: walletBalance);
     } catch (_) {
-      final txs     = await MockData.fetchTransactions();
-      final budgets = await MockData.fetchBudgets();
-      return _HomeData(transactions: txs, budgets: budgets, balance: walletBalance);
+      // Chỉ dùng mock data khi API hoàn toàn không kết nối được
+      // (không fallback khi user mới chỉ chưa có data)
+      return _HomeData(transactions: const [], budgets: const [], balance: walletBalance);
     }
   }
 

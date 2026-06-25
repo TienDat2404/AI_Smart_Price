@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../core/services/api_service.dart';
+import '../../core/services/auth_service.dart';
+import '../../core/services/current_user.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/mobile_layout.dart';
 import '../dashboard/dashboard_screen.dart';
@@ -42,16 +45,42 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _errorMessage = null;
     });
     try {
-      await Future.delayed(const Duration(seconds: 2));
+      // 1. Gọi API đăng ký — ApiService.register tự động login và trả LoginResponse
+      final response = await ApiService.instance.register(
+        name:     _nameCtrl.text.trim(),
+        email:    _emailCtrl.text.trim(),
+        password: _passwordCtrl.text,
+      );
+
+      // 2. Lưu token + thông tin user vào SharedPreferences
+      await Future.wait([
+        AuthService.instance.saveToken(response.token),
+        AuthService.instance.saveUserInfo(
+          userId:  response.userId,
+          name:    response.name,
+          email:   response.email,
+          isAdmin: response.isAdmin,
+        ),
+      ]);
+
+      // 3. Load CurrentUser cache với userId thực của tài khoản mới
+      await CurrentUser.load();
+
       if (!mounted) return;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const DashboardScreen()),
-        );
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const DashboardScreen()),
+      );
+    } on ApiException catch (e) {
+      setState(() {
+        _errorMessage = switch (e.statusCode) {
+          409 => 'Email này đã được sử dụng. Vui lòng dùng email khác.',
+          400 => e.message,
+          >= 500 => 'Lỗi máy chủ. Vui lòng thử lại sau.',
+          _ => e.message,
+        };
       });
     } catch (e) {
-      setState(() => _errorMessage = 'Đăng ký thất bại. Vui lòng thử lại.');
+      setState(() => _errorMessage = 'Không thể kết nối. Kiểm tra lại kết nối mạng.');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
